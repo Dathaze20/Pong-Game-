@@ -189,10 +189,9 @@
       if (gamePaused) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawBall();
-      drawPaddledrawPaddle(4 * PADDLE_WIDTH, leftPaddleY);
+      drawPaddle(4 * PADDLE_WIDTH, leftPaddleY);
       drawPaddle(canvas.width - 5 * PADDLE_WIDTH, rightPaddleY);
-      drawMiddleLine();
-      drawParticles();
+      drawMiddleLine();drawParticles();
 
       if (ballMoving) {
         updateBallPosition();
@@ -216,7 +215,7 @@
 
     function pauseGame() {
       gamePaused = !gamePaused;
-      pauseButton.textContent = gamePaused ? 'Resume' : 'Pause';
+      pauseButton.textContent      = gamePaused ? 'Resume' : 'Pause';
       if (gamePaused) {
         clearInterval(intervalId);
         intervalId = null;
