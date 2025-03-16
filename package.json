@@ -1,0 +1,10 @@
+{
+  "name": "pong-game",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "echo 'No build step defined'"
+  },
+  "dependencies": {
+    // ...existing dependencies...
+  }
+}

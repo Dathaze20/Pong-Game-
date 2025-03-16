@@ -66,3 +66,30 @@ A classic Pong game implemented using HTML, CSS, and JavaScript, designed for bo
 ## License
 
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+
+## Setup
+
+1. Clone the repository:
+    ```sh
+    git clone <your-repo-url>
+    cd Pong-Game-
+    ```
+
+2. Install dependencies:
+    ```sh
+    npm install
+    ```
+
+3. Run the game locally:
+    ```sh
+    npm start
+    ```
+
+## GitHub Actions
+
+This project uses GitHub Actions to automate the deployment process. The workflow file is located at `.github/workflows/deploy.yml`.
+
+To set up GitHub Actions:
+
+1. Ensure you have a `GITHUB_TOKEN` secret set up in your repository settings.
+2. Push your changes to the `main` branch to trigger the workflow.
