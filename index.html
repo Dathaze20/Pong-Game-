@@ -12,7 +12,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            background: red; /* Changed background to red */
             overflow: hidden;
             font-family: 'Arial', sans-serif;
         }
@@ -93,15 +93,15 @@
     </main>
     <footer>
         <audio id="bgMusic" loop>
-            <source src="audio/Original Tetris theme (Tetris Soundtrack).mp3" type="audio/mpeg">
+            <source src="Original Tetris theme (Tetris Soundtrack).mp3" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
         <audio id="scoreSound">
-            <source src="audio/score.mp3" type="audio/mpeg">
+            <source src="score.mp3" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
         <audio id="hitSound">
-            <source src="audio/hit.mp3" type="audio/mpeg">
+            <source src="hit.mp3" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
     </footer>
@@ -290,7 +290,7 @@
             }
 
             updateAIPaddle();
-            animationFrameId = requestAnimationFrame(draw);
+            animationFrameId = window.requestAnimationFrame ? window.requestAnimationFrame(draw) : setTimeout(draw, 1000 / 60);
         }
 
         function startGame() {
@@ -424,7 +424,7 @@
         initializeGame();
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
+            navigator.serviceWorker.register('./service-worker.js')
                 .then(registration => {
                     console.log('Service Worker registered with scope:', registration.scope);
                 })
