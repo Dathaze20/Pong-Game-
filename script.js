@@ -40,6 +40,11 @@ let rightTouch = false;
 let currentLevel = 1;
 let particles = [];
 
+// Adjust speeds dynamically based on screen size
+const deviceScaleFactor = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+const ADJUSTED_BALL_SPEED = INITIAL_BALL_SPEED * deviceScaleFactor;
+const ADJUSTED_PADDLE_SPEED = PADDLE_SPEED * deviceScaleFactor;
+
 function showPauseMessage(message) {
     const pauseMessage = document.getElementById('pauseMessage');
     pauseMessage.textContent = message;
@@ -106,22 +111,45 @@ function drawScore() {
     ctx.fillText(`Left: ${leftScore} | Right: ${rightScore} | Level: ${currentLevel}`, canvas.width / 2, 40);
 }
 
-function updateBallPosition() {
-    ballX += dx;
-    ballY += dy;
+let lastTime = performance.now(); // Use high-resolution timer for better precision
 
-    // Simplified collision detection for walls
+function draw(timestamp) {
+    if (gamePaused) return;
+
+    const deltaTime = Math.min((timestamp - lastTime) / 1000, 0.016); // Cap deltaTime to 60 FPS
+    lastTime = timestamp;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBall();
+    drawPaddle(4 * PADDLE_WIDTH, leftPaddleY);
+    drawPaddle(canvas.width - 5 * PADDLE_WIDTH, rightPaddleY);
+    drawMiddleLine();
+    drawScore();
+    drawParticles();
+
+    if (ballMoving) {
+        updateBallPosition(deltaTime);
+    }
+
+    updateAIPaddle(deltaTime);
+    animationFrameId = window.requestAnimationFrame(draw);
+}
+
+function updateBallPosition(deltaTime) {
+    const speedFactor = deltaTime * 60; // Normalize speed to 60 FPS
+    ballX += dx * speedFactor;
+    ballY += dy * speedFactor;
+
     if (ballY - BALL_RADIUS < 0 || ballY + BALL_RADIUS > canvas.height) {
         dy = -dy;
     }
 
-    // Simplified collision detection for paddles
     if (
         ballX - BALL_RADIUS < 4 * PADDLE_WIDTH &&
         ballY > leftPaddleY &&
         ballY < leftPaddleY + PADDLE_HEIGHT
     ) {
-        dx = -Math.min(Math.abs(dx) * 1.1, MAX_BALL_SPEED) * Math.sign(dx); // Increase speed more noticeably
+        dx = -Math.min(Math.abs(dx) * 1.1, MAX_BALL_SPEED) * Math.sign(dx);
         hitSound.currentTime = 0;
         hitSound.play();
         createParticles(ballX, ballY, PADDLE_COLOR);
@@ -130,13 +158,12 @@ function updateBallPosition() {
         ballY > rightPaddleY &&
         ballY < rightPaddleY + PADDLE_HEIGHT
     ) {
-        dx = -Math.min(Math.abs(dx) * 1.1, MAX_BALL_SPEED) * Math.sign(dx); // Increase speed more noticeably
+        dx = -Math.min(Math.abs(dx) * 1.1, MAX_BALL_SPEED) * Math.sign(dx);
         hitSound.currentTime = 0;
         hitSound.play();
         createParticles(ballX, ballY, PADDLE_COLOR);
     }
 
-    // Scoring logic
     if (ballX + dx < 0) {
         rightScore++;
         scoreSound.currentTime = 0;
@@ -192,24 +219,6 @@ function hexToRgb(hex) {
     return `${r},${g},${b}`;
 }
 
-function draw() {
-    if (gamePaused) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawBall();
-    drawPaddle(4 * PADDLE_WIDTH, leftPaddleY);
-    drawPaddle(canvas.width - 5 * PADDLE_WIDTH, rightPaddleY);
-    drawMiddleLine();
-    drawScore(); // Ensure the scoreboard is drawn in every frame
-    drawParticles();
-
-    if (ballMoving) {
-        updateBallPosition();
-    }
-
-    updateAIPaddle();
-    animationFrameId = window.requestAnimationFrame ? window.requestAnimationFrame(draw) : setTimeout(draw, 1000 / 60);
-}
-
 function startGame() {
     if (!ballMoving) {
         ballMoving = true;
@@ -254,12 +263,13 @@ function restartGame() {
     bgMusic.play();
 }
 
-function updateAIPaddle() {
+function updateAIPaddle(deltaTime) {
+    const speedFactor = deltaTime * 60; // Normalize speed to 60 FPS
     const aiPaddleCenter = rightPaddleY + PADDLE_HEIGHT / 2;
     const ballCenter = ballY;
 
     if (ballX > canvas.width / 2) {
-        rightPaddleY += Math.sign(ballCenter - aiPaddleCenter) * PADDLE_SPEED * 0.8;
+        rightPaddleY += Math.sign(ballCenter - aiPaddleCenter) * PADDLE_SPEED * speedFactor;
         rightPaddleY = Math.max(Math.min(rightPaddleY, canvas.height - PADDLE_HEIGHT), 0);
     }
 }
