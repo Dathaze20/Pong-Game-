@@ -18,8 +18,8 @@ if (!canvas || !ctx || !startButton || !pauseButton || !restartButton || !bgMusi
 const BALL_RADIUS = 8;
 const PADDLE_WIDTH = 20;
 const PADDLE_HEIGHT = 80;
-const INITIAL_BALL_SPEED = 5;
-const PADDLE_SPEED = 5;
+const INITIAL_BALL_SPEED = 8; // Further increased initial speed
+const PADDLE_SPEED = 8; // Further increased paddle speed
 const PARTICLE_COUNT = 30;
 const WINNING_SCORE = 10;
 const MAX_BALL_SPEED = 15;
@@ -40,6 +40,15 @@ let rightTouch = false;
 let currentLevel = 1;
 let particles = [];
 
+function showPauseMessage(message) {
+    const pauseMessage = document.getElementById('pauseMessage');
+    pauseMessage.textContent = message;
+    pauseMessage.style.display = 'block';
+    setTimeout(() => {
+        pauseMessage.style.display = 'none';
+    }, 2000);
+}
+
 function initializeGame() {
     canvas.style.width = '100%';
     canvas.style.height = '100%';
@@ -48,6 +57,7 @@ function initializeGame() {
     resetBall();
     leftPaddleY = rightPaddleY = (canvas.height - PADDLE_HEIGHT) / 2;
     drawScore();
+    showPauseMessage('Get Ready!');
 }
 
 function resetBall() {
@@ -62,6 +72,8 @@ function drawBall() {
     ctx.beginPath();
     ctx.arc(ballX, ballY, BALL_RADIUS, 0, Math.PI * 2);
     ctx.fillStyle = BALL_COLOR;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = BALL_COLOR; // Add glowing effect
     ctx.fill();
     ctx.closePath();
 }
@@ -70,6 +82,8 @@ function drawPaddle(x, y) {
     ctx.beginPath();
     ctx.rect(x, y, PADDLE_WIDTH, PADDLE_HEIGHT);
     ctx.fillStyle = PADDLE_COLOR;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = PADDLE_COLOR; // Add glowing effect
     ctx.fill();
     ctx.closePath();
 }
@@ -85,51 +99,55 @@ function drawMiddleLine() {
 }
 
 function drawScore() {
-    ctx.font = '20px Arial';
-    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '28px Arial'; // Updated font size for better visibility
+    ctx.fillStyle = '#FFD700'; // Match the menu's golden color
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`Left: ${leftScore} | Right: ${rightScore} | Level: ${currentLevel}`, canvas.width / 2, 20);
+    ctx.fillText(`Left: ${leftScore} | Right: ${rightScore} | Level: ${currentLevel}`, canvas.width / 2, 40);
 }
 
 function updateBallPosition() {
     ballX += dx;
     ballY += dy;
 
-    if (ballY + dy < BALL_RADIUS || ballY + dy > canvas.height - BALL_RADIUS) {
+    // Simplified collision detection for walls
+    if (ballY - BALL_RADIUS < 0 || ballY + BALL_RADIUS > canvas.height) {
         dy = -dy;
     }
 
-    if (ballX - BALL_RADIUS < 4 * PADDLE_WIDTH && ballY > leftPaddleY && ballY < leftPaddleY + PADDLE_HEIGHT) {
-        dx = -Math.min(Math.abs(dx) * 1.05, MAX_BALL_SPEED) * Math.sign(dx);
-        dy = Math.min(Math.abs(dy) * 1.05, MAX_BALL_SPEED) * Math.sign(dy);
+    // Simplified collision detection for paddles
+    if (
+        ballX - BALL_RADIUS < 4 * PADDLE_WIDTH &&
+        ballY > leftPaddleY &&
+        ballY < leftPaddleY + PADDLE_HEIGHT
+    ) {
+        dx = -Math.min(Math.abs(dx) * 1.1, MAX_BALL_SPEED) * Math.sign(dx); // Increase speed more noticeably
         hitSound.currentTime = 0;
         hitSound.play();
-        createParticles(ballX, ballY, BALL_COLOR);
-    } else if (ballX + BALL_RADIUS > canvas.width - 5 * PADDLE_WIDTH && ballY > rightPaddleY && ballY < rightPaddleY + PADDLE_HEIGHT) {
-        dx = -Math.min(Math.abs(dx) * 1.05, MAX_BALL_SPEED) * Math.sign(dx);
-        dy = Math.min(Math.abs(dy) * 1.05, MAX_BALL_SPEED) * Math.sign(dy);
+        createParticles(ballX, ballY, PADDLE_COLOR);
+    } else if (
+        ballX + BALL_RADIUS > canvas.width - 5 * PADDLE_WIDTH &&
+        ballY > rightPaddleY &&
+        ballY < rightPaddleY + PADDLE_HEIGHT
+    ) {
+        dx = -Math.min(Math.abs(dx) * 1.1, MAX_BALL_SPEED) * Math.sign(dx); // Increase speed more noticeably
         hitSound.currentTime = 0;
         hitSound.play();
-        createParticles(ballX, ballY, BALL_COLOR);
+        createParticles(ballX, ballY, PADDLE_COLOR);
     }
 
+    // Scoring logic
     if (ballX + dx < 0) {
         rightScore++;
         scoreSound.currentTime = 0;
         scoreSound.play();
-        checkLevelUp();
-        checkGameOver();
         resetBall();
     } else if (ballX + dx > canvas.width) {
         leftScore++;
         scoreSound.currentTime = 0;
         scoreSound.play();
-        checkLevelUp();
-        checkGameOver();
         resetBall();
     }
-    drawScore();
 }
 
 function checkLevelUp() {
@@ -181,6 +199,7 @@ function draw() {
     drawPaddle(4 * PADDLE_WIDTH, leftPaddleY);
     drawPaddle(canvas.width - 5 * PADDLE_WIDTH, rightPaddleY);
     drawMiddleLine();
+    drawScore(); // Ensure the scoreboard is drawn in every frame
     drawParticles();
 
     if (ballMoving) {
@@ -202,6 +221,7 @@ function startGame() {
         pauseButton.textContent = 'Pause';
         bgMusic.play();
     }
+    showPauseMessage('Game Starting!');
 }
 
 function pauseGame() {
@@ -215,6 +235,7 @@ function pauseGame() {
         if (!animationFrameId) animationFrameId = requestAnimationFrame(draw);
         bgMusic.play();
     }
+    showPauseMessage(gamePaused ? 'Game Paused' : 'Game Resumed');
 }
 
 function restartGame() {
@@ -237,12 +258,8 @@ function updateAIPaddle() {
     const aiPaddleCenter = rightPaddleY + PADDLE_HEIGHT / 2;
     const ballCenter = ballY;
 
-    if (ballX > canvas.width / 2 && !gamePaused) {
-        if (ballCenter > aiPaddleCenter + PADDLE_SPEED) {
-            rightPaddleY += PADDLE_SPEED;
-        } else if (ballCenter < aiPaddleCenter - PADDLE_SPEED) {
-            rightPaddleY -= PADDLE_SPEED;
-        }
+    if (ballX > canvas.width / 2) {
+        rightPaddleY += Math.sign(ballCenter - aiPaddleCenter) * PADDLE_SPEED * 0.8;
         rightPaddleY = Math.max(Math.min(rightPaddleY, canvas.height - PADDLE_HEIGHT), 0);
     }
 }
@@ -261,6 +278,36 @@ function createParticles(x, y, color) {
     }
 }
 
+// Add Power-Ups
+function spawnPowerUp() {
+    const powerUpTypes = ['increasePaddle', 'slowBall', 'reverseAI'];
+    const randomType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+    const powerUp = {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        type: randomType,
+        active: true
+    };
+    return powerUp;
+}
+
+function applyPowerUp(powerUp) {
+    if (powerUp.type === 'increasePaddle') {
+        PADDLE_HEIGHT *= 1.5;
+        setTimeout(() => PADDLE_HEIGHT /= 1.5, 5000); // Revert after 5 seconds
+    } else if (powerUp.type === 'slowBall') {
+        dx *= 0.5;
+        dy *= 0.5;
+        setTimeout(() => {
+            dx *= 2;
+            dy *= 2;
+        }, 5000);
+    } else if (powerUp.type === 'reverseAI') {
+        AI_REVERSED = true;
+        setTimeout(() => AI_REVERSED = false, 5000);
+    }
+}
+
 startButton.addEventListener('click', startGame);
 pauseButton.addEventListener('click', pauseGame);
 restartButton.addEventListener('click', restartGame);
@@ -268,6 +315,23 @@ restartButton.addEventListener('click', restartGame);
 playAgainButton.addEventListener('click', restartGame);
 mainMenuButton.addEventListener('click', () => {
     window.location.reload();
+});
+
+document.getElementById('startGameButton').addEventListener('click', () => {
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('gameCanvas').style.display = 'block';
+    document.querySelector('.button-container').style.display = 'flex';
+    initializeGame();
+});
+
+document.getElementById('settingsButton').addEventListener('click', () => {
+    alert('Settings menu is under construction!');
+});
+
+document.getElementById('exitButton').addEventListener('click', () => {
+    if (confirm('Are you sure you want to exit the game?')) {
+        window.location.reload();
+    }
 });
 
 document.addEventListener('keydown', function(e) {

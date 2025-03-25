@@ -13,13 +13,19 @@
         <h1 class="visually-hidden">Pong Game</h1>
     </header>
     <main role="main">
-        <canvas id="gameCanvas" aria-label="Pong Game Canvas"></canvas>
-        <div class="button-container">
+        <div id="mainMenu" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+            <h1 style="font-size: 36px; color: #FFD700;">Pong Game</h1>
+            <button id="startGameButton" style="margin: 10px;">Start Game</button>
+            <button id="settingsButton" style="margin: 10px;">Settings</button>
+            <button id="exitButton" style="margin: 10px;">Exit</button>
+        </div>
+        <canvas id="gameCanvas" aria-label="Pong Game Canvas" style="display: none;"></canvas>
+        <div class="button-container" style="display: none;">
             <button id="startButton" aria-label="Start Game">Start</button>
             <button id="pauseButton" aria-label="Pause Game">Pause</button>
             <button id="restartButton" aria-label="Restart Game">Restart</button>
         </div>
-        <div id="gameOverScreen" role="dialog" aria-labelledby="winnerMessage">
+        <div id="gameOverScreen" role="dialog" aria-labelledby="winnerMessage" style="display: none;">
             <h1 id="winnerMessage"></h1>
             <button id="playAgainButton" aria-label="Play Again">Play Again</button>
             <button id="mainMenuButton" aria-label="Main Menu">Main Menu</button>
