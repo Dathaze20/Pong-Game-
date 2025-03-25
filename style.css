@@ -43,6 +43,14 @@ header {
     border-radius: 8px;
 }
 
+/* Adjusting the button-container buttons to be smaller */
+.button-container button {
+    width: 80px;
+    height: 30px;
+    font-size: 12px;
+    margin: 5px;
+}
+
 button {
     width: 100px;
     height: 50px;
