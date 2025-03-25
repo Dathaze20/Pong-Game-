@@ -29,18 +29,18 @@ header {
     display: none; /* Hide the "Pong Game" text to avoid overlap */
 }
 
+/* Move the button container back to the center-bottom */
 .button-container {
-    position: fixed; /* Ensure buttons stay at the bottom */
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: auto;
+    position: fixed;
+    bottom: 10px; /* Slight padding from the bottom */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Adjust for centering */
     display: flex;
     justify-content: center;
     gap: 10px;
     padding: 10px;
     background: rgba(0, 0, 0, 0.5);
-    border-radius: 8px;
+    border-radius: 8px; /* Rounded corners */
 }
 
 /* Adjusting the button-container buttons to be smaller */

@@ -103,16 +103,16 @@ function drawMiddleLine() {
     ctx.closePath();
 }
 
-// Adjust the scoreboard to display player names from localStorage
+// Adjust the scoreboard to be centered and touch the top border
 function drawScore() {
     const player1Name = localStorage.getItem('player1Name') || 'Player 1';
     const player2Name = localStorage.getItem('player2Name') || 'Player 2';
 
     // Draw the scoreboard box
     const boxWidth = 300;
-    const boxHeight = 60;
-    const boxX = (canvas.width - boxWidth) / 2;
-    const boxY = 20;
+    const boxHeight = 50;
+    const boxX = (canvas.width - boxWidth) / 2; // Center horizontally
+    const boxY = 0; // Touch the top border
 
     ctx.beginPath();
     ctx.rect(boxX, boxY, boxWidth, boxHeight);
