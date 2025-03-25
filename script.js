@@ -18,8 +18,8 @@ if (!canvas || !ctx || !startButton || !pauseButton || !restartButton || !bgMusi
 const BALL_RADIUS = 8;
 const PADDLE_WIDTH = 20;
 const PADDLE_HEIGHT = 120; // Increase paddle height
-const INITIAL_BALL_SPEED = 8; // Further increased initial speed
-const PADDLE_SPEED = 8; // Further increased paddle speed
+const INITIAL_BALL_SPEED = 12; // Increased initial speed
+const PADDLE_SPEED = 12; // Increased paddle speed
 const PARTICLE_COUNT = 30;
 const WINNING_SCORE = 10;
 const MAX_BALL_SPEED = 15;
