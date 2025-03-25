@@ -15,6 +15,12 @@
     <main role="main">
         <div id="mainMenu" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
             <h1 style="font-size: 36px; color: #FFD700;">Pong Game</h1>
+            <input id="player1NameInput" type="text" placeholder="Enter Player 1 Name" style="margin: 10px; padding: 10px; font-size: 16px;" />
+            <input id="player2NameInput" type="text" placeholder="Enter Player 2 Name" style="margin: 10px; padding: 10px; font-size: 16px;" />
+            <select id="gameMode" style="margin: 10px; padding: 10px; font-size: 16px;">
+                <option value="1">1 Player (vs AI)</option>
+                <option value="2">2 Players</option>
+            </select>
             <button id="startGameButton" style="margin: 10px;">Start Game</button>
             <button id="settingsButton" style="margin: 10px;">Settings</button>
             <button id="exitButton" style="margin: 10px;">Exit</button>
@@ -45,5 +51,20 @@
             Your browser does not support the audio element.
         </audio>
     </footer>
+    <script>
+        document.getElementById('startGameButton').addEventListener('click', () => {
+            const player1Name = document.getElementById('player1NameInput').value || 'Player 1';
+            const player2Name = document.getElementById('player2NameInput').value || 'Player 2';
+            const gameMode = document.getElementById('gameMode').value;
+
+            localStorage.setItem('player1Name', player1Name);
+            localStorage.setItem('player2Name', player2Name);
+            localStorage.setItem('gameMode', gameMode);
+
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('gameCanvas').style.display = 'block';
+            document.querySelector('.button-container').style.display = 'flex';
+        });
+    </script>
 </body>
 </html>

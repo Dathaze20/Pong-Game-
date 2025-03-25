@@ -17,7 +17,7 @@ if (!canvas || !ctx || !startButton || !pauseButton || !restartButton || !bgMusi
 
 const BALL_RADIUS = 8;
 const PADDLE_WIDTH = 20;
-const PADDLE_HEIGHT = 80;
+const PADDLE_HEIGHT = 120; // Increase paddle height
 const INITIAL_BALL_SPEED = 8; // Further increased initial speed
 const PADDLE_SPEED = 8; // Further increased paddle speed
 const PARTICLE_COUNT = 30;
@@ -85,7 +85,7 @@ function drawBall() {
 
 function drawPaddle(x, y) {
     ctx.beginPath();
-    ctx.rect(x, y, PADDLE_WIDTH, PADDLE_HEIGHT);
+    ctx.roundRect(x, y, PADDLE_WIDTH, PADDLE_HEIGHT, 10); // Add rounded corners
     ctx.fillStyle = PADDLE_COLOR;
     ctx.shadowBlur = 15;
     ctx.shadowColor = PADDLE_COLOR; // Add glowing effect
@@ -103,12 +103,37 @@ function drawMiddleLine() {
     ctx.closePath();
 }
 
+// Adjust the scoreboard to display player names from localStorage
 function drawScore() {
-    ctx.font = '28px Arial'; // Updated font size for better visibility
-    ctx.fillStyle = '#FFD700'; // Match the menu's golden color
+    const player1Name = localStorage.getItem('player1Name') || 'Player 1';
+    const player2Name = localStorage.getItem('player2Name') || 'Player 2';
+
+    // Draw the scoreboard box
+    const boxWidth = 300;
+    const boxHeight = 60;
+    const boxX = (canvas.width - boxWidth) / 2;
+    const boxY = 20;
+
+    ctx.beginPath();
+    ctx.rect(boxX, boxY, boxWidth, boxHeight);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; // Semi-transparent black background
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#FFD700'; // Golden border
+    ctx.stroke();
+    ctx.closePath();
+
+    // Add player names and scores
+    ctx.font = 'bold 14px Arial';
+    ctx.fillStyle = '#FFFFFF'; // White text color
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`Left: ${leftScore} | Right: ${rightScore} | Level: ${currentLevel}`, canvas.width / 2, 40);
+
+    // Left player name and score
+    ctx.fillText(`${player1Name}: ${leftScore}`, boxX + boxWidth * 0.3, boxY + boxHeight * 0.5);
+
+    // Right player name and score
+    ctx.fillText(`${player2Name}: ${rightScore}`, boxX + boxWidth * 0.7, boxY + boxHeight * 0.5);
 }
 
 let lastTime = performance.now(); // Use high-resolution timer for better precision
@@ -264,6 +289,9 @@ function restartGame() {
 }
 
 function updateAIPaddle(deltaTime) {
+    const gameMode = localStorage.getItem('gameMode');
+    if (gameMode === '2') return; // Skip AI logic in 2-player mode
+
     const speedFactor = deltaTime * 60; // Normalize speed to 60 FPS
     const aiPaddleCenter = rightPaddleY + PADDLE_HEIGHT / 2;
     const ballCenter = ballY;
@@ -271,6 +299,35 @@ function updateAIPaddle(deltaTime) {
     if (ballX > canvas.width / 2) {
         rightPaddleY += Math.sign(ballCenter - aiPaddleCenter) * PADDLE_SPEED * speedFactor;
         rightPaddleY = Math.max(Math.min(rightPaddleY, canvas.height - PADDLE_HEIGHT), 0);
+    }
+}
+
+// Update controls to ensure independent movement for both players
+let keysPressed = new Set();
+
+document.addEventListener('keydown', function(e) {
+    keysPressed.add(e.key);
+});
+
+document.addEventListener('keyup', function(e) {
+    keysPressed.delete(e.key);
+});
+
+function updatePlayerControls() {
+    // Player 1 controls (Arrow keys)
+    if (keysPressed.has('ArrowUp')) {
+        leftPaddleY = Math.max(leftPaddleY - PADDLE_SPEED * 2, 0);
+    }
+    if (keysPressed.has('ArrowDown')) {
+        leftPaddleY = Math.min(leftPaddleY + PADDLE_SPEED * 2, canvas.height - PADDLE_HEIGHT);
+    }
+
+    // Player 2 controls (W and S keys)
+    if (keysPressed.has('w')) {
+        rightPaddleY = Math.max(rightPaddleY - PADDLE_SPEED * 2, 0);
+    }
+    if (keysPressed.has('s')) {
+        rightPaddleY = Math.min(rightPaddleY + PADDLE_SPEED * 2, canvas.height - PADDLE_HEIGHT);
     }
 }
 
@@ -344,27 +401,24 @@ document.getElementById('exitButton').addEventListener('click', () => {
     }
 });
 
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'ArrowUp') {
-        leftPaddleY = Math.max(leftPaddleY - PADDLE_SPEED * 2, 0);
-    } else if (e.key === 'ArrowDown') {
-        leftPaddleY = Math.min(leftPaddleY + PADDLE_SPEED * 2, canvas.height - PADDLE_HEIGHT);
-    }
-});
-
+// Update touch controls to ensure independent movement for both players
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
-    const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
+    const touches = e.touches;
 
-    if (x < canvas.width / 2) {
-        leftTouch = true;
-        leftPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
-    } else {
-        rightTouch = true;
-        rightPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
+    for (let i = 0; i < touches.length; i++) {
+        const touch = touches[i];
+        const rect = canvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+
+        if (x < canvas.width / 2) {
+            leftTouch = true;
+            leftPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
+        } else {
+            rightTouch = true;
+            rightPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
+        }
     }
 
     if (!ballMoving) {
@@ -376,20 +430,29 @@ canvas.addEventListener('touchstart', (e) => {
 
 canvas.addEventListener('touchmove', (e) => {
     e.preventDefault();
-    const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const y = touch.clientY - rect.top;
+    const touches = e.touches;
 
-    if (leftTouch) {
-        leftPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
-    } else if (rightTouch) {
-        rightPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
+    for (let i = 0; i < touches.length; i++) {
+        const touch = touches[i];
+        const rect = canvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+
+        if (x < canvas.width / 2 && leftTouch) {
+            leftPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
+        } else if (x >= canvas.width / 2 && rightTouch) {
+            rightPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
+        }
     }
 }, { passive: false });
 
-canvas.addEventListener('touchend', () => {
-    leftTouch = false;
-    rightTouch = false;
+canvas.addEventListener('touchend', (e) => {
+    const touches = e.touches;
+
+    if (touches.length === 0) {
+        leftTouch = false;
+        rightTouch = false;
+    }
 }, { passive: false });
 
 window.addEventListener('resize', initializeGame);
