@@ -25,6 +25,23 @@
             <button id="settingsButton" style="margin: 10px;">Settings</button>
             <button id="exitButton" style="margin: 10px;">Exit</button>
         </div>
+        <div id="settingsMenu" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+            <h1 style="font-size: 36px; color: #FFD700;">Settings</h1>
+            <label style="margin: 10px; font-size: 16px; color: white;">
+                <input type="checkbox" id="toggleMusic" style="margin-right: 10px;"> Toggle Background Music
+            </label>
+            <label style="margin: 10px; font-size: 16px; color: white;">
+                <input type="checkbox" id="toggleColorblind" style="margin-right: 10px;"> Enable Colorblind Mode
+            </label>
+            <label style="margin: 10px; font-size: 16px; color: white;">
+                <select id="difficulty" style="margin-right: 10px;">
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select> Select Difficulty
+            </label>
+            <button id="backToMenuButton" style="margin: 10px; padding: 10px 20px; font-size: 16px;">Back to Menu</button>
+        </div>
         <canvas id="gameCanvas" aria-label="Pong Game Canvas" style="display: none;"></canvas>
         <div class="button-container" style="display: none;">
             <button id="startButton" aria-label="Start Game">Start</button>
@@ -64,6 +81,37 @@
             document.getElementById('mainMenu').style.display = 'none';
             document.getElementById('gameCanvas').style.display = 'block';
             document.querySelector('.button-container').style.display = 'flex';
+        });
+
+        document.getElementById('settingsButton').addEventListener('click', () => {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('settingsMenu').style.display = 'flex';
+        });
+
+        document.getElementById('backToMenuButton').addEventListener('click', () => {
+            document.getElementById('settingsMenu').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'flex';
+        });
+
+        document.getElementById('toggleMusic').addEventListener('change', (e) => {
+            const bgMusic = document.getElementById('bgMusic');
+            if (e.target.checked) {
+                bgMusic.play();
+            } else {
+                bgMusic.pause();
+            }
+        });
+
+        document.getElementById('toggleColorblind').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.body.classList.add('colorblind-mode');
+            } else {
+                document.body.classList.remove('colorblind-mode');
+            }
+        });
+
+        document.getElementById('difficulty').addEventListener('change', (e) => {
+            localStorage.setItem('difficulty', e.target.value);
         });
     </script>
 </body>

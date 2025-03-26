@@ -1,11 +1,11 @@
-const CACHE_NAME = 'pong-game-cache-v1';
+const CACHE_NAME = 'pong-game-cache-v2';
 const urlsToCache = [
     '/',
     '/index.html',
     '/manifest.json',
-    '/audio/Original Tetris theme (Tetris Soundtrack).mp3',
-    '/audio/score.mp3',
-    '/audio/hit.mp3',
+    '/style.css',
+    '/script.js',
+    '/Original Tetris theme (Tetris Soundtrack).mp3',
     '/icons/icon-192x192.png',
     '/icons/icon-512x512.png'
 ];

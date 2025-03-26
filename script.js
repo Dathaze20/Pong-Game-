@@ -138,11 +138,21 @@ function drawScore() {
 
 let lastTime = performance.now(); // Use high-resolution timer for better precision
 
+// Optimize game performance by capping frame rate and reducing unnecessary calculations
+let lastFrameTime = 0;
+const FRAME_RATE = 60; // Target frame rate
+const FRAME_DURATION = 1000 / FRAME_RATE;
+
 function draw(timestamp) {
     if (gamePaused) return;
 
-    const deltaTime = Math.min((timestamp - lastTime) / 1000, 0.016); // Cap deltaTime to 60 FPS
-    lastTime = timestamp;
+    const deltaTime = timestamp - lastFrameTime;
+    if (deltaTime < FRAME_DURATION) {
+        requestAnimationFrame(draw);
+        return;
+    }
+
+    lastFrameTime = timestamp;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBall();
@@ -153,11 +163,12 @@ function draw(timestamp) {
     drawParticles();
 
     if (ballMoving) {
-        updateBallPosition(deltaTime);
+        updateBallPosition(deltaTime / 1000); // Normalize deltaTime to seconds
     }
 
-    updateAIPaddle(deltaTime);
-    animationFrameId = window.requestAnimationFrame(draw);
+    updatePlayerControls();
+    updateAIPaddle(deltaTime / 1000);
+    requestAnimationFrame(draw);
 }
 
 function updateBallPosition(deltaTime) {
@@ -401,7 +412,7 @@ document.getElementById('exitButton').addEventListener('click', () => {
     }
 });
 
-// Update touch controls to ensure independent movement for both players
+// Enhance touch controls for better responsiveness
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
     const touches = e.touches;
