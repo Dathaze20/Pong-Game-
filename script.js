@@ -10,8 +10,9 @@ const gameOverScreen = document.getElementById('gameOverScreen');
 const winnerMessage = document.getElementById('winnerMessage');
 const playAgainButton = document.getElementById('playAgainButton');
 const mainMenuButton = document.getElementById('mainMenuButton');
+const rateUsButton = document.getElementById('rateUsButton');
 
-if (!canvas || !ctx || !startButton || !pauseButton || !restartButton || !bgMusic || !scoreSound || !hitSound || !gameOverScreen || !winnerMessage || !playAgainButton || !mainMenuButton) {
+if (!canvas || !ctx || !startButton || !pauseButton || !restartButton || !bgMusic || !scoreSound || !hitSound || !gameOverScreen || !winnerMessage || !playAgainButton || !mainMenuButton || !rateUsButton) {
     console.error('One or more required DOM elements are missing.');
 }
 
@@ -39,6 +40,7 @@ let leftTouch = false;
 let rightTouch = false;
 let currentLevel = 1;
 let particles = [];
+let extraBalls = [];
 
 // Adjust speeds dynamically based on screen size
 const deviceScaleFactor = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
@@ -164,6 +166,7 @@ function draw(timestamp) {
 
     if (ballMoving) {
         updateBallPosition(deltaTime / 1000); // Normalize deltaTime to seconds
+        updateExtraBalls(deltaTime / 1000); // Update extra balls
     }
 
     updatePlayerControls();
@@ -171,6 +174,29 @@ function draw(timestamp) {
     requestAnimationFrame(draw);
 }
 
+// Add scoring multiplier for consecutive hits
+let hitStreak = 0;
+let scoreMultiplier = 1;
+
+function updateScore(player) {
+    if (player === 'left') {
+        leftScore += scoreMultiplier;
+    } else if (player === 'right') {
+        rightScore += scoreMultiplier;
+    }
+    hitStreak++;
+    if (hitStreak % 5 === 0) {
+        scoreMultiplier++;
+    }
+    drawScore();
+}
+
+function resetMultiplier() {
+    hitStreak = 0;
+    scoreMultiplier = 1;
+}
+
+// Call updateScore in updateBallPosition
 function updateBallPosition(deltaTime) {
     const speedFactor = deltaTime * 60; // Normalize speed to 60 FPS
     ballX += dx * speedFactor;
@@ -189,6 +215,7 @@ function updateBallPosition(deltaTime) {
         hitSound.currentTime = 0;
         hitSound.play();
         createParticles(ballX, ballY, PADDLE_COLOR);
+        updateScore('left');
     } else if (
         ballX + BALL_RADIUS > canvas.width - 5 * PADDLE_WIDTH &&
         ballY > rightPaddleY &&
@@ -198,17 +225,22 @@ function updateBallPosition(deltaTime) {
         hitSound.currentTime = 0;
         hitSound.play();
         createParticles(ballX, ballY, PADDLE_COLOR);
+        updateScore('right');
     }
 
     if (ballX + dx < 0) {
+        resetMultiplier();
         rightScore++;
         scoreSound.currentTime = 0;
         scoreSound.play();
+        createScoreParticles(canvas.width / 2, canvas.height / 2, '#FFD700'); // Add score particles
         resetBall();
     } else if (ballX + dx > canvas.width) {
+        resetMultiplier();
         leftScore++;
         scoreSound.currentTime = 0;
         scoreSound.play();
+        createScoreParticles(canvas.width / 2, canvas.height / 2, '#FFD700'); // Add score particles
         resetBall();
     }
 }
@@ -267,6 +299,7 @@ function startGame() {
         bgMusic.play();
     }
     showPauseMessage('Game Starting!');
+    startTimer(); // Start the timer when the game starts
 }
 
 function pauseGame() {
@@ -297,6 +330,7 @@ function restartGame() {
     gameOverScreen.style.display = 'none';
     if (!animationFrameId) animationFrameId = requestAnimationFrame(draw);
     bgMusic.play();
+    startTimer(); // Restart the timer when the game restarts
 }
 
 function updateAIPaddle(deltaTime) {
@@ -356,9 +390,9 @@ function createParticles(x, y, color) {
     }
 }
 
-// Add Power-Ups
+// Add new power-ups for gameplay variety
 function spawnPowerUp() {
-    const powerUpTypes = ['increasePaddle', 'slowBall', 'reverseAI'];
+    const powerUpTypes = ['increasePaddle', 'slowBall', 'reverseAI', 'shrinkPaddle', 'ballSplit'];
     const randomType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
     const powerUp = {
         x: Math.random() * canvas.width,
@@ -369,7 +403,11 @@ function spawnPowerUp() {
     return powerUp;
 }
 
+// Add unique sound effects for power-ups
+const powerUpSound = new Audio('power-up.mp3');
 function applyPowerUp(powerUp) {
+    powerUpSound.currentTime = 0;
+    powerUpSound.play();
     if (powerUp.type === 'increasePaddle') {
         PADDLE_HEIGHT *= 1.5;
         setTimeout(() => PADDLE_HEIGHT /= 1.5, 5000); // Revert after 5 seconds
@@ -383,8 +421,131 @@ function applyPowerUp(powerUp) {
     } else if (powerUp.type === 'reverseAI') {
         AI_REVERSED = true;
         setTimeout(() => AI_REVERSED = false, 5000);
+    } else if (powerUp.type === 'shrinkPaddle') {
+        PADDLE_HEIGHT *= 0.5;
+        setTimeout(() => PADDLE_HEIGHT *= 2, 5000); // Revert after 5 seconds
+    } else if (powerUp.type === 'ballSplit') {
+        spawnExtraBall();
     }
 }
+
+function spawnExtraBall() {
+    // Logic to add an extra ball to the game
+    const extraBall = {
+        x: ballX,
+        y: ballY,
+        dx: -dx,
+        dy: -dy,
+        radius: BALL_RADIUS,
+        color: BALL_COLOR
+    };
+    extraBalls.push(extraBall);
+}
+
+function updateExtraBalls(deltaTime) {
+    extraBalls.forEach((ball, index) => {
+        ball.x += ball.dx * deltaTime * 60;
+        ball.y += ball.dy * deltaTime * 60;
+
+        if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+            ball.dy = -ball.dy;
+        }
+
+        if (ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width) {
+            extraBalls.splice(index, 1); // Remove ball if it goes out of bounds
+        }
+    });
+}
+
+// Optimize loading screen to reduce load time
+function showLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    loadingScreen.style.display = 'flex';
+    // Simulate a shorter loading time
+    setTimeout(() => {
+        loadingScreen.style.display = 'none';
+    }, 500); // Reduced to 500ms
+}
+
+// Add event listener for the "Rate Us" button
+rateUsButton.addEventListener('click', () => {
+    alert('Thank you for your feedback! Please rate us on the Play Store.');
+});
+
+// Show tooltips for new players
+function showTooltips() {
+    const tooltips = document.getElementById('tooltips');
+    tooltips.style.display = 'block';
+    setTimeout(() => {
+        tooltips.style.display = 'none';
+    }, 5000); // Hide tooltips after 5 seconds
+}
+
+// Add a timer for timed challenges
+let timer = 60; // 60 seconds countdown
+let timerInterval;
+
+function startTimer() {
+    const timerElement = document.getElementById('timer');
+    timerElement.style.display = 'block';
+    timerInterval = setInterval(() => {
+        timer--;
+        timerElement.textContent = `Time Left: ${timer}s`;
+        if (timer <= 0) {
+            clearInterval(timerInterval);
+            endGame('Time Up!');
+        }
+    }, 1000);
+}
+
+function endGame(message) {
+    gamePaused = true;
+    clearInterval(timerInterval);
+    gameOverScreen.style.display = 'flex';
+    winnerMessage.textContent = message;
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    bgMusic.pause();
+}
+
+// Add splash screen logic
+function showSplashScreen() {
+    const splashScreen = document.getElementById('splashScreen');
+    splashScreen.style.display = 'flex';
+    setTimeout(() => {
+        splashScreen.style.display = 'none';
+        document.getElementById('mainMenu').style.display = 'flex';
+    }, 3000); // Show splash screen for 3 seconds
+}
+
+// Call splash screen on load
+window.addEventListener('load', () => {
+    showSplashScreen();
+    showLoadingScreen();
+    showTooltips();
+});
+
+// Add event listener for difficulty selection
+const difficultySelect = document.getElementById('difficulty');
+difficultySelect.addEventListener('change', (e) => {
+    const difficulty = e.target.value;
+    if (difficulty === 'easy') {
+        INITIAL_BALL_SPEED = 8;
+        PADDLE_SPEED = 10;
+    } else if (difficulty === 'medium') {
+        INITIAL_BALL_SPEED = 12;
+        PADDLE_SPEED = 12;
+    } else if (difficulty === 'hard') {
+        INITIAL_BALL_SPEED = 16;
+        PADDLE_SPEED = 14;
+    }
+    initializeGame();
+});
+
+// Call the loading screen and tooltips on game start
+window.addEventListener('load', () => {
+    showLoadingScreen();
+    showTooltips();
+});
 
 startButton.addEventListener('click', startGame);
 pauseButton.addEventListener('click', pauseGame);
@@ -478,3 +639,57 @@ if ('serviceWorker' in navigator) {
             console.log('Service Worker registration failed:', error);
         });
 }
+
+// Adjust sound effects volume to be louder than the music
+bgMusic.volume = 0.1; // Set to a very low level to prioritize sound effects
+scoreSound.volume = 0.8; // Increase score sound volume
+hitSound.volume = 0.8; // Increase hit sound volume
+
+// Enhance visuals by adding particle effects for scoring
+function createScoreParticles(x, y, color) {
+    for (let i = 0; i < 50; i++) { // Increase particle count for scoring
+        particles.push({
+            x: x,
+            y: y,
+            dx: (Math.random() - 0.5) * 6, // Increase particle spread
+            dy: (Math.random() - 0.5) * 6,
+            radius: Math.random() * 4 + 1, // Larger particles
+            color: color,
+            alpha: 1
+        });
+    }
+}
+
+// Ensure all menu buttons work as intended
+
+// Start Game Button
+startGameButton.addEventListener('click', () => {
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('gameCanvas').style.display = 'block';
+    document.querySelector('.button-container').style.display = 'flex';
+    initializeGame();
+});
+
+// Settings Button
+settingsButton.addEventListener('click', () => {
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('settingsMenu').style.display = 'flex';
+});
+
+// Back to Menu Button
+backToMenuButton.addEventListener('click', () => {
+    document.getElementById('settingsMenu').style.display = 'none';
+    document.getElementById('mainMenu').style.display = 'flex';
+});
+
+// Rate Us Button
+rateUsButton.addEventListener('click', () => {
+    alert('Thank you for your feedback! Please rate us on the Play Store.');
+});
+
+// Exit Button
+exitButton.addEventListener('click', () => {
+    if (confirm('Are you sure you want to exit the game?')) {
+        window.location.reload();
+    }
+});
