@@ -14,9 +14,10 @@ body {
     height: 100vh;
     margin: 0;
     overflow: hidden;
-    background: linear-gradient(270deg, #ff7e5f, #feb47b, #86a8e7, #91eae4);
-    background-size: 800% 800%;
-    animation: gradientAnimation 12s ease infinite;
+    background: linear-gradient(135deg, #1a2a6c, #16213e, #0f3460);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    color: #ffffff;
 }
 
 #mainMenu, #settingsMenu, #gameOverScreen {
@@ -28,9 +29,12 @@ body {
     height: 100%;
     box-sizing: border-box;
     padding: 30px;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(135deg, #1e1e2f, #3a3a5f);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    text-align: center;
+    animation: fadeIn 1s ease;
 }
 
 canvas {
@@ -40,11 +44,10 @@ canvas {
     width: 100%;
     height: 100%;
     display: block;
-    background: rgba(0, 0, 0, 0.8);
-    border: 4px solid #00FA9A; /* Ensure border wraps fully */
-    box-sizing: border-box; /* Include border in the element's dimensions */
-    border-radius: 0; /* Remove rounding to ensure full wrap */
-    box-shadow: 0 0 20px rgba(0, 250, 154, 0.8); /* Glowing effect */
+    background: linear-gradient(135deg, #0f2027, #203a43);
+    border: 5px solid #4caf50; /* Sleek green border */
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(76, 175, 80, 0.8);
     max-width: 100%;
     height: auto;
     max-height: 100%;
@@ -77,20 +80,19 @@ header {
 }
 
 button {
-    width: 100px;
-    height: 50px;
-    background: linear-gradient(135deg, #4a90e2, #007aff);
-    color: #fff;
-    border: none;
-    font-size: 18px;
-    font-family: 'Arial', sans-serif;
-    border-radius: 10px;
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
-    text-transform: uppercase;
-    animation: buttonHover 0.3s ease-in-out;
-    padding: 15px 30px;
     transition: all 0.3s ease;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
 }
 
 @keyframes buttonHover {
@@ -102,19 +104,13 @@ button {
     }
 }
 
-button:hover {
-    background: linear-gradient(135deg, #007aff, #4a90e2);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
-    transform: scale(1.1);
-}
-
 #gameOverScreen {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #d4145a, #e94e77);
+    background: linear-gradient(135deg, #d4145a, #fbb03b);
     color: #fff;
     display: flex;
     flex-direction: column;
@@ -160,19 +156,24 @@ button:hover {
 
 /* Ensure Green Border Wraps Fully */
 canvas {
-    border: 4px solid #00FA9A; /* Ensure border wraps fully */
+    border: 4px solid #ff6f61; /* Vibrant border */
     box-sizing: border-box; /* Include border in the element's dimensions */
     border-radius: 0; /* Remove rounding to ensure full wrap */
-    box-shadow: 0 0 20px rgba(0, 250, 154, 0.8); /* Glowing effect */
+    box-shadow: 0 0 20px rgba(255, 111, 97, 0.8); /* Glowing effect */
 }
 
 /* Improve Visual Consistency */
 .scoreboard {
     font-size: 28px;
-    color: #FFD700;
+    color: #4caf50;
     text-shadow: 0 4px 10px rgba(255, 215, 0, 0.6);
     font-family: 'Arial', sans-serif;
     animation: fadeIn 1s ease, scoreboardGlow 1.5s ease-in-out infinite;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    text-align: center;
 }
 
 @keyframes scoreboardGlow {
@@ -182,7 +183,9 @@ canvas {
 
 /* Add Glowing Effect to Paddles */
 .paddle {
-    box-shadow: 0 0 15px rgba(0, 250, 154, 0.8);
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
 }
 
 /* Add animations for paddles and ball */
@@ -193,6 +196,12 @@ canvas {
     to {
         transform: translateY(10px);
     }
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
 }
 
 @keyframes ballBounce {
@@ -225,17 +234,18 @@ canvas {
     height: auto;
 }
 
+/* Enhance the game board UI and UX */
 #gameCanvas {
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    border: 4px solid #FFD700; /* Golden border */
-    border-radius: 15px;
-    box-shadow: 0 8px 40px rgba(255, 215, 0, 1); /* Stronger glow */
-    animation: boardGlow 3s infinite alternate;
+    background: linear-gradient(135deg, #1a2a6c, #16213e, #0f3460);
+    border: 8px solid #4caf50; /* Sleek green border */
+    border-radius: 20px; /* More rounded corners */
+    box-shadow: 0 15px 50px rgba(76, 175, 80, 0.8), 0 0 30px rgba(0, 255, 204, 0.5); /* Stronger glow */
+    animation: boardGlow 5s infinite alternate; /* Smooth glowing animation */
 }
 
 @keyframes boardGlow {
-    0% { box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5); }
-    100% { box-shadow: 0 8px 40px rgba(255, 215, 0, 1); }
+    0% { box-shadow: 0 15px 30px rgba(76, 175, 80, 0.5), 0 0 20px rgba(0, 255, 204, 0.3); }
+    100% { box-shadow: 0 15px 50px rgba(76, 175, 80, 0.8), 0 0 30px rgba(0, 255, 204, 0.5); }
 }
 
 /* Add particle effects for paddle hits and scoring */
@@ -265,8 +275,8 @@ canvas {
 
 /* Upgrade the main menu UI */
 #mainMenu {
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    color: #FFD700;
+    background: linear-gradient(135deg, #1e1e2f, #3a3a5f);
+    color: #ffffff;
     text-align: center;
     animation: fadeIn 1s ease;
 }
@@ -367,45 +377,33 @@ canvas {
 
 /* Ensure the restart button matches other buttons and fixes text overflow */
 #restartButton {
-    background: linear-gradient(135deg, #4a90e2, #007aff); /* Match other buttons */
-    color: #fff;
-    font-size: 14px; /* Reduce font size */
-    padding: 10px 20px; /* Adjust padding */
-    text-align: center; /* Center text */
-    white-space: nowrap; /* Prevent text wrapping */
-    border-radius: 8px; /* Match other buttons */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Match other buttons */
+    background: linear-gradient(135deg, #ff5722, #e64a19); /* Vibrant orange gradient */
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
 }
 
 #restartButton:hover {
-    background: linear-gradient(135deg, #007aff, #4a90e2); /* Match hover effect */
-    transform: scale(1.05); /* Slight hover effect */
-}
-
-/* Further refine the restart button to fix text overflow */
-#restartButton {
-    padding: 8px 16px; /* Reduce padding to fit text */
-    font-size: 13px; /* Slightly smaller font size */
-    line-height: 1.2; /* Adjust line height for better text fit */
-    text-align: center; /* Ensure text is centered */
-    white-space: nowrap; /* Prevent text wrapping */
-    overflow: hidden; /* Ensure no text spills out */
-    box-sizing: border-box; /* Include padding and border in size */
+    background: linear-gradient(135deg, #e64a19, #ff5722);
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 /* Modernize the game board */
 #gameCanvas {
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    border: 4px solid #FFD700; /* Golden border */
-    border-radius: 15px;
-    box-shadow: 0 8px 40px rgba(255, 215, 0, 1); /* Stronger glow */
-    animation: boardGlow 3s infinite alternate;
+    background: linear-gradient(135deg, #1a2a6c, #16213e, #0f3460);
+    border: 8px solid #4caf50; /* Sleek green border */
+    border-radius: 20px; /* More rounded corners */
+    box-shadow: 0 15px 50px rgba(76, 175, 80, 0.8), 0 0 30px rgba(0, 255, 204, 0.5); /* Stronger glow */
+    animation: boardGlow 5s infinite alternate; /* Smooth glowing animation */
 }
 
 @keyframes boardGlow {
-    0% { box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5); }
-    100% { box-shadow: 0 8px 40px rgba(255, 215, 0, 1); }
+    0% { box-shadow: 0 15px 30px rgba(76, 175, 80, 0.5), 0 0 20px rgba(0, 255, 204, 0.3); }
+    100% { box-shadow: 0 15px 50px rgba(76, 175, 80, 0.8), 0 0 30px rgba(0, 255, 204, 0.5); }
 }
 
 /* Add a futuristic background animation */
@@ -417,11 +415,11 @@ canvas {
 
 /* Enhance the scoreboard */
 .scoreboard {
-    background: rgba(0, 0, 0, 0.8);
-    color: #FFD700;
-    font-size: 24px;
-    padding: 10px 20px;
-    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #4caf50;
+    font-size: 20px;
+    padding: 10px;
+    border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     text-align: center;
     animation: scoreboardGlow 1.5s ease-in-out infinite;
@@ -434,11 +432,19 @@ canvas {
 
 /* Standardize button font sizes and styles */
 button {
-    font-size: 16px; /* Ensure consistent font size */
-    font-family: 'Arial', sans-serif; /* Use a standard font */
-    text-align: center; /* Center text alignment */
-    padding: 10px 20px; /* Standardize padding */
-    white-space: nowrap; /* Prevent text wrapping */
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
 }
 
 /* Add animations for power-ups */
@@ -508,30 +514,36 @@ button:active {
 
 /* Refine visuals for paddles, ball, and game board */
 .paddle {
-    background: linear-gradient(135deg, #00FA9A, #00C9A7);
-    box-shadow: 0 0 15px rgba(0, 250, 154, 0.8);
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
     border-radius: 10px;
 }
 
 .ball {
-    background: radial-gradient(circle, #FFD700, #FFA500);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
     border-radius: 50%;
 }
 
 /* Adjust button visuals */
 button {
-    background: linear-gradient(135deg, #4a90e2, #007aff);
-    color: #fff;
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
     font-size: 16px;
-    padding: 12px 24px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
 }
 
 button:hover {
-    background: linear-gradient(135deg, #007aff, #4a90e2);
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
     transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }

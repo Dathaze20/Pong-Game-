@@ -47,15 +47,6 @@ const deviceScaleFactor = Math.min(window.innerWidth / 1920, window.innerHeight 
 const ADJUSTED_BALL_SPEED = INITIAL_BALL_SPEED * deviceScaleFactor;
 const ADJUSTED_PADDLE_SPEED = PADDLE_SPEED * deviceScaleFactor;
 
-function showPauseMessage(message) {
-    const pauseMessage = document.getElementById('pauseMessage');
-    pauseMessage.textContent = message;
-    pauseMessage.style.display = 'block';
-    setTimeout(() => {
-        pauseMessage.style.display = 'none';
-    }, 2000);
-}
-
 function initializeGame() {
     canvas.style.width = '100%';
     canvas.style.height = '100%';
@@ -64,7 +55,11 @@ function initializeGame() {
     resetBall();
     leftPaddleY = rightPaddleY = (canvas.height - PADDLE_HEIGHT) / 2;
     drawScore();
-    showPauseMessage('Get Ready!');
+    ballMoving = false;
+    gamePaused = false;
+    if (!animationFrameId) {
+        animationFrameId = requestAnimationFrame(draw);
+    }
 }
 
 function resetBall() {
@@ -196,51 +191,46 @@ function resetMultiplier() {
     scoreMultiplier = 1;
 }
 
-// Call updateScore in updateBallPosition
+// Refine ball movement for smoother gameplay
+const scoreEffectSound = new Audio('score-effect.mp3');
+
+// Improve ball movement for smoother gameplay
 function updateBallPosition(deltaTime) {
     const speedFactor = deltaTime * 60; // Normalize speed to 60 FPS
     ballX += dx * speedFactor;
     ballY += dy * speedFactor;
 
+    // Ball collision with top and bottom walls
     if (ballY - BALL_RADIUS < 0 || ballY + BALL_RADIUS > canvas.height) {
         dy = -dy;
+        dy += (Math.random() - 0.5) * 0.5; // Add slight randomness to the bounce angle
     }
 
+    // Ball collision with paddles
     if (
         ballX - BALL_RADIUS < 4 * PADDLE_WIDTH &&
         ballY > leftPaddleY &&
         ballY < leftPaddleY + PADDLE_HEIGHT
     ) {
         dx = -Math.min(Math.abs(dx) * 1.1, MAX_BALL_SPEED) * Math.sign(dx);
+        dy += (Math.random() - 0.5) * 0.5; // Add slight randomness to the bounce angle
         hitSound.currentTime = 0;
         hitSound.play();
         createParticles(ballX, ballY, PADDLE_COLOR);
-        updateScore('left');
     } else if (
         ballX + BALL_RADIUS > canvas.width - 5 * PADDLE_WIDTH &&
         ballY > rightPaddleY &&
         ballY < rightPaddleY + PADDLE_HEIGHT
     ) {
         dx = -Math.min(Math.abs(dx) * 1.1, MAX_BALL_SPEED) * Math.sign(dx);
+        dy += (Math.random() - 0.5) * 0.5; // Add slight randomness to the bounce angle
         hitSound.currentTime = 0;
         hitSound.play();
         createParticles(ballX, ballY, PADDLE_COLOR);
-        updateScore('right');
     }
 
-    if (ballX + dx < 0) {
-        resetMultiplier();
-        rightScore++;
-        scoreSound.currentTime = 0;
-        scoreSound.play();
-        createScoreParticles(canvas.width / 2, canvas.height / 2, '#FFD700'); // Add score particles
-        resetBall();
-    } else if (ballX + dx > canvas.width) {
-        resetMultiplier();
-        leftScore++;
-        scoreSound.currentTime = 0;
-        scoreSound.play();
-        createScoreParticles(canvas.width / 2, canvas.height / 2, '#FFD700'); // Add score particles
+    // Ball out of bounds
+    if (ballX + dx < 0 || ballX + dx > canvas.width) {
         resetBall();
     }
 }
@@ -248,11 +238,15 @@ function updateBallPosition(deltaTime) {
 function checkLevelUp() {
     if ((leftScore + rightScore) % POINTS_PER_LEVEL === 0 && (leftScore + rightScore) > 0) {
         currentLevel++;
+        dx *= 1.1; // Increase ball speed
+        dy *= 1.1;
+        PADDLE_SPEED += 0.5; // Increase paddle speed
     }
 }
 
 function checkGameOver() {
     if (leftScore >= WINNING_SCORE || rightScore >= WINNING_SCORE) {
+        saveProgress();
         gameOverScreen.style.display = 'flex';
         winnerMessage.textContent = leftScore >= WINNING_SCORE ? 'Left Player Wins!' : 'Right Player Wins!';
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
@@ -298,8 +292,6 @@ function startGame() {
         pauseButton.textContent = 'Pause';
         bgMusic.play();
     }
-    showPauseMessage('Game Starting!');
-    startTimer(); // Start the timer when the game starts
 }
 
 function pauseGame() {
@@ -313,7 +305,6 @@ function pauseGame() {
         if (!animationFrameId) animationFrameId = requestAnimationFrame(draw);
         bgMusic.play();
     }
-    showPauseMessage(gamePaused ? 'Game Paused' : 'Game Resumed');
 }
 
 function restartGame() {
@@ -330,21 +321,35 @@ function restartGame() {
     gameOverScreen.style.display = 'none';
     if (!animationFrameId) animationFrameId = requestAnimationFrame(draw);
     bgMusic.play();
-    startTimer(); // Restart the timer when the game restarts
 }
 
+// Further refine AI paddle mechanics for smoother tracking
 function updateAIPaddle(deltaTime) {
-    const gameMode = localStorage.getItem('gameMode');
-    if (gameMode === '2') return; // Skip AI logic in 2-player mode
-
     const speedFactor = deltaTime * 60; // Normalize speed to 60 FPS
     const aiPaddleCenter = rightPaddleY + PADDLE_HEIGHT / 2;
-    const ballCenter = ballY;
+    const predictedY = ballY + (dy / dx) * (canvas.width - ballX);
 
     if (ballX > canvas.width / 2) {
-        rightPaddleY += Math.sign(ballCenter - aiPaddleCenter) * PADDLE_SPEED * speedFactor;
-        rightPaddleY = Math.max(Math.min(rightPaddleY, canvas.height - PADDLE_HEIGHT), 0);
+        const adjustmentSpeed = PADDLE_SPEED * speedFactor;
+        if (predictedY > aiPaddleCenter + 15) { // Reduce buffer for more precise tracking
+            rightPaddleY += adjustmentSpeed;
+        } else if (predictedY < aiPaddleCenter - 15) {
+            rightPaddleY -= adjustmentSpeed;
+        }
     }
+
+    // Add a reaction boost when the ball is very close to the paddle
+    if (ballX > canvas.width * 0.8) {
+        const reactionBoost = 2.0; // Increase paddle speed significantly
+        if (predictedY > aiPaddleCenter + 15) {
+            rightPaddleY += PADDLE_SPEED * speedFactor * reactionBoost;
+        } else if (predictedY < aiPaddleCenter - 15) {
+            rightPaddleY -= PADDLE_SPEED * speedFactor * reactionBoost;
+        }
+    }
+
+    // Clamp paddle position to stay within canvas bounds
+    rightPaddleY = Math.max(Math.min(rightPaddleY, canvas.height - PADDLE_HEIGHT), 0);
 }
 
 // Update controls to ensure independent movement for both players
@@ -389,6 +394,60 @@ function createParticles(x, y, color) {
         });
     }
 }
+
+// Fix touch controls for mobile devices
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touches = e.touches;
+
+    for (let i = 0; i < touches.length; i++) {
+        const touch = touches[i];
+        const rect = canvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+
+        if (x < canvas.width / 2) {
+            leftTouch = true;
+            leftPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
+        } else {
+            rightTouch = true;
+            rightPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
+        }
+    }
+
+    if (!ballMoving) {
+        ballMoving = true;
+        if (!animationFrameId) animationFrameId = requestAnimationFrame(draw);
+        bgMusic.play();
+    }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const touches = e.touches;
+
+    for (let i = 0; i < touches.length; i++) {
+        const touch = touches[i];
+        const rect = canvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+
+        if (x < canvas.width / 2 && leftTouch) {
+            leftPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
+        } else if (x >= canvas.width / 2 && rightTouch) {
+            rightPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
+        }
+    }
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+    const touches = e.touches;
+
+    if (touches.length === 0) {
+        leftTouch = false;
+        rightTouch = false;
+    }
+}, { passive: false });
 
 // Add new power-ups for gameplay variety
 function spawnPowerUp() {
@@ -488,6 +547,7 @@ let timerInterval;
 function startTimer() {
     const timerElement = document.getElementById('timer');
     timerElement.style.display = 'block';
+    timerElement.textContent = `Time Left: ${timer}s`;
     timerInterval = setInterval(() => {
         timer--;
         timerElement.textContent = `Time Left: ${timer}s`;
@@ -517,6 +577,21 @@ function showSplashScreen() {
     }, 3000); // Show splash screen for 3 seconds
 }
 
+// Ensure the "How to Play" section is displayed when triggered
+const howToPlayButton = document.createElement('button');
+howToPlayButton.textContent = 'How to Play';
+howToPlayButton.style.margin = '10px';
+howToPlayButton.addEventListener('click', () => {
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('howToPlay').style.display = 'flex';
+});
+document.getElementById('mainMenu').appendChild(howToPlayButton);
+
+document.getElementById('backToMenuFromHowToPlay').addEventListener('click', () => {
+    document.getElementById('howToPlay').style.display = 'none';
+    document.getElementById('mainMenu').style.display = 'flex';
+});
+
 // Call splash screen on load
 window.addEventListener('load', () => {
     showSplashScreen();
@@ -524,172 +599,14 @@ window.addEventListener('load', () => {
     showTooltips();
 });
 
+// Ensure the game starts properly when the "Start" button is clicked
+startButton.addEventListener('click', () => {
+    initializeGame(); // Initialize the game elements
+    if (!animationFrameId) {
+        animationFrameId = requestAnimationFrame(draw);
+    }
+    bgMusic.play();
+});
+
 // Add event listener for difficulty selection
 const difficultySelect = document.getElementById('difficulty');
-difficultySelect.addEventListener('change', (e) => {
-    const difficulty = e.target.value;
-    if (difficulty === 'easy') {
-        INITIAL_BALL_SPEED = 8;
-        PADDLE_SPEED = 10;
-    } else if (difficulty === 'medium') {
-        INITIAL_BALL_SPEED = 12;
-        PADDLE_SPEED = 12;
-    } else if (difficulty === 'hard') {
-        INITIAL_BALL_SPEED = 16;
-        PADDLE_SPEED = 14;
-    }
-    initializeGame();
-});
-
-// Call the loading screen and tooltips on game start
-window.addEventListener('load', () => {
-    showLoadingScreen();
-    showTooltips();
-});
-
-startButton.addEventListener('click', startGame);
-pauseButton.addEventListener('click', pauseGame);
-restartButton.addEventListener('click', restartGame);
-
-playAgainButton.addEventListener('click', restartGame);
-mainMenuButton.addEventListener('click', () => {
-    window.location.reload();
-});
-
-document.getElementById('startGameButton').addEventListener('click', () => {
-    document.getElementById('mainMenu').style.display = 'none';
-    document.getElementById('gameCanvas').style.display = 'block';
-    document.querySelector('.button-container').style.display = 'flex';
-    initializeGame();
-});
-
-document.getElementById('settingsButton').addEventListener('click', () => {
-    alert('Settings menu is under construction!');
-});
-
-document.getElementById('exitButton').addEventListener('click', () => {
-    if (confirm('Are you sure you want to exit the game?')) {
-        window.location.reload();
-    }
-});
-
-// Enhance touch controls for better responsiveness
-canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    const touches = e.touches;
-
-    for (let i = 0; i < touches.length; i++) {
-        const touch = touches[i];
-        const rect = canvas.getBoundingClientRect();
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-
-        if (x < canvas.width / 2) {
-            leftTouch = true;
-            leftPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
-        } else {
-            rightTouch = true;
-            rightPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
-        }
-    }
-
-    if (!ballMoving) {
-        ballMoving = true;
-        if (!animationFrameId) animationFrameId = requestAnimationFrame(draw);
-        bgMusic.play();
-    }
-}, { passive: false });
-
-canvas.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    const touches = e.touches;
-
-    for (let i = 0; i < touches.length; i++) {
-        const touch = touches[i];
-        const rect = canvas.getBoundingClientRect();
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-
-        if (x < canvas.width / 2 && leftTouch) {
-            leftPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
-        } else if (x >= canvas.width / 2 && rightTouch) {
-            rightPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
-        }
-    }
-}, { passive: false });
-
-canvas.addEventListener('touchend', (e) => {
-    const touches = e.touches;
-
-    if (touches.length === 0) {
-        leftTouch = false;
-        rightTouch = false;
-    }
-}, { passive: false });
-
-window.addEventListener('resize', initializeGame);
-initializeGame();
-
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js')
-        .then(registration => {
-            console.log('Service Worker registered with scope:', registration.scope);
-        })
-        .catch(error => {
-            console.log('Service Worker registration failed:', error);
-        });
-}
-
-// Adjust sound effects volume to be louder than the music
-bgMusic.volume = 0.1; // Set to a very low level to prioritize sound effects
-scoreSound.volume = 0.8; // Increase score sound volume
-hitSound.volume = 0.8; // Increase hit sound volume
-
-// Enhance visuals by adding particle effects for scoring
-function createScoreParticles(x, y, color) {
-    for (let i = 0; i < 50; i++) { // Increase particle count for scoring
-        particles.push({
-            x: x,
-            y: y,
-            dx: (Math.random() - 0.5) * 6, // Increase particle spread
-            dy: (Math.random() - 0.5) * 6,
-            radius: Math.random() * 4 + 1, // Larger particles
-            color: color,
-            alpha: 1
-        });
-    }
-}
-
-// Ensure all menu buttons work as intended
-
-// Start Game Button
-startGameButton.addEventListener('click', () => {
-    document.getElementById('mainMenu').style.display = 'none';
-    document.getElementById('gameCanvas').style.display = 'block';
-    document.querySelector('.button-container').style.display = 'flex';
-    initializeGame();
-});
-
-// Settings Button
-settingsButton.addEventListener('click', () => {
-    document.getElementById('mainMenu').style.display = 'none';
-    document.getElementById('settingsMenu').style.display = 'flex';
-});
-
-// Back to Menu Button
-backToMenuButton.addEventListener('click', () => {
-    document.getElementById('settingsMenu').style.display = 'none';
-    document.getElementById('mainMenu').style.display = 'flex';
-});
-
-// Rate Us Button
-rateUsButton.addEventListener('click', () => {
-    alert('Thank you for your feedback! Please rate us on the Play Store.');
-});
-
-// Exit Button
-exitButton.addEventListener('click', () => {
-    if (confirm('Are you sure you want to exit the game?')) {
-        window.location.reload();
-    }
-});
