@@ -24,10 +24,10 @@
                 <option value="1">1 Player (vs AI)</option>
                 <option value="2">2 Players</option>
             </select>
-            <button id="startGameButton" style="margin: 10px;">Start Game</button>
-            <button id="settingsButton" style="margin: 10px;">Settings</button>
-            <button id="rateUsButton" style="margin: 10px;">Rate Us</button>
-            <button id="exitButton" style="margin: 10px;">Exit</button>
+            <button id="startGameButton" class="btn btn-primary" aria-label="Start Game">Start Game</button>
+            <button id="settingsButton" class="btn btn-secondary" aria-label="Open Settings">Settings</button>
+            <button id="rateUsButton" class="btn btn-secondary" aria-label="Rate Us">Rate Us</button>
+            <button id="exitButton" class="btn btn-secondary" aria-label="Exit Game">Exit</button>
         </div>
         <div id="settingsMenu" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
             <h1 style="font-size: 36px; color: #FFD700;">Settings</h1>
@@ -53,7 +53,7 @@
             <button id="restartButton" aria-label="Restart Game">Restart</button>
         </div>
         <div id="gameOverScreen" role="dialog" aria-labelledby="winnerMessage" style="display: none;">
-            <h1 id="winnerMessage"></h1>
+            <h1 id="winnerMessage">Game Over</h1>
             <button id="playAgainButton" aria-label="Play Again">Play Again</button>
             <button id="mainMenuButton" aria-label="Main Menu">Main Menu</button>
         </div>
@@ -90,10 +90,6 @@
         </audio>
         <audio id="scoreSound">
             <source src="http://localhost:8000/score.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-        <audio id="hitSound">
-            <source src="hit.mp3" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
         <audio id="hitSound">

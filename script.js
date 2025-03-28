@@ -16,19 +16,35 @@ if (!canvas || !ctx || !startButton || !pauseButton || !restartButton || !bgMusi
     console.error('One or more required DOM elements are missing.');
 }
 
-const BALL_RADIUS = 8;
-const PADDLE_WIDTH = 20;
-const PADDLE_HEIGHT = 120; // Increase paddle height
-const INITIAL_BALL_SPEED = 12; // Increased initial speed
-const PADDLE_SPEED = 12; // Increased paddle speed
-const PARTICLE_COUNT = 30;
-const WINNING_SCORE = 10;
-const MAX_BALL_SPEED = 15;
-const POINTS_PER_LEVEL = 3;
+// Added configuration object for easier tweaking of game settings
+const config = {
+    BALL_RADIUS: 8,
+    PADDLE_WIDTH: 20,
+    PADDLE_HEIGHT: 120,
+    INITIAL_BALL_SPEED: 12,
+    PADDLE_SPEED: 12,
+    PARTICLE_COUNT: 30,
+    WINNING_SCORE: 10,
+    MAX_BALL_SPEED: 15,
+    POINTS_PER_LEVEL: 3,
+    BALL_COLOR: '#FFD700',
+    PADDLE_COLOR: '#00FA9A',
+    MIDDLE_LINE_COLOR: '#FFFFFF'
+};
 
-const BALL_COLOR = '#FFD700';
-const PADDLE_COLOR = '#00FA9A';
-const MIDDLE_LINE_COLOR = '#FFFFFF';
+const BALL_RADIUS = config.BALL_RADIUS;
+const PADDLE_WIDTH = config.PADDLE_WIDTH;
+const PADDLE_HEIGHT = config.PADDLE_HEIGHT;
+const INITIAL_BALL_SPEED = config.INITIAL_BALL_SPEED;
+const PADDLE_SPEED = config.PADDLE_SPEED;
+const PARTICLE_COUNT = config.PARTICLE_COUNT;
+const WINNING_SCORE = config.WINNING_SCORE;
+const MAX_BALL_SPEED = config.MAX_BALL_SPEED;
+const POINTS_PER_LEVEL = config.POINTS_PER_LEVEL;
+
+const BALL_COLOR = config.BALL_COLOR;
+const PADDLE_COLOR = config.PADDLE_COLOR;
+const MIDDLE_LINE_COLOR = config.MIDDLE_LINE_COLOR;
 
 let ballX, ballY, dx, dy;
 let leftPaddleY, rightPaddleY;
@@ -46,6 +62,8 @@ let extraBalls = [];
 const deviceScaleFactor = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
 const ADJUSTED_BALL_SPEED = INITIAL_BALL_SPEED * deviceScaleFactor;
 const ADJUSTED_PADDLE_SPEED = PADDLE_SPEED * deviceScaleFactor;
+
+let lastFrameTime = 0; // Unified declaration for frame rate capping
 
 function initializeGame() {
     canvas.style.width = '100%';
@@ -136,7 +154,6 @@ function drawScore() {
 let lastTime = performance.now(); // Use high-resolution timer for better precision
 
 // Optimize game performance by capping frame rate and reducing unnecessary calculations
-let lastFrameTime = 0;
 const FRAME_RATE = 60; // Target frame rate
 const FRAME_DURATION = 1000 / FRAME_RATE;
 
@@ -166,6 +183,7 @@ function draw(timestamp) {
 
     updatePlayerControls();
     updateAIPaddle(deltaTime / 1000);
+    updatePlayerPaddle(deltaTime / 1000);
     requestAnimationFrame(draw);
 }
 
@@ -323,33 +341,58 @@ function restartGame() {
     bgMusic.play();
 }
 
-// Further refine AI paddle mechanics for smoother tracking
+// Further refined AI paddle movement to prevent jittering
 function updateAIPaddle(deltaTime) {
     const speedFactor = deltaTime * 60; // Normalize speed to 60 FPS
     const aiPaddleCenter = rightPaddleY + PADDLE_HEIGHT / 2;
-    const predictedY = ballY + (dy / dx) * (canvas.width - ballX);
+    const predictedY = predictBallY(); // Predict ball trajectory
 
-    if (ballX > canvas.width / 2) {
-        const adjustmentSpeed = PADDLE_SPEED * speedFactor;
-        if (predictedY > aiPaddleCenter + 15) { // Reduce buffer for more precise tracking
-            rightPaddleY += adjustmentSpeed;
-        } else if (predictedY < aiPaddleCenter - 15) {
-            rightPaddleY -= adjustmentSpeed;
-        }
-    }
+    // Smooth paddle movement with acceleration and deceleration
+    const distance = predictedY - aiPaddleCenter;
+    const maxSpeed = PADDLE_SPEED * speedFactor * 0.9; // Slightly slower for balance
 
-    // Add a reaction boost when the ball is very close to the paddle
-    if (ballX > canvas.width * 0.8) {
-        const reactionBoost = 2.0; // Increase paddle speed significantly
-        if (predictedY > aiPaddleCenter + 15) {
-            rightPaddleY += PADDLE_SPEED * speedFactor * reactionBoost;
-        } else if (predictedY < aiPaddleCenter - 15) {
-            rightPaddleY -= PADDLE_SPEED * speedFactor * reactionBoost;
-        }
+    // Apply adjustment only if the distance is significant to avoid jitter
+    if (Math.abs(distance) > PADDLE_HEIGHT / 4) {
+        const adjustment = Math.sign(distance) * Math.min(Math.abs(distance), maxSpeed);
+        rightPaddleY += adjustment;
     }
 
     // Clamp paddle position to stay within canvas bounds
     rightPaddleY = Math.max(Math.min(rightPaddleY, canvas.height - PADDLE_HEIGHT), 0);
+}
+
+function updatePlayerPaddle(deltaTime) {
+    const speedFactor = deltaTime * 60; // Normalize speed to 60 FPS
+    const playerPaddleCenter = leftPaddleY + PADDLE_HEIGHT / 2;
+    const targetY = ballY; // Player paddle targets the ball's Y position
+
+    // Smooth paddle movement with acceleration and deceleration
+    const distance = targetY - playerPaddleCenter;
+    const maxSpeed = PADDLE_SPEED * speedFactor;
+    const adjustment = Math.sign(distance) * Math.min(Math.abs(distance), maxSpeed);
+
+    // Only adjust if the distance is significant to avoid jitter
+    if (Math.abs(distance) > 2) {
+        leftPaddleY += adjustment;
+    }
+
+    // Clamp paddle position to stay within canvas bounds
+    leftPaddleY = Math.max(Math.min(leftPaddleY, canvas.height - PADDLE_HEIGHT), 0);
+}
+
+function predictBallY() {
+    let prediction = ballY + (dy / dx) * (canvas.width - ballX);
+
+    // Account for bounces off the top and bottom walls
+    while (prediction < 0 || prediction > canvas.height) {
+        if (prediction < 0) {
+            prediction = -prediction;
+        } else if (prediction > canvas.height) {
+            prediction = 2 * canvas.height - prediction;
+        }
+    }
+
+    return prediction;
 }
 
 // Update controls to ensure independent movement for both players
@@ -610,3 +653,54 @@ startButton.addEventListener('click', () => {
 
 // Add event listener for difficulty selection
 const difficultySelect = document.getElementById('difficulty');
+
+// Added frame rate capping
+const frameRate = 60;
+
+function gameLoop(timestamp) {
+    const timeSinceLastFrame = timestamp - lastFrameTime;
+    if (timeSinceLastFrame < 1000 / frameRate) {
+        requestAnimationFrame(gameLoop);
+        return;
+    }
+    lastFrameTime = timestamp;
+
+    // Game logic and rendering here
+    updateGame();
+    renderGame();
+
+    requestAnimationFrame(gameLoop);
+}
+
+// Optimized event listeners
+window.addEventListener('load', () => {
+    document.getElementById('startGameButton').addEventListener('click', startGame);
+    document.getElementById('settingsButton').addEventListener('click', openSettings);
+    document.getElementById('backToMenuButton').addEventListener('click', backToMenu);
+});
+
+function startGame() {
+    const player1Name = document.getElementById('player1NameInput').value || 'Player 1';
+    const player2Name = document.getElementById('player2NameInput').value || 'Player 2';
+    const gameMode = document.getElementById('gameMode').value;
+
+    localStorage.setItem('player1Name', player1Name);
+    localStorage.setItem('player2Name', player2Name);
+    localStorage.setItem('gameMode', gameMode);
+
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('gameCanvas').style.display = 'block';
+    document.querySelector('.button-container').style.display = 'flex';
+
+    requestAnimationFrame(gameLoop);
+}
+
+function openSettings() {
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('settingsMenu').style.display = 'flex';
+}
+
+function backToMenu() {
+    document.getElementById('settingsMenu').style.display = 'none';
+    document.getElementById('mainMenu').style.display = 'flex';
+}

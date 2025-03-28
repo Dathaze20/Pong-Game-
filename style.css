@@ -7,17 +7,13 @@ html, body {
 }
 
 body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    overflow: hidden;
+    font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #1a2a6c, #16213e, #0f3460);
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
     color: #ffffff;
+    margin: 0;
+    overflow: hidden;
 }
 
 #mainMenu, #settingsMenu, #gameOverScreen {
@@ -29,12 +25,59 @@ body {
     height: 100%;
     box-sizing: border-box;
     padding: 30px;
-    background: linear-gradient(135deg, #1e1e2f, #3a3a5f);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     color: #ffffff;
     text-align: center;
-    animation: fadeIn 1s ease;
+    animation: fadeIn 0.5s ease;
+}
+
+#mainMenu {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    color: #ffffff;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+#mainMenu h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    text-shadow: 0 4px 10px rgba(255, 215, 0, 0.6);
+}
+
+#mainMenu button {
+    width: 200px;
+    height: 50px;
+    margin: 10px;
+    font-size: 18px;
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+#mainMenu button:hover {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+#mainMenu button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
 }
 
 canvas {
@@ -53,46 +96,111 @@ canvas {
     max-height: 100%;
 }
 
+/* Updated game board with midnight blue background and neon purple border glow */
+#gameCanvas {
+    background: linear-gradient(135deg, #000033, #000066, #000099); /* Midnight blue gradient */
+    border: 10px solid #8a2be2; /* Neon purple border */
+    border-radius: 25px; /* Rounded corners */
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(138, 43, 226, 0.6); /* Neon purple glow */
+    animation: boardPulse 6s infinite alternate; /* Subtle pulsing animation */
+}
+
+@keyframes boardPulse {
+    0% { box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(138, 43, 226, 0.4); }
+    100% { box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(138, 43, 226, 0.6); }
+}
+
 header {
     display: none; /* Hide the "Pong Game" text to avoid overlap */
 }
 
-/* Move the button container back to the center-bottom */
+/* Upgraded button-container and buttons for uniformity and modern design */
 .button-container {
     position: fixed;
     bottom: 10px; /* Slight padding from the bottom */
-    left: 50%; /* Center horizontally */
-    transform: translateX(-50%); /* Adjust for centering */
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     gap: 10px;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 8px; /* Rounded corners */
+    padding: 10px 15px;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    border-radius: 12px; /* Rounded corners */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-width: 400px;
 }
 
-/* Adjusting the button-container buttons to be smaller */
+/* Standardized text alignment and font sizes for buttons */
 .button-container button {
-    width: 80px;
-    height: 30px;
-    font-size: 12px;
-    margin: 5px;
+    flex: 1;
+    height: 40px;
+    font-size: 16px; /* Standardized font size */
+    font-family: 'Arial', sans-serif; /* Consistent font family */
+    text-align: center; /* Center text horizontally */
+    line-height: 40px; /* Center text vertically */
+    margin: 0;
+    background: linear-gradient(135deg, #4caf50, #2e7d32); /* Green gradient */
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
+.button-container button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.05);
+}
+
+.button-container button:active {
+    background: linear-gradient(135deg, #388e3c, #2e7d32);
+    transform: scale(0.95);
+}
+
+.button-container button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Standardized button styles */
 button {
-    background: linear-gradient(135deg, #4caf50, #2e7d32);
-    color: #ffffff;
-    font-size: 16px;
     padding: 10px 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #FFD700;
+    color: #000;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
 }
 
 button:hover {
-    background: linear-gradient(135deg, #2e7d32, #4caf50);
-    transform: scale(1.1);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    background-color: #FFC107;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:active {
+    background-color: #FFA000;
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Added styles for accessibility */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
 }
 
 @keyframes buttonHover {
@@ -117,7 +225,7 @@ button:hover {
     align-items: center;
     justify-content: center;
     display: none;
-    animation: fadeIn 1s ease;
+    animation: fadeIn 0.5s ease;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
     text-align: center;
 }
@@ -140,18 +248,25 @@ button:hover {
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s ease-in-out;
 }
 
 #gameOverScreen button:hover {
     background: linear-gradient(135deg, #d4145a, #e94e77);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
     transform: scale(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+#gameOverScreen button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 /* Ensure Green Border Wraps Fully */
@@ -162,18 +277,21 @@ canvas {
     box-shadow: 0 0 20px rgba(255, 111, 97, 0.8); /* Glowing effect */
 }
 
-/* Improve Visual Consistency */
+/* Enhanced scoreboard */
 .scoreboard {
-    font-size: 28px;
-    color: #4caf50;
-    text-shadow: 0 4px 10px rgba(255, 215, 0, 0.6);
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 22px;
     font-family: 'Arial', sans-serif;
-    animation: fadeIn 1s ease, scoreboardGlow 1.5s ease-in-out infinite;
-    background: rgba(0, 0, 0, 0.7);
+    color: #FFD700;
+    background: rgba(0, 0, 0, 0.8);
     padding: 10px 20px;
-    border-radius: 8px;
+    border-radius: 0 0 8px 8px; /* Rounded corners only at the bottom */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     text-align: center;
+    animation: scoreboardGlow 1.5s ease-in-out infinite;
 }
 
 @keyframes scoreboardGlow {
@@ -236,16 +354,16 @@ canvas {
 
 /* Enhance the game board UI and UX */
 #gameCanvas {
-    background: linear-gradient(135deg, #1a2a6c, #16213e, #0f3460);
-    border: 8px solid #4caf50; /* Sleek green border */
-    border-radius: 20px; /* More rounded corners */
-    box-shadow: 0 15px 50px rgba(76, 175, 80, 0.8), 0 0 30px rgba(0, 255, 204, 0.5); /* Stronger glow */
-    animation: boardGlow 5s infinite alternate; /* Smooth glowing animation */
+    background: linear-gradient(135deg, #000033, #000066, #000099); /* Midnight blue gradient */
+    border: 10px solid #8a2be2; /* Neon purple border */
+    border-radius: 25px; /* Rounded corners */
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(138, 43, 226, 0.6); /* Neon purple glow */
+    animation: boardPulse 6s infinite alternate; /* Subtle pulsing animation */
 }
 
-@keyframes boardGlow {
-    0% { box-shadow: 0 15px 30px rgba(76, 175, 80, 0.5), 0 0 20px rgba(0, 255, 204, 0.3); }
-    100% { box-shadow: 0 15px 50px rgba(76, 175, 80, 0.8), 0 0 30px rgba(0, 255, 204, 0.5); }
+@keyframes boardPulse {
+    0% { box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(138, 43, 226, 0.4); }
+    100% { box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(138, 43, 226, 0.6); }
 }
 
 /* Add particle effects for paddle hits and scoring */
@@ -275,10 +393,13 @@ canvas {
 
 /* Upgrade the main menu UI */
 #mainMenu {
-    background: linear-gradient(135deg, #1e1e2f, #3a3a5f);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     color: #ffffff;
     text-align: center;
-    animation: fadeIn 1s ease;
+    animation: fadeIn 0.5s ease;
 }
 
 #mainMenu h1 {
@@ -298,13 +419,20 @@ canvas {
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s ease-in-out;
 }
 
 #mainMenu button:hover {
     background: linear-gradient(135deg, #007aff, #4a90e2);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
     transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+#mainMenu button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
 }
 
 /* Add a loading screen */
@@ -343,12 +471,19 @@ canvas {
     #gameCanvas {
         width: 100%;
         height: auto;
+        border-width: 5px;
+        border-radius: 10px;
+    }
+
+    .button-container {
+        flex-direction: column;
+        gap: 5px;
+        padding: 10px;
     }
 
     .button-container button {
-        width: 90%;
+        width: 100%;
         font-size: 14px;
-        margin: 5px 0;
     }
 
     #gameOverScreen {
@@ -375,35 +510,45 @@ canvas {
     }
 }
 
-/* Ensure the restart button matches other buttons and fixes text overflow */
+/* Updated restart button to be green and fixed text overflow */
 #restartButton {
-    background: linear-gradient(135deg, #ff5722, #e64a19); /* Vibrant orange gradient */
+    background: linear-gradient(135deg, #4caf50, #2e7d32); /* Green gradient */
     color: #ffffff;
     font-size: 16px;
     padding: 10px 20px;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
+    transition: all 0.3s ease-in-out;
+    white-space: nowrap; /* Prevent text overflow */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #restartButton:hover {
-    background: linear-gradient(135deg, #e64a19, #ff5722);
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
     transform: scale(1.1);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+#restartButton:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
 }
 
 /* Modernize the game board */
 #gameCanvas {
-    background: linear-gradient(135deg, #1a2a6c, #16213e, #0f3460);
-    border: 8px solid #4caf50; /* Sleek green border */
-    border-radius: 20px; /* More rounded corners */
-    box-shadow: 0 15px 50px rgba(76, 175, 80, 0.8), 0 0 30px rgba(0, 255, 204, 0.5); /* Stronger glow */
-    animation: boardGlow 5s infinite alternate; /* Smooth glowing animation */
+    background: linear-gradient(135deg, #000033, #000066, #000099); /* Midnight blue gradient */
+    border: 10px solid #8a2be2; /* Neon purple border */
+    border-radius: 25px; /* Rounded corners */
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(138, 43, 226, 0.6); /* Neon purple glow */
+    animation: boardPulse 6s infinite alternate; /* Subtle pulsing animation */
 }
 
-@keyframes boardGlow {
-    0% { box-shadow: 0 15px 30px rgba(76, 175, 80, 0.5), 0 0 20px rgba(0, 255, 204, 0.3); }
-    100% { box-shadow: 0 15px 50px rgba(76, 175, 80, 0.8), 0 0 30px rgba(0, 255, 204, 0.5); }
+@keyframes boardPulse {
+    0% { box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(138, 43, 226, 0.4); }
+    100% { box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(138, 43, 226, 0.6); }
 }
 
 /* Add a futuristic background animation */
@@ -411,92 +556,6 @@ canvas {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
-}
-
-/* Enhance the scoreboard */
-.scoreboard {
-    background: rgba(0, 0, 0, 0.7);
-    color: #4caf50;
-    font-size: 20px;
-    padding: 10px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-    text-align: center;
-    animation: scoreboardGlow 1.5s ease-in-out infinite;
-}
-
-@keyframes scoreboardGlow {
-    0%, 100% { text-shadow: 0 4px 10px rgba(255, 215, 0, 0.6); }
-    50% { text-shadow: 0 4px 20px rgba(255, 215, 0, 1); }
-}
-
-/* Standardize button font sizes and styles */
-button {
-    background: linear-gradient(135deg, #4caf50, #2e7d32);
-    color: #ffffff;
-    font-size: 16px;
-    padding: 10px 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
-}
-
-button:hover {
-    background: linear-gradient(135deg, #2e7d32, #4caf50);
-    transform: scale(1.1);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
-}
-
-/* Add animations for power-ups */
-.power-up {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background: radial-gradient(circle, #ff7e5f, #feb47b);
-    border-radius: 50%;
-    animation: powerUpGlow 1.5s ease-in-out infinite;
-}
-
-@keyframes powerUpGlow {
-    0%, 100% { box-shadow: 0 0 10px rgba(255, 126, 95, 0.8); }
-    50% { box-shadow: 0 0 20px rgba(255, 126, 95, 1); }
-}
-
-/* Add styles for the timer */
-#timer {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 24px;
-    color: #FFD700;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 10px 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-    display: none;
-}
-
-/* Add styles for the splash screen */
-#splashScreen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    color: #FFD700;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 36px;
-    z-index: 1000;
-    text-align: center;
-}
-
-/* Add animations for button clicks */
-button:active {
-    transform: scale(0.95);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 /* Improve visual feedback for scoring */
@@ -533,17 +592,104 @@ button {
     padding: 10px 20px;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
+    transition: all 0.3s ease-in-out;
 }
 
 button:hover {
     background: linear-gradient(135deg, #2e7d32, #4caf50);
     transform: scale(1.1);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
 }
 
 @keyframes gradientShift {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Glassmorphism for menus */
+#mainMenu, #settingsMenu {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Neumorphic button styles */
+.neumorphic-btn {
+    border-radius: 10px;
+    background: #e0e0e0;
+    box-shadow:  5px 5px 10px #bebebe,
+                 -5px -5px 10px #ffffff;
+}
+
+.neumorphic-btn:hover {
+    box-shadow:  3px 3px 6px #bebebe,
+                 -3px -3px 6px #ffffff;
 }
