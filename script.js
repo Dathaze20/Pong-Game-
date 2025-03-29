@@ -1,31 +1,40 @@
 const canvas = document.getElementById('gameCanvas');
-const ctx = canvas?.getContext('2d');
-const startButton = document.getElementById('startButton');
-const pauseButton = document.getElementById('pauseButton');
-const restartButton = document.getElementById('restartButton');
-const bgMusic = document.getElementById('bgMusic');
-const scoreSound = document.getElementById('scoreSound');
-const hitSound = document.getElementById('hitSound');
-const gameOverScreen = document.getElementById('gameOverScreen');
-const winnerMessage = document.getElementById('winnerMessage');
-const playAgainButton = document.getElementById('playAgainButton');
-const mainMenuButton = document.getElementById('mainMenuButton');
-const rateUsButton = document.getElementById('rateUsButton');
+if (!canvas) {
+    console.error('Canvas element with id "gameCanvas" not found.');
+    throw new Error('Canvas element not found');
+}
+const ctx = canvas.getContext('2d');
 
-if (!canvas || !ctx || !startButton || !pauseButton || !restartButton || !bgMusic || !scoreSound || !hitSound || !gameOverScreen || !winnerMessage || !playAgainButton || !mainMenuButton || !rateUsButton) {
-    console.error('One or more required DOM elements are missing.');
+// Consolidated DOM element checks
+const requiredElements = [
+    'startButton', 'pauseButton', 'restartButton', 'bgMusic', 'scoreSound', 'hitSound',
+    'gameOverScreen', 'winnerMessage', 'playAgainButton', 'mainMenuButton', 'rateUsButton'
+];
+
+requiredElements.forEach(id => {
+    if (!document.getElementById(id)) {
+        console.error(`Missing required DOM element: ${id}`);
+    }
+});
+
+// Adjusted gameplay for better normalization and tablet compatibility
+const NORMALIZED_FRAME_RATE = 60; // Target frame rate for consistent gameplay
+const TABLET_SPEED_FACTOR = 0.8; // Reduce speed for better control on tablets
+
+function normalizeSpeed(value) {
+    return value * TABLET_SPEED_FACTOR;
 }
 
-// Added configuration object for easier tweaking of game settings
+// Adjusted configuration for normalized gameplay
 const config = {
     BALL_RADIUS: 8,
     PADDLE_WIDTH: 20,
     PADDLE_HEIGHT: 120,
-    INITIAL_BALL_SPEED: 12,
-    PADDLE_SPEED: 12,
-    PARTICLE_COUNT: 30,
+    INITIAL_BALL_SPEED: normalizeSpeed(8), // Reduced initial ball speed
+    PADDLE_SPEED: normalizeSpeed(10), // Reduced paddle speed
+    PARTICLE_COUNT: 20, // Reduced particle count for better performance
     WINNING_SCORE: 10,
-    MAX_BALL_SPEED: 15,
+    MAX_BALL_SPEED: normalizeSpeed(12), // Reduced max ball speed
     POINTS_PER_LEVEL: 3,
     BALL_COLOR: '#FFD700',
     PADDLE_COLOR: '#00FA9A',
@@ -73,19 +82,25 @@ function initializeGame() {
     resetBall();
     leftPaddleY = rightPaddleY = (canvas.height - PADDLE_HEIGHT) / 2;
     drawScore();
-    ballMoving = false;
+    ballMoving = true; // Ensure the ball starts moving
     gamePaused = false;
     if (!animationFrameId) {
         animationFrameId = requestAnimationFrame(draw);
+        console.log('Game loop started');
     }
 }
 
 function resetBall() {
     ballX = canvas.width / 2;
     ballY = canvas.height / 2;
-    dx = (Math.random() > 0.5 ? 1 : -1) * (INITIAL_BALL_SPEED + (currentLevel - 1) * 0.5);
-    dy = (Math.random() > 0.5 ? 1 : -1) * (INITIAL_BALL_SPEED + (currentLevel - 1) * 0.5);
+    dx = (Math.random() > 0.5 ? 1 : -1) * INITIAL_BALL_SPEED;
+    dy = (Math.random() > 0.5 ? 1 : -1) * INITIAL_BALL_SPEED;
     ballMoving = false;
+
+    // Add a short delay before the ball starts moving
+    setTimeout(() => {
+        ballMoving = true;
+    }, 1000); // 1-second delay
 }
 
 function drawBall() {
@@ -209,47 +224,110 @@ function resetMultiplier() {
     scoreMultiplier = 1;
 }
 
-// Refine ball movement for smoother gameplay
-const scoreEffectSound = new Audio('score-effect.mp3');
+// Further enhanced gameplay mechanics and performance optimizations
+const SMOOTHNESS_FACTOR = 0.95; // Factor to smooth paddle and ball movements
 
-// Improve ball movement for smoother gameplay
+// Improved ball movement for smoother gameplay
 function updateBallPosition(deltaTime) {
-    const speedFactor = deltaTime * 60; // Normalize speed to 60 FPS
+    // Ensure consistent speed regardless of frame rate
+    const speedFactor = deltaTime * NORMALIZED_FRAME_RATE; 
+    
+    // Update ball position with proper speed normalization
     ballX += dx * speedFactor;
     ballY += dy * speedFactor;
 
-    // Ball collision with top and bottom walls
-    if (ballY - BALL_RADIUS < 0 || ballY + BALL_RADIUS > canvas.height) {
-        dy = -dy;
-        dy += (Math.random() - 0.5) * 0.5; // Add slight randomness to the bounce angle
+    // Ball collision with top and bottom walls - improved bouncing
+    if (ballY - BALL_RADIUS < 0) {
+        ballY = BALL_RADIUS; // Prevent ball from going out of bounds
+        dy = Math.abs(dy) * SMOOTHNESS_FACTOR; // Ensure positive direction
+        createParticles(ballX, 0, "#FFFFFF"); // Create particles on collision
+    } else if (ballY + BALL_RADIUS > canvas.height) {
+        ballY = canvas.height - BALL_RADIUS; // Prevent ball from going out of bounds
+        dy = -Math.abs(dy) * SMOOTHNESS_FACTOR; // Ensure negative direction
+        createParticles(ballX, canvas.height, "#FFFFFF"); // Create particles on collision
     }
 
-    // Ball collision with paddles
+    // Improved collision detection with left paddle
     if (
-        ballX - BALL_RADIUS < 4 * PADDLE_WIDTH &&
-        ballY > leftPaddleY &&
-        ballY < leftPaddleY + PADDLE_HEIGHT
+        ballX - BALL_RADIUS <= 4 * PADDLE_WIDTH + PADDLE_WIDTH && 
+        ballX - BALL_RADIUS > 4 * PADDLE_WIDTH &&
+        ballY >= leftPaddleY && 
+        ballY <= leftPaddleY + PADDLE_HEIGHT
     ) {
-        dx = -Math.min(Math.abs(dx) * 1.1, MAX_BALL_SPEED) * Math.sign(dx);
-        dy += (Math.random() - 0.5) * 0.5; // Add slight randomness to the bounce angle
-        hitSound.currentTime = 0;
-        hitSound.play();
-        createParticles(ballX, ballY, PADDLE_COLOR);
-    } else if (
-        ballX + BALL_RADIUS > canvas.width - 5 * PADDLE_WIDTH &&
-        ballY > rightPaddleY &&
-        ballY < rightPaddleY + PADDLE_HEIGHT
+        // Calculate bounce angle based on where the ball hits the paddle
+        const hitPosition = (ballY - leftPaddleY) / PADDLE_HEIGHT;
+        const bounceAngle = hitPosition - 0.5; // -0.5 to 0.5
+        
+        ballX = 4 * PADDLE_WIDTH + PADDLE_WIDTH + BALL_RADIUS; // Prevent sticking
+        dx = Math.abs(dx) * 1.05; // Increase speed slightly on hit
+        dy = dx * bounceAngle * 2; // Adjust vertical speed based on hit position
+        
+        // Ensure dx doesn't exceed maximum speed
+        if (dx > MAX_BALL_SPEED) dx = MAX_BALL_SPEED;
+        
+        // Play sound and create particles
+        if (hitSound) {
+            hitSound.currentTime = 0;
+            hitSound.play().catch(e => console.log("Error playing hit sound:", e));
+        }
+        createParticles(ballX, ballY, config.PADDLE_COLOR);
+        updateScore('left'); // Update score for player
+    } 
+    // Improved collision detection with right paddle
+    else if (
+        ballX + BALL_RADIUS >= canvas.width - 5 * PADDLE_WIDTH &&
+        ballX + BALL_RADIUS < canvas.width - 5 * PADDLE_WIDTH + PADDLE_WIDTH &&
+        ballY >= rightPaddleY && 
+        ballY <= rightPaddleY + PADDLE_HEIGHT
     ) {
-        dx = -Math.min(Math.abs(dx) * 1.1, MAX_BALL_SPEED) * Math.sign(dx);
-        dy += (Math.random() - 0.5) * 0.5; // Add slight randomness to the bounce angle
-        hitSound.currentTime = 0;
-        hitSound.play();
-        createParticles(ballX, ballY, PADDLE_COLOR);
+        // Calculate bounce angle based on where the ball hits the paddle
+        const hitPosition = (ballY - rightPaddleY) / PADDLE_HEIGHT;
+        const bounceAngle = hitPosition - 0.5; // -0.5 to 0.5
+        
+        ballX = canvas.width - 5 * PADDLE_WIDTH - BALL_RADIUS; // Prevent sticking
+        dx = -Math.abs(dx) * 1.05; // Increase speed slightly on hit
+        dy = -dx * bounceAngle * 2; // Adjust vertical speed based on hit position
+        
+        // Ensure dx doesn't exceed maximum speed
+        if (Math.abs(dx) > MAX_BALL_SPEED) dx = -MAX_BALL_SPEED;
+        
+        // Play sound and create particles
+        if (hitSound) {
+            hitSound.currentTime = 0;
+            hitSound.play().catch(e => console.log("Error playing hit sound:", e));
+        }
+        createParticles(ballX, ballY, config.PADDLE_COLOR);
+        updateScore('right'); // Update score for player
     }
 
-    // Ball out of bounds
-    if (ballX + dx < 0 || ballX + dx > canvas.width) {
+    // Ball out of bounds (scoring)
+    if (ballX - BALL_RADIUS < 0) {
+        // Right player scores
+        rightScore++;
+        if (scoreSound) {
+            scoreSound.currentTime = 0;
+            scoreSound.play().catch(e => console.log("Error playing score sound:", e));
+        }
+        createParticles(ballX, ballY, "#ff0000"); // Red particles for score
         resetBall();
+        checkLevelUp();
+        drawScore();
+    } else if (ballX + BALL_RADIUS > canvas.width) {
+        // Left player scores
+        leftScore++;
+        if (scoreSound) {
+            scoreSound.currentTime = 0;
+            scoreSound.play().catch(e => console.log("Error playing score sound:", e));
+        }
+        createParticles(ballX, ballY, "#ff0000"); // Red particles for score
+        resetBall();
+        checkLevelUp();
+        drawScore();
+    }
+    
+    // Check for game over
+    if (leftScore >= WINNING_SCORE || rightScore >= WINNING_SCORE) {
+        drawGameOver();
     }
 }
 
@@ -262,7 +340,13 @@ function checkLevelUp() {
     }
 }
 
-function checkGameOver() {
+function drawGameOver() {
+    if (gameOverScreen && winnerMessage) {
+        gameOverScreen.style.display = 'flex';
+        winnerMessage.textContent = leftScore >= WINNING_SCORE ? 'Left Player Wins!' : 'Right Player Wins!';
+    } else {
+        console.error('Game over screen or winner message element not found.');
+    }
     if (leftScore >= WINNING_SCORE || rightScore >= WINNING_SCORE) {
         saveProgress();
         gameOverScreen.style.display = 'flex';
@@ -299,10 +383,20 @@ function hexToRgb(hex) {
     return `${r},${g},${b}`;
 }
 
-function startGame() {
+// Add debugging logs to trace game state transitions
+function playBackgroundMusic() {
+    if (bgMusic) {
+        bgMusic.play();
+    } else {
+        console.error('Background music element not found.');
+    }
+    console.log('Attempting to start game. ballMoving:', ballMoving, 'animationFrameId:', animationFrameId);
     if (!ballMoving) {
         ballMoving = true;
-        if (!animationFrameId) animationFrameId = requestAnimationFrame(draw);
+        if (!animationFrameId) {
+            animationFrameId = requestAnimationFrame(draw);
+            console.log('Game rendering started');
+        }
         bgMusic.play();
     }
     if (gamePaused) {
@@ -341,43 +435,39 @@ function restartGame() {
     bgMusic.play();
 }
 
-// Further refined AI paddle movement to prevent jittering
-function updateAIPaddle(deltaTime) {
-    const speedFactor = deltaTime * 60; // Normalize speed to 60 FPS
-    const aiPaddleCenter = rightPaddleY + PADDLE_HEIGHT / 2;
-    const predictedY = predictBallY(); // Predict ball trajectory
-
-    // Smooth paddle movement with acceleration and deceleration
-    const distance = predictedY - aiPaddleCenter;
-    const maxSpeed = PADDLE_SPEED * speedFactor * 0.9; // Slightly slower for balance
+// Refined paddle movement logic for both paddles
+function updatePaddlePosition(paddleY, targetY, deltaTime, maxSpeed) {
+    const speedFactor = deltaTime * NORMALIZED_FRAME_RATE; // Normalize speed to target frame rate
+    const paddleCenter = paddleY + config.PADDLE_HEIGHT / 2;
+    const distance = targetY - paddleCenter;
 
     // Apply adjustment only if the distance is significant to avoid jitter
-    if (Math.abs(distance) > PADDLE_HEIGHT / 4) {
-        const adjustment = Math.sign(distance) * Math.min(Math.abs(distance), maxSpeed);
-        rightPaddleY += adjustment;
+    if (Math.abs(distance) > 1) {
+        const adjustment = Math.sign(distance) * Math.min(Math.abs(distance), maxSpeed * speedFactor);
+        paddleY += adjustment * SMOOTHNESS_FACTOR; // Apply smoothness factor
     }
 
-    // Clamp paddle position to stay within canvas bounds
-    rightPaddleY = Math.max(Math.min(rightPaddleY, canvas.height - PADDLE_HEIGHT), 0);
+    return Math.max(Math.min(paddleY, canvas.height - config.PADDLE_HEIGHT), 0);
+}
+
+function updateAIPaddle(deltaTime) {
+    aiReactionTimer += deltaTime;
+
+    if (aiReactionTimer >= AI_REACTION_TIME) {
+        const targetY = predictBallY(); // Predict ball trajectory
+        rightPaddleY = updatePaddlePosition(rightPaddleY, targetY, deltaTime, PADDLE_SPEED);
+        aiReactionTimer = 0; // Reset reaction timer
+    }
 }
 
 function updatePlayerPaddle(deltaTime) {
-    const speedFactor = deltaTime * 60; // Normalize speed to 60 FPS
-    const playerPaddleCenter = leftPaddleY + PADDLE_HEIGHT / 2;
-    const targetY = ballY; // Player paddle targets the ball's Y position
-
-    // Smooth paddle movement with acceleration and deceleration
-    const distance = targetY - playerPaddleCenter;
-    const maxSpeed = PADDLE_SPEED * speedFactor;
-    const adjustment = Math.sign(distance) * Math.min(Math.abs(distance), maxSpeed);
-
-    // Only adjust if the distance is significant to avoid jitter
-    if (Math.abs(distance) > 2) {
-        leftPaddleY += adjustment;
+    // Player paddle is controlled by user input, not AI
+    if (keysPressed.has('ArrowUp')) {
+        leftPaddleY = Math.max(leftPaddleY - PADDLE_SPEED * deltaTime * NORMALIZED_FRAME_RATE, 0);
     }
-
-    // Clamp paddle position to stay within canvas bounds
-    leftPaddleY = Math.max(Math.min(leftPaddleY, canvas.height - PADDLE_HEIGHT), 0);
+    if (keysPressed.has('ArrowDown')) {
+        leftPaddleY = Math.min(leftPaddleY + PADDLE_SPEED * deltaTime * NORMALIZED_FRAME_RATE, canvas.height - PADDLE_HEIGHT);
+    }
 }
 
 function predictBallY() {
@@ -438,61 +528,70 @@ function createParticles(x, y, color) {
     }
 }
 
-// Fix touch controls for mobile devices
+// Improved touch controls for smoother paddle movement on touch screens
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
-    const touches = e.touches;
+    const rect = canvas.getBoundingClientRect();
 
-    for (let i = 0; i < touches.length; i++) {
-        const touch = touches[i];
-        const rect = canvas.getBoundingClientRect();
+    Array.from(e.touches).forEach((touch) => {
         const x = touch.clientX - rect.left;
         const y = touch.clientY - rect.top;
 
         if (x < canvas.width / 2) {
-            leftTouch = true;
             leftPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
         } else {
-            rightTouch = true;
             rightPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
         }
-    }
+    });
 
-    if (!ballMoving) {
+    // Debugging: Log the state of ballMoving and animationFrameId
+    console.log('ballMoving:', ballMoving, 'animationFrameId:', animationFrameId);
+
+    // Start the game if it is not already running
+    if (!ballMoving && animationFrameId === null) {
         ballMoving = true;
-        if (!animationFrameId) animationFrameId = requestAnimationFrame(draw);
+        gamePaused = false; // Ensure the game is not paused
+        animationFrameId = requestAnimationFrame(draw);
         bgMusic.play();
+
+        // Debugging: Confirm game start
+        console.log('Game started via touch event');
     }
-}, { passive: false });
+});
 
 canvas.addEventListener('touchmove', (e) => {
     e.preventDefault();
-    const touches = e.touches;
+    const rect = canvas.getBoundingClientRect();
 
-    for (let i = 0; i < touches.length; i++) {
-        const touch = touches[i];
-        const rect = canvas.getBoundingClientRect();
+    Array.from(e.touches).forEach((touch) => {
         const x = touch.clientX - rect.left;
         const y = touch.clientY - rect.top;
 
-        if (x < canvas.width / 2 && leftTouch) {
+        if (x < canvas.width / 2) {
             leftPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
-        } else if (x >= canvas.width / 2 && rightTouch) {
+        } else {
             rightPaddleY = Math.max(Math.min(y - PADDLE_HEIGHT / 2, canvas.height - PADDLE_HEIGHT), 0);
         }
-    }
-}, { passive: false });
+    });
+});
 
-canvas.addEventListener('touchend', (e) => {
-    const touches = e.touches;
+// Add active power-ups array and management system
+let activePowerUps = [];
+let powerUpSpawnTimer = 0;
+const POWER_UP_SPAWN_INTERVAL = 15; // Spawn a power-up every 15 seconds
+const POWER_UP_DURATION = 7; // Power-ups last for 7 seconds
+const POWER_UP_SIZE = 20; // Size of power-up graphics
 
-    if (touches.length === 0) {
-        leftTouch = false;
-        rightTouch = false;
-    }
-}, { passive: false });
+// Power-up types with colors and effects
+const POWER_UP_TYPES = [
+    { type: 'speedUp', color: '#ff0000', description: 'Speed Up!' },
+    { type: 'speedDown', color: '#0000ff', description: 'Speed Down!' },
+    { type: 'paddleGrow', color: '#00ff00', description: 'Paddle Grow!' },
+    { type: 'paddleShrink', color: '#ff00ff', description: 'Paddle Shrink!' },
+    { type: 'multiball', color: '#ffff00', description: 'Multi Ball!' },
+    { type: 'reverseControls', color: '#00ffff', description: 'Reverse Controls!' }
+];
 
-// Add new power-ups for gameplay variety
 function spawnPowerUp() {
     const powerUpTypes = ['increasePaddle', 'slowBall', 'reverseAI', 'shrinkPaddle', 'ballSplit'];
     const randomType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
@@ -559,14 +658,33 @@ function updateExtraBalls(deltaTime) {
     });
 }
 
-// Optimize loading screen to reduce load time
+// Define missing constants
+const AI_REACTION_TIME = 0.5; // Half-second reaction time for AI
+
+// Declare aiReactionTimer if not already declared
+let aiReactionTimer = 0;
+
+// Define the saveProgress function
+function saveProgress() {
+    // Save game progress to localStorage
+    localStorage.setItem('leftScore', leftScore);
+    localStorage.setItem('rightScore', rightScore);
+    localStorage.setItem('level', currentLevel);
+    console.log('Game progress saved');
+}
+
+// Fix the showLoadingScreen function
 function showLoadingScreen() {
     const loadingScreen = document.getElementById('loadingScreen');
-    loadingScreen.style.display = 'flex';
-    // Simulate a shorter loading time
-    setTimeout(() => {
-        loadingScreen.style.display = 'none';
-    }, 500); // Reduced to 500ms
+    if (loadingScreen) {
+        loadingScreen.style.display = 'flex';
+        // Simulate a shorter loading time
+        setTimeout(() => {
+            loadingScreen.style.display = 'none';
+        }, 500); // Reduced to 500ms
+    } else {
+        console.error('Loading screen element not found');
+    }
 }
 
 // Add event listener for the "Rate Us" button
@@ -642,65 +760,18 @@ window.addEventListener('load', () => {
     showTooltips();
 });
 
-// Ensure the game starts properly when the "Start" button is clicked
-startButton.addEventListener('click', () => {
-    initializeGame(); // Initialize the game elements
-    if (!animationFrameId) {
-        animationFrameId = requestAnimationFrame(draw);
-    }
-    bgMusic.play();
-});
-
-// Add event listener for difficulty selection
-const difficultySelect = document.getElementById('difficulty');
-
-// Added frame rate capping
-const frameRate = 60;
-
-function gameLoop(timestamp) {
-    const timeSinceLastFrame = timestamp - lastFrameTime;
-    if (timeSinceLastFrame < 1000 / frameRate) {
-        requestAnimationFrame(gameLoop);
-        return;
-    }
-    lastFrameTime = timestamp;
-
-    // Game logic and rendering here
-    updateGame();
-    renderGame();
-
-    requestAnimationFrame(gameLoop);
-}
-
-// Optimized event listeners
-window.addEventListener('load', () => {
-    document.getElementById('startGameButton').addEventListener('click', startGame);
-    document.getElementById('settingsButton').addEventListener('click', openSettings);
-    document.getElementById('backToMenuButton').addEventListener('click', backToMenu);
-});
-
-function startGame() {
-    const player1Name = document.getElementById('player1NameInput').value || 'Player 1';
-    const player2Name = document.getElementById('player2NameInput').value || 'Player 2';
-    const gameMode = document.getElementById('gameMode').value;
-
-    localStorage.setItem('player1Name', player1Name);
-    localStorage.setItem('player2Name', player2Name);
-    localStorage.setItem('gameMode', gameMode);
-
-    document.getElementById('mainMenu').style.display = 'none';
-    document.getElementById('gameCanvas').style.display = 'block';
-    document.querySelector('.button-container').style.display = 'flex';
-
-    requestAnimationFrame(gameLoop);
-}
-
-function openSettings() {
-    document.getElementById('mainMenu').style.display = 'none';
-    document.getElementById('settingsMenu').style.display = 'flex';
-}
-
-function backToMenu() {
-    document.getElementById('settingsMenu').style.display = 'none';
-    document.getElementById('mainMenu').style.display = 'flex';
+// Ensure the Start button initializes the game properly
+const startButton = document.getElementById('startButton');
+if (startButton) {
+    startButton.addEventListener('click', () => {
+        console.log('Start button clicked');
+        initializeGame(); // Initialize the game elements
+        if (!animationFrameId) {
+            animationFrameId = requestAnimationFrame(draw);
+            console.log('Game rendering started');
+        }
+        bgMusic.play();
+    });
+} else {
+    console.error('Start button not found in the DOM');
 }

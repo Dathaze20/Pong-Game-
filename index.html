@@ -7,7 +7,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
     <script defer src="script.js"></script>
-    <!-- Add a link to a favicon to avoid 404 errors -->
+    <!-- Add missing favicon and ensure startButton exists -->
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
@@ -48,7 +48,7 @@
         </div>
         <canvas id="gameCanvas" aria-label="Pong Game Canvas" style="display: none;"></canvas>
         <div class="button-container" style="display: none;">
-            <button id="startButton" aria-label="Start Game">Start</button>
+            <button id="startButton">Start Game</button>
             <button id="pauseButton" aria-label="Pause Game">Pause</button>
             <button id="restartButton" aria-label="Restart Game">Restart</button>
         </div>
@@ -84,12 +84,13 @@
         <button id="missingButton" style="display: none;">Placeholder Button</button>
     </main>
     <footer>
+        <!-- Ensure all required resources are referenced correctly -->
         <audio id="bgMusic" loop>
             <source src="Original Tetris theme (Tetris Soundtrack).mp3" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
         <audio id="scoreSound">
-            <source src="http://localhost:8000/score.mp3" type="audio/mpeg">
+            <source src="score.mp3" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
         <audio id="hitSound">
