@@ -115,6 +115,11 @@
             document.getElementById('mainMenu').style.display = 'none';
             document.getElementById('gameCanvas').style.display = 'block';
             document.querySelector('.button-container').style.display = 'flex';
+            
+            // Start the game immediately
+            const gameCanvas = document.getElementById('gameCanvas');
+            gameCanvas.focus(); // Ensure canvas has focus for keyboard events
+            initializeGame();
         });
 
         document.getElementById('settingsButton').addEventListener('click', () => {
@@ -136,13 +141,7 @@
             }
         });
 
-        document.getElementById('toggleColorblind').addEventListener('change', (e) => {
-            if (e.target.checked) {
-                document.body.classList.add('colorblind-mode');
-            } else {
-                document.body.classList.remove('colorblind-mode');
-            }
-        });
+        // Colorblind mode will be implemented in a future update
 
         document.getElementById('difficulty').addEventListener('change', (e) => {
             localStorage.setItem('difficulty', e.target.value);

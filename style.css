@@ -36,13 +36,6 @@ body {
 }
 
 #mainMenu {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    color: #ffffff;
-    text-align: center;
-    animation: fadeIn 0.5s ease;
     padding: 20px;
     border-radius: 12px;
 }
@@ -96,28 +89,28 @@ canvas {
     max-height: 100%;
 }
 
-/* Updated game board with midnight blue background and neon purple border glow */
 #gameCanvas {
-    background: linear-gradient(135deg, #000033, #000066, #000099); /* Midnight blue gradient */
-    border: 10px solid #8a2be2; /* Neon purple border */
-    border-radius: 25px; /* Rounded corners */
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(138, 43, 226, 0.6); /* Neon purple glow */
-    animation: boardPulse 6s infinite alternate; /* Subtle pulsing animation */
-}
-
-@keyframes boardPulse {
-    0% { box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(138, 43, 226, 0.4); }
-    100% { box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(138, 43, 226, 0.6); }
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: block;
+    background: linear-gradient(135deg, #000033, #000066, #000099);
+    border: 10px solid #8a2be2;
+    border-radius: 25px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(138, 43, 226, 0.6);
+    box-sizing: border-box;
+    z-index: 1;
 }
 
 header {
     display: none; /* Hide the "Pong Game" text to avoid overlap */
 }
 
-/* Upgraded button-container and buttons for uniformity and modern design */
 .button-container {
     position: fixed;
-    bottom: 10px; /* Slight padding from the bottom */
+    bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -125,13 +118,13 @@ header {
     gap: 10px;
     padding: 10px 15px;
     background: linear-gradient(135deg, #1e3c72, #2a5298);
-    border-radius: 12px; /* Rounded corners */
+    border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     width: 90%;
     max-width: 400px;
+    z-index: 1000; /* Ensure buttons appear above canvas */
 }
 
-/* Standardized text alignment and font sizes for buttons */
 .button-container button {
     flex: 1;
     height: 40px;
@@ -164,7 +157,6 @@ header {
     outline-offset: 2px;
 }
 
-/* Standardized button styles */
 button {
     padding: 10px 20px;
     font-size: 16px;
@@ -191,7 +183,6 @@ button:focus {
     outline-offset: 2px;
 }
 
-/* Added styles for accessibility */
 .visually-hidden {
     position: absolute;
     width: 1px;
@@ -269,7 +260,6 @@ button:focus {
     to { opacity: 1; transform: scale(1); }
 }
 
-/* Ensure Green Border Wraps Fully */
 canvas {
     border: 4px solid #ff6f61; /* Vibrant border */
     box-sizing: border-box; /* Include border in the element's dimensions */
@@ -354,11 +344,18 @@ canvas {
 
 /* Enhance the game board UI and UX */
 #gameCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: block;
     background: linear-gradient(135deg, #000033, #000066, #000099); /* Midnight blue gradient */
     border: 10px solid #8a2be2; /* Neon purple border */
     border-radius: 25px; /* Rounded corners */
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(138, 43, 226, 0.6); /* Neon purple glow */
     animation: boardPulse 6s infinite alternate; /* Subtle pulsing animation */
+    box-sizing: border-box;
 }
 
 @keyframes boardPulse {
@@ -537,28 +534,59 @@ canvas {
     outline-offset: 2px;
 }
 
-/* Modernize the game board */
-#gameCanvas {
-    background: linear-gradient(135deg, #000033, #000066, #000099); /* Midnight blue gradient */
-    border: 10px solid #8a2be2; /* Neon purple border */
-    border-radius: 25px; /* Rounded corners */
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(138, 43, 226, 0.6); /* Neon purple glow */
-    animation: boardPulse 6s infinite alternate; /* Subtle pulsing animation */
-}
-
-@keyframes boardPulse {
-    0% { box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(138, 43, 226, 0.4); }
-    100% { box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(138, 43, 226, 0.6); }
-}
-
-/* Add a futuristic background animation */
-@keyframes gradientAnimation {
+@keyframes gradientShift {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
 
-/* Improve visual feedback for scoring */
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
 .score-feedback {
     position: absolute;
     font-size: 24px;
@@ -673,23 +701,5377 @@ button:focus {
     100% { opacity: 0; transform: translateY(-20px); }
 }
 
-/* Glassmorphism for menus */
-#mainMenu, #settingsMenu {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-/* Neumorphic button styles */
-.neumorphic-btn {
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
     border-radius: 10px;
-    background: #e0e0e0;
-    box-shadow:  5px 5px 10px #bebebe,
-                 -5px -5px 10px #ffffff;
 }
 
-.neumorphic-btn:hover {
-    box-shadow:  3px 3px 6px #bebebe,
-                 -3px -3px 6px #ffffff;
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
 }
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 025px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+       animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #007aff, #4a90e2);
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4a90e2, #007aff);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-secondary:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+/* Enhanced scoring feedback */
+.score-feedback {
+    position: absolute;
+    font-size: 24px;
+    color: #FFD700;
+    animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Refine visuals for paddles, ball, and game board */
+.paddle {
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+}
+
+.ball {
+    background: radial-gradient(circle, #ffdd00, #ff9900);
+    box-shadow: 0 0 25px rgba(255, 221, 0, 0.8);
+    border-radius: 50%;
+}
+
+/* Adjust button visuals */
+button {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:focus {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Standardized button styles */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: 2px solid #

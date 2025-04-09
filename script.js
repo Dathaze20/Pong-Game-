@@ -45,7 +45,7 @@ const BALL_RADIUS = config.BALL_RADIUS;
 const PADDLE_WIDTH = config.PADDLE_WIDTH;
 const PADDLE_HEIGHT = config.PADDLE_HEIGHT;
 const INITIAL_BALL_SPEED = config.INITIAL_BALL_SPEED;
-const PADDLE_SPEED = config.PADDLE_SPEED;
+let PADDLE_SPEED = config.PADDLE_SPEED;
 const PARTICLE_COUNT = config.PARTICLE_COUNT;
 const WINNING_SCORE = config.WINNING_SCORE;
 const MAX_BALL_SPEED = config.MAX_BALL_SPEED;
@@ -55,10 +55,13 @@ const BALL_COLOR = config.BALL_COLOR;
 const PADDLE_COLOR = config.PADDLE_COLOR;
 const MIDDLE_LINE_COLOR = config.MIDDLE_LINE_COLOR;
 
-let ballX, ballY, dx, dy;
+let leftScore = 0, rightScore = 0;
+const keysPressed = new Set(); // Initialize keysPressed to avoid undefined errors
+const bgMusic = document.getElementById('bgMusic'); // Ensure bgMusic is defined
+const gameOverScreen = document.getElementById('gameOverScreen'); // Ensure gameOverScreen is defined
+const winnerMessage = document.getElementById('winnerMessage'); // Ensure winnerMessage is defined
 let leftPaddleY, rightPaddleY;
 let animationFrameId = null;
-let leftScore = 0, rightScore = 0;
 let ballMoving = false;
 let gamePaused = false;
 let leftTouch = false;
@@ -74,20 +77,89 @@ const ADJUSTED_PADDLE_SPEED = PADDLE_SPEED * deviceScaleFactor;
 
 let lastFrameTime = 0; // Unified declaration for frame rate capping
 
+// Simple AI difficulty settings
+const AI_DIFFICULTY = {
+    easy: { speed: 0.7, errorMargin: 30 },
+    medium: { speed: 0.8, errorMargin: 20 },
+    hard: { speed: 0.9, errorMargin: 10 }
+};
+
+function updateAIPaddle(deltaTime) {
+    const difficulty = localStorage.getItem('difficulty') || 'medium';
+    const settings = AI_DIFFICULTY[difficulty];
+
+    if (dx > 0) { // Only move when ball is coming towards AI
+        const targetY = predictBallY();
+        const paddleCenter = rightPaddleY + PADDLE_HEIGHT / 2;
+        const distance = targetY - paddleCenter;
+
+        // Smooth out movement to eliminate jitter
+        if (Math.abs(distance) > 1) { // Reduced threshold for smoother movement
+            const adjustment = Math.sign(distance) * PADDLE_SPEED * settings.speed * deltaTime * 60;
+            rightPaddleY += adjustment;
+            rightPaddleY = Math.max(0, Math.min(canvas.height - PADDLE_HEIGHT, rightPaddleY));
+        }
+    }
+}
+
+function predictBallY() {
+    if (dx <= 0) {
+        return (canvas.height - PADDLE_HEIGHT) / 2;
+    }
+
+    // Simple linear prediction
+    const timeToIntercept = (canvas.width - 5 * PADDLE_WIDTH - ballX) / dx;
+    let predictedY = ballY + dy * timeToIntercept;
+
+    // Handle bounces
+    while (predictedY < 0 || predictedY > canvas.height) {
+        if (predictedY < 0) {
+            predictedY = -predictedY;
+        } else if (predictedY > canvas.height) {
+            predictedY = canvas.height - (predictedY - canvas.height);
+        }
+    }
+
+    // Add slight randomization based on difficulty
+    const difficulty = localStorage.getItem('difficulty') || 'medium';
+    const settings = AI_DIFFICULTY[difficulty];
+    const randomOffset = (Math.random() - 0.5) * settings.errorMargin;
+
+    return Math.max(PADDLE_HEIGHT / 2, Math.min(canvas.height - PADDLE_HEIGHT / 2, predictedY + randomOffset)) - PADDLE_HEIGHT / 2;
+}
+
 function initializeGame() {
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+
+    // Ensure canvas and buttons are visible, with proper z-index layering
+    canvas.style.display = 'block';
+    canvas.style.zIndex = '1';
+    document.querySelector('.button-container').style.display = 'flex';
+    document.querySelector('.button-container').style.zIndex = '1000';
+
+    // Initialize game state
     resetBall();
     leftPaddleY = rightPaddleY = (canvas.height - PADDLE_HEIGHT) / 2;
-    drawScore();
-    ballMoving = true; // Ensure the ball starts moving
+    leftScore = 0;
+    rightScore = 0;
+    currentLevel = 1;
+    ballMoving = false;
     gamePaused = false;
+
+    console.log('Game initialized');
+
+    // Start game loop
     if (!animationFrameId) {
         animationFrameId = requestAnimationFrame(draw);
-        console.log('Game loop started');
     }
+
+    // Add window resize handler
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        leftPaddleY = rightPaddleY = (canvas.height - PADDLE_HEIGHT) / 2;
+    });
 }
 
 function resetBall() {
@@ -184,6 +256,7 @@ function draw(timestamp) {
     lastFrameTime = timestamp;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    console.log('Drawing game elements'); // Debugging log
     drawBall();
     drawPaddle(4 * PADDLE_WIDTH, leftPaddleY);
     drawPaddle(canvas.width - 5 * PADDLE_WIDTH, rightPaddleY);
@@ -230,101 +303,89 @@ const SMOOTHNESS_FACTOR = 0.95; // Factor to smooth paddle and ball movements
 // Improved ball movement for smoother gameplay
 function updateBallPosition(deltaTime) {
     // Ensure consistent speed regardless of frame rate
-    const speedFactor = deltaTime * NORMALIZED_FRAME_RATE; 
-    
-    // Update ball position with proper speed normalization
-    ballX += dx * speedFactor;
-    ballY += dy * speedFactor;
+    const speedFactor = deltaTime * NORMALIZED_FRAME_RATE;
 
-    // Ball collision with top and bottom walls - improved bouncing
-    if (ballY - BALL_RADIUS < 0) {
-        ballY = BALL_RADIUS; // Prevent ball from going out of bounds
-        dy = Math.abs(dy) * SMOOTHNESS_FACTOR; // Ensure positive direction
-        createParticles(ballX, 0, "#FFFFFF"); // Create particles on collision
-    } else if (ballY + BALL_RADIUS > canvas.height) {
-        ballY = canvas.height - BALL_RADIUS; // Prevent ball from going out of bounds
-        dy = -Math.abs(dy) * SMOOTHNESS_FACTOR; // Ensure negative direction
-        createParticles(ballX, canvas.height, "#FFFFFF"); // Create particles on collision
+    // Update ball position with proper speed normalization
+    const nextX = ballX + dx * speedFactor;
+    const nextY = ballY + dy * speedFactor;
+
+    // Ball collision with top and bottom walls
+    if (nextY - BALL_RADIUS < 0 || nextY + BALL_RADIUS > canvas.height) {
+        dy = -dy; // Reverse vertical direction
+        ballY = nextY - BALL_RADIUS < 0 ? BALL_RADIUS : canvas.height - BALL_RADIUS;
+    } else {
+        ballY = nextY;
     }
 
-    // Improved collision detection with left paddle
-    if (
-        ballX - BALL_RADIUS <= 4 * PADDLE_WIDTH + PADDLE_WIDTH && 
-        ballX - BALL_RADIUS > 4 * PADDLE_WIDTH &&
-        ballY >= leftPaddleY && 
-        ballY <= leftPaddleY + PADDLE_HEIGHT
-    ) {
-        // Calculate bounce angle based on where the ball hits the paddle
+    // Check paddle collisions before updating X position
+    const leftPaddleCollision = nextX - BALL_RADIUS <= 4 * PADDLE_WIDTH + PADDLE_WIDTH && 
+                               ballX - BALL_RADIUS > 4 * PADDLE_WIDTH &&
+                               ballY >= leftPaddleY && 
+                               ballY <= leftPaddleY + PADDLE_HEIGHT;
+
+    const rightPaddleCollision = nextX + BALL_RADIUS >= canvas.width - 5 * PADDLE_WIDTH &&
+                                ballX + BALL_RADIUS < canvas.width - 5 * PADDLE_WIDTH + PADDLE_WIDTH &&
+                                ballY >= rightPaddleY && 
+                                ballY <= rightPaddleY + PADDLE_HEIGHT;
+
+    if (leftPaddleCollision) {
+        // Left paddle collision
         const hitPosition = (ballY - leftPaddleY) / PADDLE_HEIGHT;
-        const bounceAngle = hitPosition - 0.5; // -0.5 to 0.5
+        const bounceAngle = (hitPosition - 0.5) * Math.PI / 3; // -60° to +60°
         
-        ballX = 4 * PADDLE_WIDTH + PADDLE_WIDTH + BALL_RADIUS; // Prevent sticking
-        dx = Math.abs(dx) * 1.05; // Increase speed slightly on hit
-        dy = dx * bounceAngle * 2; // Adjust vertical speed based on hit position
+        const speed = Math.sqrt(dx * dx + dy * dy) * 1.05; // Increase speed by 5%
+        dx = Math.abs(speed * Math.cos(bounceAngle));
+        dy = speed * Math.sin(bounceAngle);
         
-        // Ensure dx doesn't exceed maximum speed
-        if (dx > MAX_BALL_SPEED) dx = MAX_BALL_SPEED;
+        // Prevent sticking by moving ball to paddle edge
+        ballX = 4 * PADDLE_WIDTH + PADDLE_WIDTH + BALL_RADIUS;
         
-        // Play sound and create particles
-        if (hitSound) {
-            hitSound.currentTime = 0;
-            hitSound.play().catch(e => console.log("Error playing hit sound:", e));
-        }
+        if (hitSound) hitSound.play().catch(e => console.log("Error playing hit sound:", e));
         createParticles(ballX, ballY, config.PADDLE_COLOR);
-        updateScore('left'); // Update score for player
-    } 
-    // Improved collision detection with right paddle
-    else if (
-        ballX + BALL_RADIUS >= canvas.width - 5 * PADDLE_WIDTH &&
-        ballX + BALL_RADIUS < canvas.width - 5 * PADDLE_WIDTH + PADDLE_WIDTH &&
-        ballY >= rightPaddleY && 
-        ballY <= rightPaddleY + PADDLE_HEIGHT
-    ) {
-        // Calculate bounce angle based on where the ball hits the paddle
+    } else if (rightPaddleCollision) {
+        // Right paddle collision
         const hitPosition = (ballY - rightPaddleY) / PADDLE_HEIGHT;
-        const bounceAngle = hitPosition - 0.5; // -0.5 to 0.5
+        const bounceAngle = (hitPosition - 0.5) * Math.PI / 3; // -60° to +60°
         
-        ballX = canvas.width - 5 * PADDLE_WIDTH - BALL_RADIUS; // Prevent sticking
-        dx = -Math.abs(dx) * 1.05; // Increase speed slightly on hit
-        dy = -dx * bounceAngle * 2; // Adjust vertical speed based on hit position
+        const speed = Math.sqrt(dx * dx + dy * dy) * 1.05; // Increase speed by 5%
+        dx = -Math.abs(speed * Math.cos(bounceAngle));
+        dy = speed * Math.sin(bounceAngle);
         
-        // Ensure dx doesn't exceed maximum speed
-        if (Math.abs(dx) > MAX_BALL_SPEED) dx = -MAX_BALL_SPEED;
+        // Prevent sticking by moving ball to paddle edge
+        ballX = canvas.width - 5 * PADDLE_WIDTH - BALL_RADIUS;
         
-        // Play sound and create particles
-        if (hitSound) {
-            hitSound.currentTime = 0;
-            hitSound.play().catch(e => console.log("Error playing hit sound:", e));
-        }
+        if (hitSound) hitSound.play().catch(e => console.log("Error playing hit sound:", e));
         createParticles(ballX, ballY, config.PADDLE_COLOR);
-        updateScore('right'); // Update score for player
+    } else {
+        // Update ball X position if no collision
+        ballX = nextX;
+    }
+
+    // Keep ball speed within limits
+    const currentSpeed = Math.sqrt(dx * dx + dy * dy);
+    if (currentSpeed > MAX_BALL_SPEED) {
+        const scale = MAX_BALL_SPEED / currentSpeed;
+        dx *= scale;
+        dy *= scale;
     }
 
     // Ball out of bounds (scoring)
     if (ballX - BALL_RADIUS < 0) {
-        // Right player scores
-        rightScore++;
-        if (scoreSound) {
-            scoreSound.currentTime = 0;
-            scoreSound.play().catch(e => console.log("Error playing score sound:", e));
-        }
-        createParticles(ballX, ballY, "#ff0000"); // Red particles for score
+        rightScore++; // AI scores only when the ball goes out of bounds on the player's side
+        if (scoreSound) scoreSound.play().catch(e => console.log("Error playing score sound:", e));
+        createParticles(ballX, ballY, "#ff0000");
         resetBall();
         checkLevelUp();
         drawScore();
     } else if (ballX + BALL_RADIUS > canvas.width) {
-        // Left player scores
-        leftScore++;
-        if (scoreSound) {
-            scoreSound.currentTime = 0;
-            scoreSound.play().catch(e => console.log("Error playing score sound:", e));
-        }
-        createParticles(ballX, ballY, "#ff0000"); // Red particles for score
+        leftScore++; // Player scores only when the ball goes out of bounds on the AI's side
+        if (scoreSound) scoreSound.play().catch(e => console.log("Error playing score sound:", e));
+        createParticles(ballX, ballY, "#ff0000");
         resetBall();
         checkLevelUp();
         drawScore();
     }
-    
+
     // Check for game over
     if (leftScore >= WINNING_SCORE || rightScore >= WINNING_SCORE) {
         drawGameOver();
@@ -386,38 +447,58 @@ function hexToRgb(hex) {
 // Add debugging logs to trace game state transitions
 function playBackgroundMusic() {
     if (bgMusic) {
-        bgMusic.play();
-    } else {
-        console.error('Background music element not found.');
+        try {
+            bgMusic.play().catch(e => console.log("Error playing background music:", e));
+        } catch (e) {
+            console.log("Error playing background music:", e);
+        }
     }
-    console.log('Attempting to start game. ballMoving:', ballMoving, 'animationFrameId:', animationFrameId);
+
     if (!ballMoving) {
         ballMoving = true;
         if (!animationFrameId) {
             animationFrameId = requestAnimationFrame(draw);
             console.log('Game rendering started');
         }
-        bgMusic.play();
     }
+    
     if (gamePaused) {
         gamePaused = false;
         pauseButton.textContent = 'Pause';
-        bgMusic.play();
     }
 }
 
-function pauseGame() {
+// Fixing pause button functionality
+document.getElementById('pauseButton').addEventListener('click', () => {
     gamePaused = !gamePaused;
-    pauseButton.textContent = gamePaused ? 'Resume' : 'Pause';
     if (gamePaused) {
         cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
         bgMusic.pause();
+        document.getElementById('pauseButton').textContent = 'Resume';
     } else {
-        if (!animationFrameId) animationFrameId = requestAnimationFrame(draw);
+        animationFrameId = requestAnimationFrame(draw);
         bgMusic.play();
+        document.getElementById('pauseButton').textContent = 'Pause';
     }
-}
+});
+
+// Fixing restart button functionality
+document.getElementById('restartButton').addEventListener('click', () => {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    resetBall();
+    leftPaddleY = rightPaddleY = (canvas.height - PADDLE_HEIGHT) / 2;
+    leftScore = 0;
+    rightScore = 0;
+    currentLevel = 1;
+    drawScore();
+    ballMoving = false;
+    gamePaused = false;
+    document.getElementById('pauseButton').textContent = 'Pause';
+    document.getElementById('gameOverScreen').style.display = 'none';
+    animationFrameId = requestAnimationFrame(draw);
+    bgMusic.play();
+});
 
 function restartGame() {
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
@@ -450,51 +531,7 @@ function updatePaddlePosition(paddleY, targetY, deltaTime, maxSpeed) {
     return Math.max(Math.min(paddleY, canvas.height - config.PADDLE_HEIGHT), 0);
 }
 
-function updateAIPaddle(deltaTime) {
-    aiReactionTimer += deltaTime;
-
-    if (aiReactionTimer >= AI_REACTION_TIME) {
-        const targetY = predictBallY(); // Predict ball trajectory
-        rightPaddleY = updatePaddlePosition(rightPaddleY, targetY, deltaTime, PADDLE_SPEED);
-        aiReactionTimer = 0; // Reset reaction timer
-    }
-}
-
-function updatePlayerPaddle(deltaTime) {
-    // Player paddle is controlled by user input, not AI
-    if (keysPressed.has('ArrowUp')) {
-        leftPaddleY = Math.max(leftPaddleY - PADDLE_SPEED * deltaTime * NORMALIZED_FRAME_RATE, 0);
-    }
-    if (keysPressed.has('ArrowDown')) {
-        leftPaddleY = Math.min(leftPaddleY + PADDLE_SPEED * deltaTime * NORMALIZED_FRAME_RATE, canvas.height - PADDLE_HEIGHT);
-    }
-}
-
-function predictBallY() {
-    let prediction = ballY + (dy / dx) * (canvas.width - ballX);
-
-    // Account for bounces off the top and bottom walls
-    while (prediction < 0 || prediction > canvas.height) {
-        if (prediction < 0) {
-            prediction = -prediction;
-        } else if (prediction > canvas.height) {
-            prediction = 2 * canvas.height - prediction;
-        }
-    }
-
-    return prediction;
-}
-
-// Update controls to ensure independent movement for both players
-let keysPressed = new Set();
-
-document.addEventListener('keydown', function(e) {
-    keysPressed.add(e.key);
-});
-
-document.addEventListener('keyup', function(e) {
-    keysPressed.delete(e.key);
-});
+// AI difficulty settings are already defined above
 
 function updatePlayerControls() {
     // Player 1 controls (Arrow keys)
@@ -512,6 +549,20 @@ function updatePlayerControls() {
     if (keysPressed.has('s')) {
         rightPaddleY = Math.min(rightPaddleY + PADDLE_SPEED * 2, canvas.height - PADDLE_HEIGHT);
     }
+}
+
+function updatePlayerPaddle(deltaTime) {
+    const moveSpeed = PADDLE_SPEED * deltaTime * 60; // Normalize speed by frame rate
+    
+    if (keysPressed.has('ArrowUp')) {
+        leftPaddleY = Math.max(leftPaddleY - moveSpeed, 0);
+    }
+    if (keysPressed.has('ArrowDown')) {
+        leftPaddleY = Math.min(leftPaddleY + moveSpeed, canvas.height - PADDLE_HEIGHT);
+    }
+    
+    // Keep paddle in bounds
+    leftPaddleY = Math.max(0, Math.min(leftPaddleY, canvas.height - PADDLE_HEIGHT));
 }
 
 function createParticles(x, y, color) {
@@ -588,7 +639,7 @@ const POWER_UP_TYPES = [
     { type: 'speedDown', color: '#0000ff', description: 'Speed Down!' },
     { type: 'paddleGrow', color: '#00ff00', description: 'Paddle Grow!' },
     { type: 'paddleShrink', color: '#ff00ff', description: 'Paddle Shrink!' },
-    { type: 'multiball', color: '#ffff00', description: 'Multi Ball!' },
+    { type: 'multiBall', color: '#ffff00', description: 'Multi Ball!' },
     { type: 'reverseControls', color: '#00ffff', description: 'Reverse Controls!' }
 ];
 
@@ -687,18 +738,23 @@ function showLoadingScreen() {
     }
 }
 
-// Add event listener for the "Rate Us" button
-rateUsButton.addEventListener('click', () => {
-    alert('Thank you for your feedback! Please rate us on the Play Store.');
-});
+// Clean up the Rate Us button handler
+const rateUsButton = document.getElementById('rateUsButton');
+if (rateUsButton) {
+    rateUsButton.addEventListener('click', () => {
+        alert('Thank you for your interest! Please rate our game!');
+    });
+}
 
-// Show tooltips for new players
+// Show tooltips function
 function showTooltips() {
     const tooltips = document.getElementById('tooltips');
-    tooltips.style.display = 'block';
-    setTimeout(() => {
-        tooltips.style.display = 'none';
-    }, 5000); // Hide tooltips after 5 seconds
+    if (tooltips) {
+        tooltips.style.display = 'block';
+        setTimeout(() => {
+            tooltips.style.display = 'none';
+        }, 5000);
+    }
 }
 
 // Add a timer for timed challenges
@@ -770,8 +826,45 @@ if (startButton) {
             animationFrameId = requestAnimationFrame(draw);
             console.log('Game rendering started');
         }
-        bgMusic.play();
     });
 } else {
     console.error('Start button not found in the DOM');
 }
+
+// Update the startGameButton click handler
+document.getElementById('startGameButton').addEventListener('click', () => {
+    const player1Name = document.getElementById('player1NameInput').value || 'Player 1';
+    const player2Name = document.getElementById('player2NameInput').value || 'Player 2';
+    const gameMode = document.getElementById('gameMode').value;
+
+    localStorage.setItem('player1Name', player1Name);
+    localStorage.setItem('player2Name', player2Name);
+    localStorage.setItem('gameMode', gameMode);
+
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('gameCanvas').style.display = 'block';
+    const buttonContainer = document.querySelector('.button-container');
+    buttonContainer.style.display = 'flex';
+    buttonContainer.style.zIndex = '1000';
+    
+    // Initialize game immediately
+    initializeGame();
+    ballMoving = true; // Start ball movement
+    
+    // Initialize and play background music
+    const bgMusic = document.getElementById('bgMusic');
+    if (bgMusic) {
+        bgMusic.volume = 0.5; // Set a comfortable volume level
+        bgMusic.currentTime = 0; // Start from beginning
+        bgMusic.play().catch(e => console.log("Error playing background music:", e));
+    }
+    
+    // Add keyboard focus
+    canvas.focus();
+    canvas.setAttribute('tabindex', '0');
+    
+    // Start game loop
+    if (!animationFrameId) {
+        animationFrameId = requestAnimationFrame(draw);
+    }
+});
