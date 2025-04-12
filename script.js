@@ -84,48 +84,58 @@ const AI_DIFFICULTY = {
     hard: { speed: 0.9, errorMargin: 10 }
 };
 
+function predictBallY() {
+    if (dx <= 0) {
+        return (canvas.height - PADDLE_HEIGHT) / 2; // Return to center when ball moving away
+    }
+
+    // Calculate time to reach AI paddle
+    const timeToIntercept = (canvas.width - 5 * PADDLE_WIDTH - ballX) / dx;
+    let predictedY = ballY + dy * timeToIntercept;
+
+    // Account for bounces
+    const bounces = Math.floor(predictedY / canvas.height);
+    if (bounces % 2 === 0) {
+        predictedY = predictedY % canvas.height;
+    } else {
+        predictedY = canvas.height - (predictedY % canvas.height);
+    }
+
+    // Add difficulty-based randomization
+    const difficulty = localStorage.getItem('difficulty') || 'medium';
+    const settings = AI_DIFFICULTY[difficulty];
+    const randomOffset = (Math.random() - 0.5) * settings.errorMargin;
+    
+    return Math.max(PADDLE_HEIGHT / 2, Math.min(canvas.height - PADDLE_HEIGHT / 2, predictedY + randomOffset)) - PADDLE_HEIGHT / 2;
+}
+
 function updateAIPaddle(deltaTime) {
     const difficulty = localStorage.getItem('difficulty') || 'medium';
     const settings = AI_DIFFICULTY[difficulty];
 
-    if (dx > 0) { // Only move when ball is coming towards AI
+    // Only move when ball is coming towards AI or when paddle is far from optimal position
+    if (dx > 0 || Math.abs(rightPaddleY - (canvas.height - PADDLE_HEIGHT) / 2) > PADDLE_HEIGHT) {
         const targetY = predictBallY();
         const paddleCenter = rightPaddleY + PADDLE_HEIGHT / 2;
         const distance = targetY - paddleCenter;
 
-        // Smooth out movement to eliminate jitter
-        if (Math.abs(distance) > 1) { // Reduced threshold for smoother movement
-            const adjustment = Math.sign(distance) * PADDLE_SPEED * settings.speed * deltaTime * 60;
-            rightPaddleY += adjustment;
+        // Increased movement threshold to reduce jitter and added smoother movement
+        if (Math.abs(distance) > 5) { // Increased from 1 to 5 pixels threshold
+            // Exponential smoothing for more natural movement
+            const speed = Math.min(Math.abs(distance) / 100, 1) * PADDLE_SPEED * settings.speed; // Reduced speed factor
+            const adjustment = Math.sign(distance) * speed * deltaTime * 60;
+            // Apply exponential smoothing
+            rightPaddleY += adjustment * 0.85; // Reduced from 1.0 to 0.85 for smoother movement
             rightPaddleY = Math.max(0, Math.min(canvas.height - PADDLE_HEIGHT, rightPaddleY));
         }
-    }
-}
-
-function predictBallY() {
-    if (dx <= 0) {
-        return (canvas.height - PADDLE_HEIGHT) / 2;
-    }
-
-    // Simple linear prediction
-    const timeToIntercept = (canvas.width - 5 * PADDLE_WIDTH - ballX) / dx;
-    let predictedY = ballY + dy * timeToIntercept;
-
-    // Handle bounces
-    while (predictedY < 0 || predictedY > canvas.height) {
-        if (predictedY < 0) {
-            predictedY = -predictedY;
-        } else if (predictedY > canvas.height) {
-            predictedY = canvas.height - (predictedY - canvas.height);
+    } else {
+        // When ball is moving away, smoothly return to center if not already there
+        const centerY = (canvas.height - PADDLE_HEIGHT) / 2;
+        const distanceToCenter = centerY - rightPaddleY;
+        if (Math.abs(distanceToCenter) > 5) {
+            rightPaddleY += Math.sign(distanceToCenter) * PADDLE_SPEED * 0.5 * deltaTime * 60;
         }
     }
-
-    // Add slight randomization based on difficulty
-    const difficulty = localStorage.getItem('difficulty') || 'medium';
-    const settings = AI_DIFFICULTY[difficulty];
-    const randomOffset = (Math.random() - 0.5) * settings.errorMargin;
-
-    return Math.max(PADDLE_HEIGHT / 2, Math.min(canvas.height - PADDLE_HEIGHT / 2, predictedY + randomOffset)) - PADDLE_HEIGHT / 2;
 }
 
 function initializeGame() {
