@@ -77,35 +77,37 @@ const ADJUSTED_PADDLE_SPEED = PADDLE_SPEED * deviceScaleFactor;
 
 let lastFrameTime = 0; // Unified declaration for frame rate capping
 
-// Simple AI difficulty settings
+// Simple AI difficulty settings with increased challenge
 const AI_DIFFICULTY = {
-    easy: { speed: 0.7, errorMargin: 30 },
-    medium: { speed: 0.8, errorMargin: 20 },
-    hard: { speed: 0.9, errorMargin: 10 }
+    easy: { speed: 0.9, errorMargin: 20 },     // Increased base speed
+    medium: { speed: 1.0, errorMargin: 10 },   // Perfect speed, smaller error margin
+    hard: { speed: 1.1, errorMargin: 5 }       // Faster than player with tiny error margin
 };
 
 function predictBallY() {
     if (dx <= 0) {
-        return (canvas.height - PADDLE_HEIGHT) / 2; // Return to center when ball moving away
+        // When ball is moving away, stay closer to the predicted return position
+        const lastHitY = ballY;
+        return (lastHitY + (canvas.height - PADDLE_HEIGHT) / 2) / 2;
     }
 
-    // Calculate time to reach AI paddle
+    // Improved prediction accuracy
     const timeToIntercept = (canvas.width - 5 * PADDLE_WIDTH - ballX) / dx;
     let predictedY = ballY + dy * timeToIntercept;
 
-    // Account for bounces
-    const bounces = Math.floor(predictedY / canvas.height);
-    if (bounces % 2 === 0) {
-        predictedY = predictedY % canvas.height;
-    } else {
-        predictedY = canvas.height - (predictedY % canvas.height);
+    // More accurate bounce prediction
+    const bounces = Math.floor(Math.abs(predictedY) / canvas.height);
+    if (bounces > 0) {
+        const remainder = Math.abs(predictedY) % canvas.height;
+        predictedY = (bounces % 2 === 0) ? remainder : canvas.height - remainder;
     }
 
-    // Add difficulty-based randomization
+    // Add slight randomization based on difficulty
     const difficulty = localStorage.getItem('difficulty') || 'medium';
     const settings = AI_DIFFICULTY[difficulty];
     const randomOffset = (Math.random() - 0.5) * settings.errorMargin;
     
+    // Adjust prediction to anticipate player patterns
     return Math.max(PADDLE_HEIGHT / 2, Math.min(canvas.height - PADDLE_HEIGHT / 2, predictedY + randomOffset)) - PADDLE_HEIGHT / 2;
 }
 
@@ -113,28 +115,27 @@ function updateAIPaddle(deltaTime) {
     const difficulty = localStorage.getItem('difficulty') || 'medium';
     const settings = AI_DIFFICULTY[difficulty];
 
-    // Only move when ball is coming towards AI or when paddle is far from optimal position
-    if (dx > 0 || Math.abs(rightPaddleY - (canvas.height - PADDLE_HEIGHT) / 2) > PADDLE_HEIGHT) {
-        const targetY = predictBallY();
-        const paddleCenter = rightPaddleY + PADDLE_HEIGHT / 2;
-        const distance = targetY - paddleCenter;
+    // More aggressive AI movement
+    const targetY = predictBallY();
+    const paddleCenter = rightPaddleY + PADDLE_HEIGHT / 2;
+    const distance = targetY - paddleCenter;
 
-        // Increased movement threshold to reduce jitter and added smoother movement
-        if (Math.abs(distance) > 5) { // Increased from 1 to 5 pixels threshold
-            // Exponential smoothing for more natural movement
-            const speed = Math.min(Math.abs(distance) / 100, 1) * PADDLE_SPEED * settings.speed; // Reduced speed factor
-            const adjustment = Math.sign(distance) * speed * deltaTime * 60;
-            // Apply exponential smoothing
-            rightPaddleY += adjustment * 0.85; // Reduced from 1.0 to 0.85 for smoother movement
-            rightPaddleY = Math.max(0, Math.min(canvas.height - PADDLE_HEIGHT, rightPaddleY));
-        }
-    } else {
-        // When ball is moving away, smoothly return to center if not already there
-        const centerY = (canvas.height - PADDLE_HEIGHT) / 2;
-        const distanceToCenter = centerY - rightPaddleY;
-        if (Math.abs(distanceToCenter) > 5) {
-            rightPaddleY += Math.sign(distanceToCenter) * PADDLE_SPEED * 0.5 * deltaTime * 60;
-        }
+    // Faster response and more precise movement
+    if (Math.abs(distance) > 1) {
+        // Exponential speed scaling - faster when far away
+        const distanceFactor = Math.min(Math.abs(distance) / 30, 3.0);
+        const speed = PADDLE_SPEED * settings.speed * distanceFactor;
+        const adjustment = Math.sign(distance) * speed * deltaTime * 60;
+        
+        // Reduced smoothing for faster reactions
+        rightPaddleY += adjustment * 0.95;
+        rightPaddleY = Math.max(0, Math.min(canvas.height - PADDLE_HEIGHT, rightPaddleY));
+    }
+
+    // Predictive movement - start moving before the ball does
+    if (dx > 0 && Math.abs(distance) > PADDLE_HEIGHT / 4) {
+        const urgencyFactor = Math.min(1.0, (canvas.width - ballX) / (canvas.width / 2));
+        rightPaddleY += Math.sign(distance) * PADDLE_SPEED * settings.speed * urgencyFactor * deltaTime * 60;
     }
 }
 
