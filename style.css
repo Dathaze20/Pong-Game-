@@ -16,6 +16,13 @@ body {
     overflow: hidden;
 }
 
+/* Add a dynamic background animation */
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 #mainMenu, #settingsMenu, #gameOverScreen {
     display: flex;
     flex-direction: column;
@@ -96,12 +103,18 @@ canvas {
     width: 100%;
     height: 100vh;
     display: block;
-    background: radial-gradient(circle, #1a2a6c, #16213e); /* Subtle gradient background */
-    border: 5px solid #FFD700; /* Golden border */
-    border-radius: 25px;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); /* Glowing shadow */
+    background: radial-gradient(circle, #1e1e1e, #2a2a2a);
+    border: 5px solid #FFD700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    border-radius: 15px;
+    animation: canvasPulse 3s infinite alternate;
     box-sizing: border-box;
     z-index: 1;
+}
+
+@keyframes canvasPulse {
+    0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+    100% { box-shadow: 0 0 30px rgba(255, 215, 0, 1); }
 }
 
 header {
@@ -165,7 +178,12 @@ button {
     background-color: #FFD700;
     color: #000;
     cursor: pointer;
-    transition: all 0.3s ease-in-out;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
 }
 
 button:hover {
@@ -293,6 +311,11 @@ canvas {
 }
 
 @keyframes glow {
+    0% { stroke: rgba(255, 255, 255, 0.5); }
+    100% { stroke: rgba(255, 255, 255, 1); }
+}
+
+@keyframes glow {
     from {
         stroke: rgba(255, 255, 255, 0.5);
     }
@@ -303,8 +326,15 @@ canvas {
 
 /* Add glowing effect to paddles */
 .paddle {
-    fill: #00FA9A; /* Paddle color */
-    filter: drop-shadow(0 0 10px #00FA9A); /* Glowing effect */
+    background: linear-gradient(135deg, #00ffcc, #00b3b3);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+    border-radius: 10px;
+    animation: paddleGlow 2s infinite alternate;
+}
+
+@keyframes paddleGlow {
+    0% { box-shadow: 0 0 15px rgba(0, 255, 204, 0.6); }
+    100% { box-shadow: 0 0 25px rgba(0, 255, 204, 1); }
 }
 
 /* Add animations for paddles and ball */
@@ -320,8 +350,14 @@ canvas {
 /* Add glowing effect to the ball */
 .ball {
     background: radial-gradient(circle, #FFD700, #FFA500);
-    box-shadow: 0 0 15px rgba(255, 165, 0, 0.8);
+    box-shadow: 0 0 25px rgba(255, 165, 0, 0.8);
+    border-radius: 50%;
     animation: ballBounce 0.5s infinite alternate;
+}
+
+@keyframes ballBounce {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
 }
 
 @keyframes ballBounce {
@@ -629,6 +665,11 @@ canvas {
     font-size: 24px;
     color: #FFD700;
     animation: scoreFeedback 1s ease-out;
+}
+
+@keyframes scoreFeedback {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
 }
 
 @keyframes scoreFeedback {
