@@ -755,6 +755,8 @@ if (rateUsButton) {
     rateUsButton.addEventListener('click', () => {
         alert('Thank you for your interest! Please rate our game!');
     });
+} else {
+    console.error('Rate Us button not found');
 }
 
 // Show tooltips function
@@ -765,6 +767,8 @@ function showTooltips() {
         setTimeout(() => {
             tooltips.style.display = 'none';
         }, 5000);
+    } else {
+        console.error('Tooltips element not found');
     }
 }
 
@@ -879,3 +883,44 @@ document.getElementById('startGameButton').addEventListener('click', () => {
         animationFrameId = requestAnimationFrame(draw);
     }
 });
+
+// Test the colorblind mode toggle functionality
+const colorblindToggle = document.getElementById('colorblindMode');
+if (colorblindToggle) {
+    colorblindToggle.addEventListener('change', (event) => {
+        if (event.target.checked) {
+            document.body.classList.add('colorblind-mode');
+            console.log('Colorblind mode enabled');
+        } else {
+            document.body.classList.remove('colorblind-mode');
+            console.log('Colorblind mode disabled');
+        }
+    });
+} else {
+    console.error('Colorblind mode toggle not found');
+}
+
+// Add functionality for the Settings button
+const settingsButton = document.getElementById('settingsButton');
+const settingsMenu = document.getElementById('settingsMenu');
+const mainMenu = document.getElementById('mainMenu');
+
+if (settingsButton && settingsMenu && mainMenu) {
+    settingsButton.addEventListener('click', () => {
+        mainMenu.style.display = 'none';
+        settingsMenu.style.display = 'flex';
+    });
+
+    // Add a back button to return to the main menu
+    const backToMenuButton = document.createElement('button');
+    backToMenuButton.textContent = 'Back to Menu';
+    backToMenuButton.className = 'btn btn-secondary';
+    backToMenuButton.style.margin = '10px';
+    backToMenuButton.addEventListener('click', () => {
+        settingsMenu.style.display = 'none';
+        mainMenu.style.display = 'flex';
+    });
+    settingsMenu.appendChild(backToMenuButton);
+} else {
+    console.error('Settings button or menu not found in the DOM.');
+}

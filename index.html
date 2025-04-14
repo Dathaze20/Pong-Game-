@@ -44,7 +44,7 @@
                     <option value="hard">Hard</option>
                 </select> Select Difficulty
             </label>
-            <button id="backToMenuButton" style="margin: 10px; padding: 10px 20px; font-size: 16px;">Back to Menu</button>
+            <button id="backToMenuButton" style="margin: 10px; padding: 10px; font-size: 16px;">Back to Menu</button>
         </div>
         <canvas id="gameCanvas" aria-label="Pong Game Canvas" style="display: none;"></canvas>
         <div class="button-container" style="display: none;">
@@ -146,6 +146,35 @@
         document.getElementById('difficulty').addEventListener('change', (e) => {
             localStorage.setItem('difficulty', e.target.value);
         });
+
+        <!-- Add missing colorblind mode toggle -->
+        <label style="margin: 10px; font-size: 16px; color: white;">
+            <input type="checkbox" id="colorblindMode" style="margin-right: 10px;"> Enable Colorblind Mode
+        </label>
+
+        <!-- Add missing event listener for How to Play section -->
+        <button id="howToPlayButton" style="margin: 10px; padding: 10px 20px; font-size: 16px;">How to Play</button>
+
+        <!-- Ensure How to Play section is accessible -->
+        <script>
+            document.getElementById('howToPlayButton').addEventListener('click', () => {
+                document.getElementById('mainMenu').style.display = 'none';
+                document.getElementById('howToPlay').style.display = 'flex';
+            });
+
+            document.getElementById('backToMenuFromHowToPlay').addEventListener('click', () => {
+                document.getElementById('howToPlay').style.display = 'none';
+                document.getElementById('mainMenu').style.display = 'flex';
+            });
+
+            document.getElementById('colorblindMode').addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    document.body.classList.add('colorblind-mode');
+                } else {
+                    document.body.classList.remove('colorblind-mode');
+                }
+            });
+        </script>
     </script>
 </body>
 </html>
