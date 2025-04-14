@@ -115,28 +115,21 @@ function updateAIPaddle(deltaTime) {
     const difficulty = localStorage.getItem('difficulty') || 'medium';
     const settings = AI_DIFFICULTY[difficulty];
 
-    // More aggressive AI movement
+    // Predict the ball's Y position
     const targetY = predictBallY();
+
+    // Use the same smooth movement logic as the local player paddle
+    const moveSpeed = PADDLE_SPEED * deltaTime * 60; // Normalize speed by frame rate
     const paddleCenter = rightPaddleY + PADDLE_HEIGHT / 2;
     const distance = targetY - paddleCenter;
 
-    // Faster response and more precise movement
     if (Math.abs(distance) > 1) {
-        // Exponential speed scaling - faster when far away
-        const distanceFactor = Math.min(Math.abs(distance) / 30, 3.0);
-        const speed = PADDLE_SPEED * settings.speed * distanceFactor;
-        const adjustment = Math.sign(distance) * speed * deltaTime * 60;
-        
-        // Reduced smoothing for faster reactions
-        rightPaddleY += adjustment * 0.95;
-        rightPaddleY = Math.max(0, Math.min(canvas.height - PADDLE_HEIGHT, rightPaddleY));
+        const adjustment = Math.sign(distance) * Math.min(Math.abs(distance), moveSpeed);
+        rightPaddleY += adjustment;
     }
 
-    // Predictive movement - start moving before the ball does
-    if (dx > 0 && Math.abs(distance) > PADDLE_HEIGHT / 4) {
-        const urgencyFactor = Math.min(1.0, (canvas.width - ballX) / (canvas.width / 2));
-        rightPaddleY += Math.sign(distance) * PADDLE_SPEED * settings.speed * urgencyFactor * deltaTime * 60;
-    }
+    // Keep paddle in bounds
+    rightPaddleY = Math.max(0, Math.min(rightPaddleY, canvas.height - PADDLE_HEIGHT));
 }
 
 function initializeGame() {
@@ -151,7 +144,7 @@ function initializeGame() {
 
     // Initialize game state
     resetBall();
-    leftPaddleY = rightPaddleY = (canvas.height - PADDLE_HEIGHT) / 2;
+    leftPaddleY = rightPaddleY = (canvas.height - PADDLE_HEIGHT) / 2; // Start paddles in the middle
     leftScore = 0;
     rightScore = 0;
     currentLevel = 1;
@@ -169,7 +162,7 @@ function initializeGame() {
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        leftPaddleY = rightPaddleY = (canvas.height - PADDLE_HEIGHT) / 2;
+        leftPaddleY = rightPaddleY = (canvas.height - PADDLE_HEIGHT) / 2; // Re-center paddles on resize
     });
 }
 
@@ -208,12 +201,41 @@ function drawPaddle(x, y) {
 
 function drawMiddleLine() {
     ctx.beginPath();
-    ctx.setLineDash([5, 15]);
+    ctx.setLineDash([5, 15]); // Dashed line style
     ctx.moveTo(canvas.width / 2, 0);
     ctx.lineTo(canvas.width / 2, canvas.height);
+    ctx.lineWidth = 3; // Increase line width for better visibility
     ctx.strokeStyle = MIDDLE_LINE_COLOR;
+
+    // Add glowing effect
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = MIDDLE_LINE_COLOR;
+
     ctx.stroke();
     ctx.closePath();
+
+    // Reset shadow settings to avoid affecting other elements
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+
+    // Draw a circle in the middle of the divider line
+    const circleRadius = 20;
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, canvas.height / 2, circleRadius, 0, Math.PI * 2);
+    ctx.lineWidth = 3; // Match the divider line width
+    ctx.strokeStyle = MIDDLE_LINE_COLOR;
+    ctx.setLineDash([5, 15]); // Match the dashed style of the divider line
+
+    // Add glowing effect to the circle
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = MIDDLE_LINE_COLOR;
+
+    ctx.stroke();
+    ctx.closePath();
+
+    // Reset shadow settings again
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
 }
 
 // Adjust the scoreboard to be centered and touch the top border
@@ -313,7 +335,6 @@ const SMOOTHNESS_FACTOR = 0.95; // Factor to smooth paddle and ball movements
 
 // Improved ball movement for smoother gameplay
 function updateBallPosition(deltaTime) {
-    // Ensure consistent speed regardless of frame rate
     const speedFactor = deltaTime * NORMALIZED_FRAME_RATE;
 
     // Update ball position with proper speed normalization
@@ -340,35 +361,20 @@ function updateBallPosition(deltaTime) {
                                 ballY <= rightPaddleY + PADDLE_HEIGHT;
 
     if (leftPaddleCollision) {
-        // Left paddle collision
         const hitPosition = (ballY - leftPaddleY) / PADDLE_HEIGHT;
         const bounceAngle = (hitPosition - 0.5) * Math.PI / 3; // -60° to +60°
-        
         const speed = Math.sqrt(dx * dx + dy * dy) * 1.05; // Increase speed by 5%
         dx = Math.abs(speed * Math.cos(bounceAngle));
         dy = speed * Math.sin(bounceAngle);
-        
-        // Prevent sticking by moving ball to paddle edge
-        ballX = 4 * PADDLE_WIDTH + PADDLE_WIDTH + BALL_RADIUS;
-        
-        if (hitSound) hitSound.play().catch(e => console.log("Error playing hit sound:", e));
-        createParticles(ballX, ballY, config.PADDLE_COLOR);
+        ballX = 4 * PADDLE_WIDTH + PADDLE_WIDTH + BALL_RADIUS; // Prevent sticking
     } else if (rightPaddleCollision) {
-        // Right paddle collision
         const hitPosition = (ballY - rightPaddleY) / PADDLE_HEIGHT;
         const bounceAngle = (hitPosition - 0.5) * Math.PI / 3; // -60° to +60°
-        
         const speed = Math.sqrt(dx * dx + dy * dy) * 1.05; // Increase speed by 5%
         dx = -Math.abs(speed * Math.cos(bounceAngle));
         dy = speed * Math.sin(bounceAngle);
-        
-        // Prevent sticking by moving ball to paddle edge
-        ballX = canvas.width - 5 * PADDLE_WIDTH - BALL_RADIUS;
-        
-        if (hitSound) hitSound.play().catch(e => console.log("Error playing hit sound:", e));
-        createParticles(ballX, ballY, config.PADDLE_COLOR);
+        ballX = canvas.width - 5 * PADDLE_WIDTH - BALL_RADIUS; // Prevent sticking
     } else {
-        // Update ball X position if no collision
         ballX = nextX;
     }
 
@@ -382,18 +388,12 @@ function updateBallPosition(deltaTime) {
 
     // Ball out of bounds (scoring)
     if (ballX - BALL_RADIUS < 0) {
-        rightScore++; // AI scores only when the ball goes out of bounds on the player's side
-        if (scoreSound) scoreSound.play().catch(e => console.log("Error playing score sound:", e));
-        createParticles(ballX, ballY, "#ff0000");
+        rightScore++;
         resetBall();
-        checkLevelUp();
         drawScore();
     } else if (ballX + BALL_RADIUS > canvas.width) {
-        leftScore++; // Player scores only when the ball goes out of bounds on the AI's side
-        if (scoreSound) scoreSound.play().catch(e => console.log("Error playing score sound:", e));
-        createParticles(ballX, ballY, "#ff0000");
+        leftScore++;
         resetBall();
-        checkLevelUp();
         drawScore();
     }
 
