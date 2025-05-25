@@ -6,45 +6,58 @@
     <title>Pong Game</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script defer src="script.js"></script>
-    <!-- Add missing favicon and ensure startButton exists -->
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
-    <header>
-        <h1 class="visually-hidden">Pong Game</h1>
+    <header style="background: linear-gradient(90deg, #0f2027 0%, #2c5364 100%); padding: 20px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+        <h1 style="font-family: 'Orbitron', Arial, sans-serif; color: #FFD700; text-align: center; font-size: 2.5rem; margin: 0; letter-spacing: 2px;">Pong Game</h1>
     </header>
     <main role="main">
-        <div id="loadingScreen" style="display: none;">Loading...</div>
-        <div id="mainMenu" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
-            <h1 style="font-size: 36px; color: #FFD700;">Pong Game</h1>
-            <input id="player1NameInput" type="text" placeholder="Enter Player 1 Name" style="margin: 10px; padding: 10px; font-size: 16px;" />
-            <input id="player2NameInput" type="text" placeholder="Enter Player 2 Name" style="margin: 10px; padding: 10px; font-size: 16px;" />
-            <select id="gameMode" style="margin: 10px; padding: 10px; font-size: 16px;">
+        <div id="loadingScreen" style="display: none; align-items: center; justify-content: center; height: 100vh; background: rgba(15,32,39,0.95); position: fixed; width: 100vw; z-index: 1000; top: 0; left: 0;">
+            <div style="text-align: center;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #FFD700;"></i>
+                <h2 style="color: #fff; font-family: 'Roboto', Arial, sans-serif;">Loading...</h2>
+            </div>
+        </div>
+        <div id="mainMenu" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 90vh; background: linear-gradient(135deg, #232526 0%, #414345 100%); border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); margin: 32px auto; max-width: 400px;">
+            <div style="margin-bottom: 24px;">
+                <img src="icon-192x192.png" alt="Pong Game Icon" style="width: 96px; height: 96px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+            </div>
+            <h1 style="font-size: 2.2rem; color: #FFD700; font-family: 'Orbitron', Arial, sans-serif; margin-bottom: 16px; letter-spacing: 1px;">Pong Game</h1>
+            <input id="player1NameInput" type="text" placeholder="Enter Player 1 Name" style="margin: 10px; padding: 12px; font-size: 1rem; border-radius: 8px; border: none; width: 80%; background: #232526; color: #FFD700; font-family: 'Roboto', Arial, sans-serif;" />
+            <input id="player2NameInput" type="text" placeholder="Enter Player 2 Name" style="margin: 10px; padding: 12px; font-size: 1rem; border-radius: 8px; border: none; width: 80%; background: #232526; color: #FFD700; font-family: 'Roboto', Arial, sans-serif;" />
+            <select id="gameMode" style="margin: 10px; padding: 12px; font-size: 1rem; border-radius: 8px; border: none; width: 80%; background: #232526; color: #FFD700; font-family: 'Roboto', Arial, sans-serif;">
                 <option value="1">1 Player (vs AI)</option>
                 <option value="2">2 Players</option>
             </select>
-            <button id="startGameButton" class="btn btn-primary" aria-label="Start Game">Start Game</button>
-            <button id="settingsButton" class="btn btn-secondary" aria-label="Open Settings">Settings</button>
-            <button id="rateUsButton" class="btn btn-secondary" aria-label="Rate Us">Rate Us</button>
-            <button id="exitButton" class="btn btn-secondary" aria-label="Exit Game">Exit</button>
+            <button id="startGameButton" class="btn btn-primary" aria-label="Start Game" style="margin: 10px; padding: 14px 0; font-size: 1.1rem; border-radius: 8px; width: 80%; background: linear-gradient(90deg, #FFD700 0%, #FFB300 100%); color: #232526; font-weight: bold; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-family: 'Orbitron', Arial, sans-serif; letter-spacing: 1px;"> <i class="fas fa-play"></i> Start Game</button>
+            <button id="settingsButton" class="btn btn-secondary" aria-label="Open Settings" style="margin: 10px; padding: 12px 0; font-size: 1rem; border-radius: 8px; width: 80%; background: #232526; color: #FFD700; border: 1px solid #FFD700; font-family: 'Roboto', Arial, sans-serif;"> <i class="fas fa-cog"></i> Settings</button>
+            <button id="howToPlayButton" style="margin: 10px; padding: 12px 0; font-size: 1rem; border-radius: 8px; width: 80%; background: #232526; color: #FFD700; border: 1px solid #FFD700; font-family: 'Roboto', Arial, sans-serif;"> <i class="fas fa-question-circle"></i> How to Play</button>
+            <button id="rateUsButton" class="btn btn-secondary" aria-label="Rate Us" style="margin: 10px; padding: 12px 0; font-size: 1rem; border-radius: 8px; width: 80%; background: #232526; color: #FFD700; border: 1px solid #FFD700; font-family: 'Roboto', Arial, sans-serif;"> <i class="fas fa-star"></i> Rate Us</button>
+            <button id="exitButton" class="btn btn-secondary" aria-label="Exit Game" style="margin: 10px; padding: 12px 0; font-size: 1rem; border-radius: 8px; width: 80%; background: #232526; color: #FFD700; border: 1px solid #FFD700; font-family: 'Roboto', Arial, sans-serif;"> <i class="fas fa-sign-out-alt"></i> Exit</button>
         </div>
-        <div id="settingsMenu" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
-            <h1 style="font-size: 36px; color: #FFD700;">Settings</h1>
-            <label style="margin: 10px; font-size: 16px; color: white;">
-                <input type="checkbox" id="toggleMusic" style="margin-right: 10px;"> Toggle Background Music
+        <div id="settingsMenu" style="display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 90vh; background: linear-gradient(135deg, #232526 0%, #414345 100%); border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); margin: 32px auto; max-width: 400px;">
+            <h1 style="font-size: 2.2rem; color: #FFD700; font-family: 'Orbitron', Arial, sans-serif; margin-bottom: 16px; letter-spacing: 1px;">Settings</h1>
+            <label style="margin: 10px; font-size: 1rem; color: #FFD700; font-family: 'Roboto', Arial, sans-serif; display: flex; align-items: center;">
+                <input type="checkbox" id="toggleMusic" style="margin-right: 10px;"> <i class="fas fa-music" style="margin-right: 8px;"></i> Toggle Background Music
             </label>
-            <label style="margin: 10px; font-size: 16px; color: white;">
-                <input type="checkbox" id="toggleSoundEffects" style="margin-right: 10px;"> Toggle Sound Effects
+            <label style="margin: 10px; font-size: 1rem; color: #FFD700; font-family: 'Roboto', Arial, sans-serif; display: flex; align-items: center;">
+                <input type="checkbox" id="toggleSoundEffects" style="margin-right: 10px;"> <i class="fas fa-volume-up" style="margin-right: 8px;"></i> Toggle Sound Effects
             </label>
-            <label style="margin: 10px; font-size: 16px; color: white;">
-                <select id="difficulty" style="margin-right: 10px;">
+            <label style="margin: 10px; font-size: 1rem; color: #FFD700; font-family: 'Roboto', Arial, sans-serif; display: flex; align-items: center;">
+                <select id="difficulty" style="margin-right: 10px; border-radius: 8px; border: none; background: #232526; color: #FFD700; font-family: 'Roboto', Arial, sans-serif; padding: 8px;">
                     <option value="easy">Easy</option>
                     <option value="medium">Medium</option>
                     <option value="hard">Hard</option>
-                </select> Select Difficulty
+                </select> <span style="margin-left: 8px;">Select Difficulty</span>
             </label>
-            <button id="backToMenuButton" style="margin: 10px; padding: 10px; font-size: 16px;">Back to Menu</button>
+            <label style="margin: 10px; font-size: 1rem; color: #FFD700; font-family: 'Roboto', Arial, sans-serif; display: flex; align-items: center;">
+                <input type="checkbox" id="colorblindMode" style="margin-right: 10px;"> <i class="fas fa-eye" style="margin-right: 8px;"></i> Enable Colorblind Mode
+            </label>
+            <button id="backToMenuButton" style="margin: 10px; padding: 12px 0; font-size: 1rem; border-radius: 8px; width: 80%; background: #232526; color: #FFD700; border: 1px solid #FFD700; font-family: 'Roboto', Arial, sans-serif;"> <i class="fas fa-arrow-left"></i> Back to Menu</button>
         </div>
         <canvas id="gameCanvas" aria-label="Pong Game Canvas" style="display: none;"></canvas>
         <div class="button-container" style="display: none;">
@@ -68,14 +81,14 @@
         <div id="splashScreen" style="display: none;">Welcome to Pong Game!</div>
 
         <!-- Add How to Play section -->
-        <div id="howToPlay" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
-            <h1 style="font-size: 36px; color: #FFD700;">How to Play</h1>
-            <p style="font-size: 16px; color: white; text-align: center; max-width: 600px;">
-                Use the arrow keys to move your paddle (desktop) or tap on the screen (mobile).
-                Hit the ball to score points and collect power-ups to gain an advantage.
-                The game ends when the timer runs out or a player reaches the winning score.
+        <div id="howToPlay" style="display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 90vh; background: linear-gradient(135deg, #232526 0%, #414345 100%); border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); margin: 32px auto; max-width: 400px;">
+            <h1 style="font-size: 2.2rem; color: #FFD700; font-family: 'Orbitron', Arial, sans-serif; margin-bottom: 16px; letter-spacing: 1px;">How to Play</h1>
+            <p style="font-size: 1rem; color: #FFD700; text-align: center; max-width: 90%; font-family: 'Roboto', Arial, sans-serif; background: #232526; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                <i class="fas fa-gamepad"></i> Use the <b>arrow keys</b> to move your paddle (desktop) or <b>tap</b> on the screen (mobile).<br>
+                <i class="fas fa-bolt"></i> Hit the ball to score points and collect power-ups to gain an advantage.<br>
+                <i class="fas fa-hourglass-half"></i> The game ends when the timer runs out or a player reaches the winning score.
             </p>
-            <button id="backToMenuFromHowToPlay" style="margin: 10px; padding: 10px 20px; font-size: 16px;">Back to Menu</button>
+            <button id="backToMenuFromHowToPlay" style="margin: 10px; padding: 12px 0; font-size: 1rem; border-radius: 8px; width: 80%; background: #232526; color: #FFD700; border: 1px solid #FFD700; font-family: 'Roboto', Arial, sans-serif;"> <i class="fas fa-arrow-left"></i> Back to Menu</button>
         </div>
         <!-- Add missing pauseMessage element -->
         <div id="pauseMessage" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.7); color: white; padding: 20px; border-radius: 8px; text-align: center;">Paused</div>
@@ -103,78 +116,7 @@
         </audio>
     </footer>
     <script>
-        document.getElementById('startGameButton').addEventListener('click', () => {
-            const player1Name = document.getElementById('player1NameInput').value || 'Player 1';
-            const player2Name = document.getElementById('player2NameInput').value || 'Player 2';
-            const gameMode = document.getElementById('gameMode').value;
-
-            localStorage.setItem('player1Name', player1Name);
-            localStorage.setItem('player2Name', player2Name);
-            localStorage.setItem('gameMode', gameMode);
-
-            document.getElementById('mainMenu').style.display = 'none';
-            document.getElementById('gameCanvas').style.display = 'block';
-            document.querySelector('.button-container').style.display = 'flex';
-            
-            // Start the game immediately
-            const gameCanvas = document.getElementById('gameCanvas');
-            gameCanvas.focus(); // Ensure canvas has focus for keyboard events
-            initializeGame();
-        });
-
-        document.getElementById('settingsButton').addEventListener('click', () => {
-            document.getElementById('mainMenu').style.display = 'none';
-            document.getElementById('settingsMenu').style.display = 'flex';
-        });
-
-        document.getElementById('backToMenuButton').addEventListener('click', () => {
-            document.getElementById('settingsMenu').style.display = 'none';
-            document.getElementById('mainMenu').style.display = 'flex';
-        });
-
-        document.getElementById('toggleMusic').addEventListener('change', (e) => {
-            const bgMusic = document.getElementById('bgMusic');
-            if (e.target.checked) {
-                bgMusic.play();
-            } else {
-                bgMusic.pause();
-            }
-        });
-
-        // Colorblind mode will be implemented in a future update
-
-        document.getElementById('difficulty').addEventListener('change', (e) => {
-            localStorage.setItem('difficulty', e.target.value);
-        });
-
-        <!-- Add missing colorblind mode toggle -->
-        <label style="margin: 10px; font-size: 16px; color: white;">
-            <input type="checkbox" id="colorblindMode" style="margin-right: 10px;"> Enable Colorblind Mode
-        </label>
-
-        <!-- Add missing event listener for How to Play section -->
-        <button id="howToPlayButton" style="margin: 10px; padding: 10px 20px; font-size: 16px;">How to Play</button>
-
-        <!-- Ensure How to Play section is accessible -->
-        <script>
-            document.getElementById('howToPlayButton').addEventListener('click', () => {
-                document.getElementById('mainMenu').style.display = 'none';
-                document.getElementById('howToPlay').style.display = 'flex';
-            });
-
-            document.getElementById('backToMenuFromHowToPlay').addEventListener('click', () => {
-                document.getElementById('howToPlay').style.display = 'none';
-                document.getElementById('mainMenu').style.display = 'flex';
-            });
-
-            document.getElementById('colorblindMode').addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    document.body.classList.add('colorblind-mode');
-                } else {
-                    document.body.classList.remove('colorblind-mode');
-                }
-            });
-        </script>
+        // All event listeners and UI logic are now handled in script.js for maintainability and clarity.
     </script>
 </body>
 </html>

@@ -165,6 +165,15 @@ function initializeGame() {
     ballMoving = false;
     gamePaused = false;
 
+    // Reset and start timer
+    if (typeof timer !== 'undefined') timer = 60;
+    if (typeof timerInterval !== 'undefined') clearInterval(timerInterval);
+    if (document.getElementById('timer')) {
+        document.getElementById('timer').textContent = `Time Left: ${timer}s`;
+        document.getElementById('timer').style.display = 'block';
+    }
+    if (typeof startTimer === 'function') startTimer();
+
     console.log('Game initialized');
 
     // Start game loop

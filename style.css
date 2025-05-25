@@ -1,3 +1,21 @@
+/* --- Spectacular Timer Styling for Google Play Store Polish --- */
+#timer {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    font-size: 1.3rem;
+    color: #FFD700;
+    background: rgba(30,32,34,0.92);
+    padding: 10px 22px;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    z-index: 100;
+    font-family: 'Orbitron', Arial, sans-serif;
+    letter-spacing: 1.5px;
+    border: 1.5px solid #FFD700;
+    font-weight: bold;
+    animation: fadeIn 0.7s;
+}
 html, body {
     margin: 0;
     padding: 0;
@@ -7,8 +25,8 @@ html, body {
 }
 
 body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #1a2a6c, #16213e, #0f3460);
+    font-family: 'Roboto', 'Arial', sans-serif;
+    background: linear-gradient(135deg, #0f2027, #2c5364, #232526, #414345);
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
     color: #ffffff;
@@ -23,15 +41,24 @@ body {
     100% { background-position: 0% 50%; }
 }
 
-#mainMenu, #settingsMenu, #gameOverScreen {
+/* Modern glassmorphism for main UI containers */
+#mainMenu, #settingsMenu, #gameOverScreen, #howToPlay {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    height: 100%;
+    width: 98vw;
+    min-height: 80vh;
+    max-width: 500px;
+    margin: 1vh auto 1vh auto;
     box-sizing: border-box;
-    padding: 30px;
+    padding: 10px 2vw 10px 2vw;
+    background: rgba(30, 32, 34, 0.85);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    animation: fadeIn 0.7s;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -47,24 +74,114 @@ body {
     border-radius: 12px;
 }
 
-#mainMenu h1 {
-    font-size: 48px;
-    margin-bottom: 20px;
+/* Modern title style */
+#mainMenu h1, #settingsMenu h1, #howToPlay h1 {
+    font-size: 2.2rem;
+    color: #FFD700;
+    font-family: 'Orbitron', Arial, sans-serif;
+    margin-bottom: 16px;
+    letter-spacing: 1px;
     text-shadow: 0 4px 10px rgba(255, 215, 0, 0.6);
 }
 
-#mainMenu button {
-    width: 200px;
-    height: 50px;
-    margin: 10px;
-    font-size: 18px;
-    background: linear-gradient(135deg, #4a90e2, #007aff);
-    color: #fff;
-    border: none;
+/* Modern button style */
+#mainMenu button, #settingsMenu button, #howToPlay button, .btn, .button-container button {
+    width: 80%;
+    min-width: 180px;
+    max-width: 320px;
+    margin: 10px auto;
+    padding: 14px 0;
+    font-size: 1.1rem;
     border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(90deg, #FFD700 0%, #FFB300 100%);
+    color: #232526;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    font-family: 'Orbitron', Arial, sans-serif;
+    letter-spacing: 1px;
     cursor: pointer;
-    transition: all 0.3s ease-in-out;
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1), box-shadow 0.3s cubic-bezier(.25,.8,.25,1);
+    outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+#mainMenu button:hover, #settingsMenu button:hover, #howToPlay button:hover, .btn:hover, .button-container button:hover {
+    background: linear-gradient(90deg, #FFB300 0%, #FFD700 100%);
+    color: #232526;
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+}
+
+#mainMenu input, #mainMenu select, #settingsMenu select, #settingsMenu input[type="checkbox"] {
+    margin: 10px;
+    padding: 12px;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: none;
+    width: 80%;
+    background: #232526;
+    color: #FFD700;
+    font-family: 'Roboto', Arial, sans-serif;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    outline: none;
+    transition: box-shadow 0.2s;
+}
+
+#mainMenu input:focus, #mainMenu select:focus, #settingsMenu select:focus {
+    box-shadow: 0 0 0 2px #FFD700;
+}
+
+#mainMenu select, #settingsMenu select {
+    background: #232526;
+    color: #FFD700;
+}
+
+#mainMenu input::placeholder {
+    color: #FFD70099;
+    opacity: 1;
+}
+
+/* Checkbox custom style */
+#settingsMenu input[type="checkbox"] {
+    accent-color: #FFD700;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+#settingsMenu label, #settingsMenu select, #settingsMenu button {
+    font-family: 'Roboto', Arial, sans-serif;
+    color: #FFD700;
+}
+
+/* Responsive for mobile */
+@media (max-width: 600px) {
+    #mainMenu, #settingsMenu, #gameOverScreen, #howToPlay {
+        width: 100vw;
+        min-height: 98vh;
+        max-width: 100vw;
+        margin: 0 auto;
+        padding: 4px 1vw 4px 1vw;
+        border-radius: 6px;
+        box-sizing: border-box;
+    }
+    #mainMenu h1, #settingsMenu h1, #howToPlay h1 {
+        font-size: 1rem;
+    }
+    #mainMenu button, #settingsMenu button, #howToPlay button, .btn, .button-container button {
+        font-size: 0.9rem;
+        min-width: 70px;
+        padding: 6px 0;
+    }
+    #mainMenu input, #mainMenu select, #settingsMenu select {
+        font-size: 0.85rem;
+        padding: 4px;
+    }
+}
 }
 
 #mainMenu button:hover {
@@ -100,14 +217,14 @@ canvas {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 100vw;
     height: 100vh;
     display: block;
-    background: radial-gradient(circle, #1e1e1e, #2a2a2a);
+    background: linear-gradient(135deg, #232526 0%, #414345 100%);
     border: 5px solid #FFD700;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-    border-radius: 15px;
-    animation: canvasPulse 3s infinite alternate;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    border-radius: 24px;
+    animation: boardPulse 3s infinite alternate;
     box-sizing: border-box;
     z-index: 1;
 }
@@ -123,41 +240,70 @@ header {
 
 .button-container {
     position: fixed;
-    bottom: 10px;
+    bottom: 3vh;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 10px 15px;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    width: 90%;
-    max-width: 400px;
-    z-index: 1000; /* Ensure buttons appear above canvas */
+    justify-content: center;
+    gap: 0.2vw;
+    padding: 0.3em 0.5em;
+    background: linear-gradient(135deg, #232526 0%, #414345 100%);
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    width: 320px;
+    max-width: 90vw;
+    min-width: 180px;
+    box-sizing: border-box;
+    z-index: 1000;
+    border: 2px solid #FFD700;
+}
 }
 
 .button-container button {
-    flex: 1;
-    height: 40px;
-    font-size: 16px; /* Standardized font size */
-    font-family: 'Arial', sans-serif; /* Consistent font family */
-    text-align: center; /* Center text horizontally */
-    line-height: 40px; /* Center text vertically */
-    margin: 0;
-    background: linear-gradient(135deg, #4caf50, #2e7d32); /* Green gradient */
-    color: #ffffff;
+    flex: 1 1 0;
+    min-width: 48px;
+    max-width: 72px;
+    height: 28px;
+    padding: 0 2px;
+    font-size: 0.78rem;
+    font-family: 'Orbitron', Arial, sans-serif;
+    text-align: center;
+    margin: 0 0.5vw;
+    background: linear-gradient(90deg, #FFD700 0%, #FFB300 100%);
+    color: #232526;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    letter-spacing: 1px;
     cursor: pointer;
-    transition: all 0.3s ease-in-out;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1), box-shadow 0.3s cubic-bezier(.25,.8,.25,1);
+    outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex-shrink: 1;
+    flex-grow: 1;
+    flex-basis: 0;
+    min-height: 36px;
+    box-sizing: border-box;
+}
+
+/* Style the restart button specifically */
+.button-container button#restartButton {
+    background: linear-gradient(90deg, #FFD700 0%, #FFB300 100%);
+    color: #232526;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    font-weight: bold;
+}
 }
 
 .button-container button:hover {
-    background: linear-gradient(135deg, #2e7d32, #4caf50);
-    transform: scale(1.05);
+    background: linear-gradient(90deg, #FFB300 0%, #FFD700 100%);
+    color: #232526;
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
 }
 
 .button-container button:active {
