@@ -70,6 +70,15 @@ let currentLevel = 1;
 let particles = [];
 let extraBalls = [];
 
+// Declare global ball position and velocity variables
+let ballX = 0;
+let ballY = 0;
+let dx = 0;
+let dy = 0;
+
+// Declare AI_REVERSED flag for power-up logic
+let AI_REVERSED = false;
+
 // Adjust speeds dynamically based on screen size
 const deviceScaleFactor = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
 const ADJUSTED_BALL_SPEED = INITIAL_BALL_SPEED * deviceScaleFactor;
@@ -118,17 +127,22 @@ function updateAIPaddle(deltaTime) {
     // Predict the ball's Y position
     const targetY = predictBallY();
 
-    // Use the same smooth movement logic as the local player paddle
-    const moveSpeed = PADDLE_SPEED * deltaTime * 60; // Normalize speed by frame rate
+    // Smooth AI paddle movement with inertia
+    const moveSpeed = settings.speed * PADDLE_SPEED * deltaTime * 60; // Normalize speed by frame rate
     const paddleCenter = rightPaddleY + PADDLE_HEIGHT / 2;
     const distance = targetY - paddleCenter;
 
     if (Math.abs(distance) > 1) {
         const adjustment = Math.sign(distance) * Math.min(Math.abs(distance), moveSpeed);
-        rightPaddleY += adjustment;
+        rightPaddleY += adjustment * 0.6; // Apply stronger damping for smoother movement
     }
 
-    // Keep paddle in bounds
+    // Gradually slow down the paddle as it approaches the target
+    if (Math.abs(distance) < PADDLE_HEIGHT / 4) {
+        rightPaddleY += distance * 0.1; // Fine-tune position near the target
+    }
+
+    // Clamp AI paddle position to prevent it from going out of bounds
     rightPaddleY = Math.max(0, Math.min(rightPaddleY, canvas.height - PADDLE_HEIGHT));
 }
 
@@ -564,15 +578,14 @@ function updatePlayerControls() {
 
 function updatePlayerPaddle(deltaTime) {
     const moveSpeed = PADDLE_SPEED * deltaTime * 60; // Normalize speed by frame rate
-    
-    if (keysPressed.has('ArrowUp')) {
-        leftPaddleY = Math.max(leftPaddleY - moveSpeed, 0);
+
+    if (keysPressed.has('ArrowUp') && !keysPressed.has('ArrowDown')) {
+        leftPaddleY -= moveSpeed;
+    } else if (keysPressed.has('ArrowDown') && !keysPressed.has('ArrowUp')) {
+        leftPaddleY += moveSpeed;
     }
-    if (keysPressed.has('ArrowDown')) {
-        leftPaddleY = Math.min(leftPaddleY + moveSpeed, canvas.height - PADDLE_HEIGHT);
-    }
-    
-    // Keep paddle in bounds
+
+    // Clamp paddle position to prevent it from going out of bounds
     leftPaddleY = Math.max(0, Math.min(leftPaddleY, canvas.height - PADDLE_HEIGHT));
 }
 
