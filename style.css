@@ -1,3 +1,46 @@
+/* Make main menu fit better in landscape on mobile */
+@media (max-width: 900px) and (orientation: landscape) {
+  #mainMenu, #settingsMenu, #gameOverScreen, #howToPlay {
+    max-width: 96vw;
+    width: 96vw;
+    min-width: 0;
+    min-height: 60vh;
+    padding: 2vw 1vw;
+    border-radius: 10px;
+    margin: 2vh auto 2vh auto;
+    font-size: 0.95rem;
+  }
+  #mainMenu h1, #settingsMenu h1, #howToPlay h1 {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+  }
+  #mainMenu button, #settingsMenu button, #howToPlay button, .btn, .button-container button {
+    font-size: 0.95rem;
+    min-width: 90px;
+    max-width: 98vw;
+    width: 90%;
+    padding: 10px 0;
+    margin: 6px auto;
+  }
+  #mainMenu input, #mainMenu select, #settingsMenu select {
+    font-size: 0.95rem;
+    padding: 6px;
+    width: 90%;
+    margin: 6px auto;
+  }
+}
+/* Hide game control buttons in landscape on small screens (mobile) */
+@media (max-width: 900px) and (orientation: landscape) {
+  .button-container {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .button-container.show-buttons {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
 /* --- Spectacular Timer Styling for Google Play Store Polish --- */
 #timer {
     position: fixed;

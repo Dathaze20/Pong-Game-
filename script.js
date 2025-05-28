@@ -1,3 +1,33 @@
+// --- Mobile landscape: tap to show/hide game buttons ---
+function isMobileLandscape() {
+  return window.innerWidth > window.innerHeight && window.innerWidth < 900;
+}
+
+function showGameButtonsTemporarily() {
+  const btns = document.querySelector('.button-container');
+  if (!btns) return;
+  btns.classList.add('show-buttons');
+  setTimeout(() => {
+    btns.classList.remove('show-buttons');
+  }, 2500);
+}
+
+// On tap/click on canvas, show buttons for a moment if in mobile landscape
+canvas.addEventListener('touchstart', function () {
+  if (isMobileLandscape()) showGameButtonsTemporarily();
+});
+canvas.addEventListener('click', function () {
+  if (isMobileLandscape()) showGameButtonsTemporarily();
+});
+
+// When pausing, always show the buttons
+const pauseBtn = document.getElementById('pauseButton');
+if (pauseBtn) {
+  pauseBtn.addEventListener('click', function () {
+    const btns = document.querySelector('.button-container');
+    if (btns) btns.classList.add('show-buttons');
+  });
+}
 const canvas = document.getElementById('gameCanvas');
 if (!canvas) {
     console.error('Canvas element with id "gameCanvas" not found.');
