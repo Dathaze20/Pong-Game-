@@ -3,27 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#0f2027">
+    <meta name="theme-color" content="#1a0533">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="screen-orientation" content="portrait">
-    <meta name="description" content="Classic Pong arcade game with AI opponent, multiplayer, power-ups, and background music. Play free in your browser.">
-    <title>Pong Game</title>
+    <meta name="description" content="Super Pong - the ultimate arcade game for kids! Neon colors, power-ups, and epic gameplay.">
+    <title>Super Pong!</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icon-192x192.png" type="image/png">
     <link rel="apple-touch-icon" href="icon-192x192.png">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Splash Screen -->
+    <!-- Splash -->
     <div id="splashScreen">
         <div class="splash-content">
-            <img src="icon-192x192.png" alt="Pong" class="splash-icon">
-            <h1 class="splash-title">PONG</h1>
+            <div class="splash-emoji">&#127955;</div>
+            <h1 class="splash-title">SUPER PONG!</h1>
             <div class="splash-loader"><div class="splash-loader-bar"></div></div>
         </div>
     </div>
@@ -31,63 +30,65 @@
     <!-- Main Menu -->
     <div id="mainMenu" style="display:none;">
         <div class="menu-card">
-            <img src="icon-192x192.png" alt="Pong" class="menu-icon">
-            <h1 class="menu-title">PONG</h1>
-            <input id="player1NameInput" type="text" placeholder="Player 1 Name" maxlength="12" autocomplete="off">
-            <input id="player2NameInput" type="text" placeholder="Player 2 Name" maxlength="12" autocomplete="off">
+            <div class="menu-emoji">&#127955;</div>
+            <h1 class="menu-title">SUPER PONG!</h1>
+            <input id="player1NameInput" type="text" placeholder="&#11088; Your Name" maxlength="12" autocomplete="off">
+            <input id="player2NameInput" type="text" placeholder="&#129302; Player 2 Name" maxlength="12" autocomplete="off">
             <select id="gameMode">
-                <option value="1">1 Player (vs AI)</option>
-                <option value="2">2 Players</option>
+                <option value="1">&#129302; VS Robot</option>
+                <option value="2">&#129309; VS Friend</option>
             </select>
-            <button id="startGameButton" class="btn-primary">&#9654; Start Game</button>
-            <button id="settingsButton" class="btn-secondary">&#9881; Settings</button>
-            <button id="howToPlayButton" class="btn-secondary">&#63; How to Play</button>
-            <button id="rateUsButton" class="btn-secondary">&#9733; Rate Us</button>
+            <button id="startGameButton" class="btn-play">&#9889; LET'S GO!</button>
+            <div class="menu-row">
+                <button id="settingsButton" class="btn-small">&#9881; Settings</button>
+                <button id="howToPlayButton" class="btn-small">&#128161; How To Play</button>
+            </div>
+            <button id="rateUsButton" class="btn-tiny">&#11088; Rate Us</button>
         </div>
     </div>
 
     <!-- Settings -->
     <div id="settingsMenu" style="display:none;">
         <div class="menu-card">
-            <h1 class="menu-title">Settings</h1>
+            <h1 class="menu-title">&#9881; Settings</h1>
             <label class="toggle-row">
-                <span>Music</span>
+                <span>&#127926; Music</span>
                 <input type="checkbox" id="toggleMusic" checked>
                 <span class="toggle-slider"></span>
             </label>
             <label class="toggle-row">
-                <span>Sound Effects</span>
+                <span>&#128264; Sound FX</span>
                 <input type="checkbox" id="toggleSoundEffects" checked>
                 <span class="toggle-slider"></span>
             </label>
             <label class="select-row">
-                <span>Difficulty</span>
+                <span>&#127919; Difficulty</span>
                 <select id="difficulty">
-                    <option value="easy">Easy</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="hard">Hard</option>
+                    <option value="easy">&#128522; Chill</option>
+                    <option value="medium" selected>&#128293; Normal</option>
+                    <option value="hard">&#128128; Beast Mode</option>
                 </select>
             </label>
             <label class="toggle-row">
-                <span>High Contrast</span>
+                <span>&#128308; High Contrast</span>
                 <input type="checkbox" id="colorblindMode">
                 <span class="toggle-slider"></span>
             </label>
-            <button id="backToMenuButton" class="btn-secondary">&#8592; Back</button>
+            <button id="backToMenuButton" class="btn-small">&#8592; Back</button>
         </div>
     </div>
 
     <!-- How to Play -->
     <div id="howToPlay" style="display:none;">
         <div class="menu-card">
-            <h1 class="menu-title">How to Play</h1>
+            <h1 class="menu-title">&#128161; How To Play</h1>
             <div class="instructions">
-                <p><strong>Touch:</strong> Drag your finger on your side of the screen to move your paddle.</p>
-                <p><strong>Goal:</strong> Hit the ball past your opponent's paddle to score.</p>
-                <p><strong>Power-ups:</strong> Collect power-ups that appear during the game for special abilities.</p>
-                <p><strong>Win:</strong> First player to reach 10 points wins!</p>
+                <p>&#128072; <strong>Slide your finger</strong> up and down on YOUR side of the screen!</p>
+                <p>&#127955; <strong>Hit the ball</strong> past the other paddle to score!</p>
+                <p>&#11088; <strong>Grab power-ups</strong> for awesome abilities!</p>
+                <p>&#127942; <strong>First to 10 points WINS!</strong></p>
             </div>
-            <button id="backFromHowToPlay" class="btn-secondary">&#8592; Back</button>
+            <button id="backFromHowToPlay" class="btn-small">&#8592; Back</button>
         </div>
     </div>
 
@@ -97,36 +98,45 @@
     <!-- Game HUD -->
     <div id="gameHUD" style="display:none;">
         <div id="scoreDisplay">
-            <span id="leftScoreHUD">0</span>
-            <span class="score-divider">-</span>
-            <span id="rightScoreHUD">0</span>
+            <span id="leftScoreHUD" class="score-left">0</span>
+            <span class="score-vs">VS</span>
+            <span id="rightScoreHUD" class="score-right">0</span>
         </div>
         <div id="timerDisplay">1:00</div>
     </div>
 
+    <!-- Combo / announcement text -->
+    <div id="announceText" style="display:none;"></div>
+
     <!-- Game Controls -->
     <div id="gameControls" style="display:none;">
+        <button id="bgPickerBtn" class="ctrl-btn ctrl-plus">+</button>
+        <button id="musicToggleBtn" class="ctrl-btn">&#128266;</button>
         <button id="pauseBtn" class="ctrl-btn">&#10074;&#10074;</button>
         <button id="restartBtn" class="ctrl-btn">&#8634;</button>
     </div>
 
+    <!-- Background Theme Picker -->
+    <div id="bgPickerPanel" style="display:none;"></div>
+
     <!-- Pause Overlay -->
     <div id="pauseOverlay" style="display:none;">
         <div class="pause-card">
-            <h2>PAUSED</h2>
-            <button id="resumeBtn" class="btn-primary">&#9654; Resume</button>
-            <button id="pauseRestartBtn" class="btn-secondary">&#8634; Restart</button>
-            <button id="pauseQuitBtn" class="btn-secondary">&#8592; Quit</button>
+            <h2>&#9208; PAUSED</h2>
+            <button id="resumeBtn" class="btn-play">&#9654; Resume</button>
+            <button id="pauseRestartBtn" class="btn-small">&#8634; Restart</button>
+            <button id="pauseQuitBtn" class="btn-small">&#8592; Quit</button>
         </div>
     </div>
 
     <!-- Game Over -->
     <div id="gameOverScreen" style="display:none;">
         <div class="gameover-card">
-            <h1 id="winnerMessage">Game Over</h1>
+            <div class="gameover-emoji" id="gameOverEmoji">&#127942;</div>
+            <h1 id="winnerMessage">EPIC WIN!</h1>
             <p id="finalScore"></p>
-            <button id="playAgainButton" class="btn-primary">&#9654; Play Again</button>
-            <button id="mainMenuButton" class="btn-secondary">&#8592; Main Menu</button>
+            <button id="playAgainButton" class="btn-play">&#9889; Play Again!</button>
+            <button id="mainMenuButton" class="btn-small">&#8592; Main Menu</button>
         </div>
     </div>
 
@@ -134,9 +144,6 @@
     <audio id="bgMusic" loop preload="auto">
         <source src="Original Tetris theme (Tetris Soundtrack).mp3" type="audio/mpeg">
     </audio>
-    <audio id="hitSound" preload="auto"><source src="hit.mp3" type="audio/mpeg"></audio>
-    <audio id="scoreSound" preload="auto"><source src="score.mp3" type="audio/mpeg"></audio>
-    <audio id="powerUpSound" preload="auto"><source src="power-up.mp3" type="audio/mpeg"></audio>
 
     <script src="script.js"></script>
 </body>
