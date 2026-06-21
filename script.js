@@ -3,7 +3,7 @@
 
 const $ = id => document.getElementById(id);
 const canvas = $('gameCanvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', { alpha: false });
 
 const screens = {
     splash: $('splashScreen'), menu: $('mainMenu'), settings: $('settingsMenu'),
@@ -159,7 +159,7 @@ function toggleMusicLive() {
 function updateMusicBtn() {
     const btn = $('musicToggleBtn');
     if (!btn) return;
-    btn.textContent = (bgMusicEl && !bgMusicEl.paused) ? '🔊' : '🔇';
+    btn.textContent = (bgMusicEl && !bgMusicEl.paused) ? '\u{1F50A}' : '\u{1F507}';
 }
 function vibrate(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
 
@@ -185,14 +185,14 @@ const settings = {
 
 // ===== BACKGROUND THEMES =====
 const BG_THEMES = [
-    { name: '🌌 Cosmic',  colors: ['#0a0018','#120830','#0a1628'], grid: 'rgba(0,240,255,0.04)', border: [0,240,255] },
-    { name: '🌊 Ocean',   colors: ['#001a33','#003355','#004d66'], grid: 'rgba(0,200,255,0.05)', border: [0,191,255] },
-    { name: '🌅 Sunset',  colors: ['#2d0a00','#4d1a00','#661a33'], grid: 'rgba(255,150,50,0.04)', border: [255,102,51] },
-    { name: '💜 Neon',    colors: ['#1a001a','#33004d','#1a0033'], grid: 'rgba(255,0,255,0.05)', border: [255,0,255] },
-    { name: '🌲 Forest',  colors: ['#001a00','#003300','#001a0a'], grid: 'rgba(57,255,20,0.04)', border: [57,255,20] },
-    { name: '🌋 Lava',    colors: ['#2d0500','#4d0a00','#330000'], grid: 'rgba(255,80,20,0.05)', border: [255,69,0] },
-    { name: '❄️ Ice',     colors: ['#001a2d','#002244','#003355'], grid: 'rgba(180,230,255,0.05)', border: [180,230,255] },
-    { name: '🔮 Galaxy',  colors: ['#0d0033','#1a0044','#330066'], grid: 'rgba(200,100,255,0.04)', border: [200,100,255] }
+    { name: '\u{1F30C} Midnight', colors: ['#060e1a','#0a1628','#0d2847'], border: [0,180,255] },
+    { name: '\u{1F30A} Ocean',    colors: ['#001a33','#003355','#004d66'], border: [0,191,255] },
+    { name: '\u{1F305} Sunset',   colors: ['#2d0a00','#4d1a00','#661a33'], border: [255,102,51] },
+    { name: '\u{1F49C} Neon',     colors: ['#1a001a','#33004d','#1a0033'], border: [255,0,255] },
+    { name: '\u{1F332} Forest',   colors: ['#001a00','#003300','#001a0a'], border: [57,255,20] },
+    { name: '\u{1F30B} Lava',     colors: ['#2d0500','#4d0a00','#330000'], border: [255,69,0] },
+    { name: '\u{2744}\u{FE0F} Ice',      colors: ['#001a2d','#002244','#003355'], border: [180,230,255] },
+    { name: '\u{1F52E} Galaxy',   colors: ['#0d0033','#1a0044','#330066'], border: [200,100,255] }
 ];
 
 // ===== CONFIG =====
@@ -222,25 +222,40 @@ let hue = 0, glowPulse = 0;
 let totalHits = 0, maxCombo = 0;
 
 let dpr = 1, W = 0, H = 0;
+let leftPaddleGrad = null, rightPaddleGrad = null;
 
 // ===== RESIZE =====
 function resize() {
-    dpr = window.devicePixelRatio || 1;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth; H = window.innerHeight;
     canvas.width = W * dpr; canvas.height = H * dpr;
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     scale();
+    createPaddleGrads();
 }
 
 function scale() {
     const r = Math.min(W, H);
-    brad = Math.max(7, r * 0.018);
-    pw = Math.max(12, r * 0.03);
-    ph = Math.max(65, r * 0.2);
-    pmar = Math.max(14, r * 0.04);
-    pspd = r * 1.6;
-    bspd = r * 0.72;
+    const isLandscape = W > H;
+    brad = Math.max(10, r * 0.025);
+    pw = Math.max(18, r * (isLandscape ? 0.045 : 0.035));
+    ph = Math.max(90, r * (isLandscape ? 0.28 : 0.22));
+    pmar = Math.max(12, r * 0.025);
+    pspd = r * 1.8;
+    bspd = r * 0.75;
+}
+
+function createPaddleGrads() {
+    const pph = ph * phMod;
+    leftPaddleGrad = ctx.createLinearGradient(pmar, 0, pmar, pph);
+    leftPaddleGrad.addColorStop(0, '#00F0FF');
+    leftPaddleGrad.addColorStop(0.5, '#00DDFF');
+    leftPaddleGrad.addColorStop(1, '#39FF14');
+    rightPaddleGrad = ctx.createLinearGradient(W - pmar - pw, 0, W - pmar - pw, pph);
+    rightPaddleGrad.addColorStop(0, '#FF6BF5');
+    rightPaddleGrad.addColorStop(0.5, '#FF55E0');
+    rightPaddleGrad.addColorStop(1, '#FFD700');
 }
 
 // ===== SCREENS =====
@@ -301,7 +316,7 @@ function startGame() {
     startTimer();
     gameOn = true; paused = false;
     lastT = performance.now();
-    announce('READY? GO! 🔥');
+    announce('READY? GO! \u{1F525}');
     rafId = requestAnimationFrame(loop);
 }
 
@@ -366,16 +381,16 @@ function updateHUD() {
 // ===== NAME ANNOUNCER =====
 function scoreAnnounce(name) {
     const phrases = [
-        name + ' SCORES! 🔥',
+        name + ' SCORES! \u{1F525}',
         name + ' GOT A POINT!',
         'GO ' + name + '!! ⚡',
-        name + ' BOOM! 💥',
+        name + ' BOOM! \u{1F4A5}',
         'NICE ONE ' + name + '!',
-        name + ' IS ON FIRE! 🔥',
+        name + ' IS ON FIRE! \u{1F525}',
         name + ' LETS GOOO!',
         name + ' EPIC SHOT! ⚡',
         name + ' UNSTOPPABLE!',
-        name + ' CRUSHED IT! 💪'
+        name + ' CRUSHED IT! \u{1F4AA}'
     ];
     return phrases[Math.floor(Math.random() * phrases.length)];
 }
@@ -421,9 +436,8 @@ function renderParticles() {
     for (const p of particles) {
         ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
         ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
-        ctx.fill();
+        const hs = p.size / 2;
+        ctx.fillRect(p.x - hs, p.y - hs, p.size, p.size);
     }
     ctx.globalAlpha = 1;
 }
@@ -431,7 +445,7 @@ function renderParticles() {
 // ===== GAME LOOP =====
 function loop(ts) {
     if (!gameOn) return;
-    const dt = Math.min((ts - lastT) / 1000, 0.033);
+    const dt = Math.min((ts - lastT) / 1000, 0.05);
     lastT = ts;
     if (!paused) { update(dt); render(); }
     rafId = requestAnimationFrame(loop);
@@ -454,7 +468,6 @@ function update(dt) {
 
     const pph = ph * phMod;
 
-    // left paddle hit
     const lx = pmar + pw;
     if (bdx < 0 && bx - brad <= lx && bx + brad > pmar &&
         by + brad >= ly && by - brad <= ly + pph) {
@@ -466,11 +479,10 @@ function update(dt) {
         bspdMod = Math.min(bspdMod * 1.04, 2.2);
         totalHits++;
         synthHit(); vibrate([15, 10, 15]);
-        spawnParticles(lx, by, ['#00F0FF', '#39FF14', '#fff'], 10, false);
+        spawnParticles(lx, by, ['#00F0FF', '#39FF14', '#fff'], 8, false);
         screenShake = 0.08;
     }
 
-    // right paddle hit
     const rx = W - pmar - pw;
     if (bdx > 0 && bx + brad >= rx && bx - brad < W - pmar &&
         by + brad >= ry && by - brad <= ry + pph) {
@@ -482,38 +494,36 @@ function update(dt) {
         bspdMod = Math.min(bspdMod * 1.04, 2.2);
         totalHits++;
         synthHit(); vibrate([15, 10, 15]);
-        spawnParticles(rx, by, ['#FF6BF5', '#FFD700', '#fff'], 10, false);
+        spawnParticles(rx, by, ['#FF6BF5', '#FFD700', '#fff'], 8, false);
         screenShake = 0.08;
     }
 
-    // RIGHT scores
     if (bx < -brad * 2) {
         rscore++;
         bspdMod = 1;
         if (lastScorer === 'right') { combo++; } else { combo = 1; lastScorer = 'right'; }
         if (combo > maxCombo) maxCombo = combo;
         synthScore(); vibrate([30, 50, 30, 50, 40]);
-        spawnParticles(0, by, ['#FF6BF5', '#FFD700', '#00F0FF', '#39FF14'], 25, true);
+        spawnParticles(0, by, ['#FF6BF5', '#FFD700', '#00F0FF', '#39FF14'], 20, true);
         screenShake = 0.18;
         let msg;
-        if (combo >= 3) msg = settings.p2Name + ' ' + combo + 'x COMBO!! 🔥';
+        if (combo >= 3) msg = settings.p2Name + ' ' + combo + 'x COMBO!! \u{1F525}';
         else msg = scoreAnnounce(settings.p2Name);
         announce(msg);
         updateHUD();
         if (rscore >= WIN_SCORE) { endGame(settings.p2Name + ' Wins!'); return; }
         resetBall();
     }
-    // LEFT scores
     if (bx > W + brad * 2) {
         lscore++;
         bspdMod = 1;
         if (lastScorer === 'left') { combo++; } else { combo = 1; lastScorer = 'left'; }
         if (combo > maxCombo) maxCombo = combo;
         synthScore(); vibrate([30, 50, 30, 50, 40]);
-        spawnParticles(W, by, ['#00F0FF', '#FFD700', '#FF6BF5', '#39FF14'], 25, true);
+        spawnParticles(W, by, ['#00F0FF', '#FFD700', '#FF6BF5', '#39FF14'], 20, true);
         screenShake = 0.18;
         let msg;
-        if (combo >= 3) msg = settings.p1Name + ' ' + combo + 'x COMBO!! 🔥';
+        if (combo >= 3) msg = settings.p1Name + ' ' + combo + 'x COMBO!! \u{1F525}';
         else msg = scoreAnnounce(settings.p1Name);
         announce(msg);
         updateHUD();
@@ -521,7 +531,6 @@ function update(dt) {
         resetBall();
     }
 
-    // TOUCH: instant follow
     if (tLeftY !== null) { ly = tLeftY - pph / 2; }
     if (tRightY !== null && settings.gameMode === 2) { ry = tRightY - pph / 2; }
 
@@ -576,10 +585,10 @@ function updateAI(dt) {
 
 // ===== POWER-UPS =====
 const PU_TYPES = [
-    { type: 'speed',  color: '#FF4444', emoji: '🔥', label: 'TURBO!' },
-    { type: 'slow',   color: '#4488FF', emoji: '❄️', label: 'FREEZE!' },
-    { type: 'grow',   color: '#39FF14', emoji: '💪', label: 'BIG!' },
-    { type: 'shrink', color: '#FF6BF5', emoji: '🐜', label: 'TINY!' },
+    { type: 'speed',  color: '#FF4444', emoji: '\u{1F525}', label: 'TURBO!' },
+    { type: 'slow',   color: '#4488FF', emoji: '\u{2744}\u{FE0F}', label: 'FREEZE!' },
+    { type: 'grow',   color: '#39FF14', emoji: '\u{1F4AA}', label: 'BIG!' },
+    { type: 'shrink', color: '#FF6BF5', emoji: '\u{1F41C}', label: 'TINY!' },
     { type: 'mega',   color: '#FFD700', emoji: '⭐', label: 'MEGA!' }
 ];
 
@@ -600,7 +609,7 @@ function checkPowerUp() {
         applyPowerUp(powerUp.type);
         synthPowerUp(); vibrate([20, 15, 20]);
         announce(powerUp.emoji + ' ' + powerUp.label);
-        spawnParticles(powerUp.x, powerUp.y, [powerUp.color, '#fff', '#FFD700'], 15, true);
+        spawnParticles(powerUp.x, powerUp.y, [powerUp.color, '#fff', '#FFD700'], 12, true);
         powerUp = null;
     }
 }
@@ -641,7 +650,6 @@ function render() {
     const theme = BG_THEMES[settings.bgTheme] || BG_THEMES[0];
     const [br, bg, bb] = theme.border;
 
-    // Background
     if (!bgGrad || bgW !== W || bgH !== H || bgThemeIdx !== settings.bgTheme) {
         bgGrad = ctx.createLinearGradient(0, 0, W, H);
         if (hc) {
@@ -658,20 +666,7 @@ function render() {
     ctx.fillStyle = bgGrad;
     ctx.fillRect(-10, -10, W + 20, H + 20);
 
-    // Grid lines
-    if (!hc) {
-        ctx.strokeStyle = theme.grid;
-        ctx.lineWidth = 1;
-        const gridSize = Math.max(40, Math.min(W, H) * 0.06);
-        for (let x = gridSize; x < W; x += gridSize) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-        }
-        for (let y = gridSize; y < H; y += gridSize) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-        }
-    }
-
-    // ===== RADIATING BORDER WITH ROUNDED CORNERS =====
+    // Radiating border with rounded corners
     if (!hc) {
         const bPulse = 0.4 + Math.sin(glowPulse * 0.8) * 0.3;
         const inset = 6;
@@ -679,44 +674,11 @@ function render() {
         const bh = H - inset * 2;
         const cr = Math.min(24, Math.min(bw, bh) * 0.035);
 
-        // Wide outer glow
-        ctx.strokeStyle = `rgba(${br},${bg},${bb},${bPulse * 0.12})`;
-        ctx.lineWidth = 8;
-        ctx.beginPath();
-        ctx.roundRect(inset - 2, inset - 2, bw + 4, bh + 4, cr + 2);
-        ctx.stroke();
-
-        // Main border
         ctx.strokeStyle = `rgba(${br},${bg},${bb},${0.2 + bPulse * 0.25})`;
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.roundRect(inset, inset, bw, bh, cr);
         ctx.stroke();
-
-        // Inner highlight
-        ctx.strokeStyle = `rgba(${br},${bg},${bb},${0.08 + bPulse * 0.1})`;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.roundRect(inset + 4, inset + 4, bw - 8, bh - 8, cr - 2);
-        ctx.stroke();
-
-        // Corner accents
-        const corners = [
-            [inset + cr, inset + cr],
-            [W - inset - cr, inset + cr],
-            [inset + cr, H - inset - cr],
-            [W - inset - cr, H - inset - cr]
-        ];
-        for (const [cx, cy] of corners) {
-            ctx.beginPath();
-            ctx.arc(cx, cy, 6 + bPulse * 4, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${br},${bg},${bb},${0.08 + bPulse * 0.08})`;
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${br},${bg},${bb},${0.5 + bPulse * 0.3})`;
-            ctx.fill();
-        }
     }
 
     // Center line
@@ -738,75 +700,35 @@ function render() {
     const glowAmt = 0.5 + Math.sin(glowPulse * 2) * 0.3;
     const hoverOff = Math.sin(glowPulse * 1.5) * 3;
 
-    // ===== LEFT PADDLE - GLOWING & HOVERING =====
+    // Left paddle glow
     if (!hc) {
-        // Wide outer aura
-        ctx.fillStyle = `rgba(0,240,255,${0.03 + glowAmt * 0.035})`;
-        ctx.beginPath();
-        ctx.roundRect(pmar - 14, ly + hoverOff - 14, pw + 28, pph + 28, pw / 2 + 8);
-        ctx.fill();
-        // Medium glow
-        ctx.fillStyle = `rgba(0,240,255,${0.05 + glowAmt * 0.06})`;
-        ctx.beginPath();
-        ctx.roundRect(pmar - 6, ly + hoverOff - 6, pw + 12, pph + 12, pw / 2 + 3);
-        ctx.fill();
+        ctx.fillStyle = `rgba(0,240,255,${0.04 + glowAmt * 0.04})`;
+        ctx.fillRect(pmar - 8, ly + hoverOff - 8, pw + 16, pph + 16);
     }
-    let pg = ctx.createLinearGradient(pmar, ly + hoverOff, pmar, ly + hoverOff + pph);
-    pg.addColorStop(0, hc ? '#FFF' : '#00F0FF');
-    pg.addColorStop(0.5, hc ? '#EEE' : '#00DDFF');
-    pg.addColorStop(1, hc ? '#CCC' : '#39FF14');
+    ctx.fillStyle = hc ? '#FFF' : leftPaddleGrad;
     ctx.beginPath();
     ctx.roundRect(pmar, ly + hoverOff, pw, pph, pw / 2.5);
-    ctx.fillStyle = pg; ctx.fill();
-    if (!hc) {
-        ctx.fillStyle = 'rgba(255,255,255,0.18)';
-        ctx.beginPath();
-        ctx.roundRect(pmar + 2, ly + hoverOff + 4, pw * 0.3, pph - 8, 3);
-        ctx.fill();
-    }
+    ctx.fill();
 
-    // ===== RIGHT PADDLE - GLOWING & HOVERING =====
+    // Right paddle glow
     if (!hc) {
-        ctx.fillStyle = `rgba(255,107,245,${0.03 + glowAmt * 0.035})`;
-        ctx.beginPath();
-        ctx.roundRect(W - pmar - pw - 14, ry + hoverOff - 14, pw + 28, pph + 28, pw / 2 + 8);
-        ctx.fill();
-        ctx.fillStyle = `rgba(255,107,245,${0.05 + glowAmt * 0.06})`;
-        ctx.beginPath();
-        ctx.roundRect(W - pmar - pw - 6, ry + hoverOff - 6, pw + 12, pph + 12, pw / 2 + 3);
-        ctx.fill();
+        ctx.fillStyle = `rgba(255,107,245,${0.04 + glowAmt * 0.04})`;
+        ctx.fillRect(W - pmar - pw - 8, ry + hoverOff - 8, pw + 16, pph + 16);
     }
-    pg = ctx.createLinearGradient(W - pmar - pw, ry + hoverOff, W - pmar - pw, ry + hoverOff + pph);
-    pg.addColorStop(0, hc ? '#FFF' : '#FF6BF5');
-    pg.addColorStop(0.5, hc ? '#EEE' : '#FF55E0');
-    pg.addColorStop(1, hc ? '#CCC' : '#FFD700');
+    ctx.fillStyle = hc ? '#FFF' : rightPaddleGrad;
     ctx.beginPath();
     ctx.roundRect(W - pmar - pw, ry + hoverOff, pw, pph, pw / 2.5);
-    ctx.fillStyle = pg; ctx.fill();
-    if (!hc) {
-        ctx.fillStyle = 'rgba(255,255,255,0.18)';
-        ctx.beginPath();
-        ctx.roundRect(W - pmar - pw + 2, ry + hoverOff + 4, pw * 0.3, pph - 8, 3);
-        ctx.fill();
-    }
+    ctx.fill();
 
     // Ball trail
     if (!hc) {
-        for (let i = 5; i >= 1; i--) {
-            const t = i / 5;
+        for (let i = 3; i >= 1; i--) {
+            const t = i / 3;
             ctx.beginPath();
             ctx.arc(bx - bdx * t * 0.025, by - bdy * t * 0.025, brad * (1 - t * 0.12), 0, Math.PI * 2);
-            ctx.fillStyle = `hsla(${(hue - i * 25 + 360) % 360}, 100%, 60%, ${0.15 - t * 0.025})`;
+            ctx.fillStyle = `hsla(${(hue - i * 30 + 360) % 360}, 100%, 60%, ${0.12 - t * 0.03})`;
             ctx.fill();
         }
-    }
-
-    // Ball glow
-    if (!hc) {
-        ctx.beginPath();
-        ctx.arc(bx, by, brad * 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${hue}, 100%, 50%, 0.07)`;
-        ctx.fill();
     }
 
     // Ball
@@ -814,22 +736,13 @@ function render() {
     ctx.arc(bx, by, brad, 0, Math.PI * 2);
     ctx.fillStyle = ballColor;
     ctx.fill();
-    ctx.beginPath();
-    ctx.arc(bx - brad * 0.2, by - brad * 0.2, brad * 0.35, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.fill();
 
     // Power-up
     if (powerUp) {
         const pu = powerUp;
         const pulse = 1 + Math.sin(performance.now() / 200) * 0.2;
         ctx.beginPath();
-        ctx.arc(pu.x, pu.y, pu.size * pulse * 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = pu.color + '15';
-        ctx.fill();
-        ctx.beginPath();
-        const ringAngle = performance.now() / 400;
-        ctx.arc(pu.x, pu.y, pu.size * pulse, ringAngle, ringAngle + Math.PI * 1.5);
+        ctx.arc(pu.x, pu.y, pu.size * pulse, 0, Math.PI * 2);
         ctx.strokeStyle = pu.color;
         ctx.lineWidth = 3;
         ctx.stroke();
@@ -846,13 +759,13 @@ function render() {
     renderParticles();
 
     // Player names
-    const nameSz = Math.round(Math.min(W, H) * 0.03);
+    const nameSz = Math.round(Math.min(W, H) * 0.035);
     ctx.font = `900 ${nameSz}px 'Nunito', sans-serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
     ctx.fillStyle = hc ? 'rgba(255,255,255,.3)' : 'rgba(0,240,255,.3)';
-    ctx.fillText(settings.p1Name, W * 0.25, H - 12);
+    ctx.fillText(settings.p1Name, W * 0.25, H - 14);
     ctx.fillStyle = hc ? 'rgba(255,255,255,.3)' : 'rgba(255,107,245,.3)';
-    ctx.fillText(settings.p2Name, W * 0.75, H - 12);
+    ctx.fillText(settings.p2Name, W * 0.75, H - 14);
 
     ctx.restore();
 }
@@ -964,7 +877,7 @@ function endGame(msg) {
     $('winnerMessage').textContent = msg;
     const statsLine = lscore + ' - ' + rscore + '  •  ' + totalHits + ' hits  •  ' + maxCombo + 'x best combo';
     $('finalScore').textContent = statsLine;
-    const emojis = ['🏆', '🎉', '⭐', '🔥', '💪', '👑', '🎊'];
+    const emojis = ['\u{1F3C6}', '\u{1F389}', '⭐', '\u{1F525}', '\u{1F4AA}', '\u{1F451}', '\u{1F38A}'];
     $('gameOverEmoji').textContent = emojis[Math.floor(Math.random() * emojis.length)];
     screens.gameOver.style.display = 'flex';
 }
