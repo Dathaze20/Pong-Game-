@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pong-game-v2';
+const CACHE_NAME = 'pong-game-v3';
 const ASSETS = [
     './',
     './index.html',
@@ -6,10 +6,8 @@ const ASSETS = [
     './script.js',
     './manifest.json',
     './icon-192x192.png',
-    './Original Tetris theme (Tetris Soundtrack).mp3',
-    './hit.mp3',
-    './score.mp3',
-    './power-up.mp3'
+    './icon-512x512.png',
+    './Original Tetris theme (Tetris Soundtrack).mp3'
 ];
 
 self.addEventListener('install', event => {
