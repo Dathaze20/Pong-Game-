@@ -1,18 +1,39 @@
 {
-    "name": "Pong Game",
+    "name": "Pong Game - Classic Arcade",
     "short_name": "Pong",
-    "description": "A fun and challenging Pong game with AI and multiplayer modes.",
-    "start_url": "./",
+    "description": "Classic Pong arcade game with AI opponent, multiplayer, power-ups, and retro music. Play free!",
+    "start_url": "./index.html",
     "scope": "./",
-    "display": "standalone",
-    "background_color": "#000000",
-    "theme_color": "#FFD700",
+    "display": "fullscreen",
+    "orientation": "any",
+    "background_color": "#0f2027",
+    "theme_color": "#0f2027",
+    "categories": ["games", "entertainment"],
+    "lang": "en",
     "icons": [
         {
-            "src": "./icon-192x192.png",
+            "src": "icon-192x192.png",
             "sizes": "192x192",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
+        },
+        {
+            "src": "icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
         }
     ]
 }
