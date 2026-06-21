@@ -2,121 +2,142 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0f2027">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="screen-orientation" content="portrait">
+    <meta name="description" content="Classic Pong arcade game with AI opponent, multiplayer, power-ups, and background music. Play free in your browser.">
     <title>Pong Game</title>
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon-192x192.png" type="image/png">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <script defer src="script.js"></script>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header style="background: linear-gradient(90deg, #0f2027 0%, #2c5364 100%); padding: 20px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-        <h1 style="font-family: 'Orbitron', Arial, sans-serif; color: #FFD700; text-align: center; font-size: 2.5rem; margin: 0; letter-spacing: 2px;">Pong Game</h1>
-    </header>
-    <main role="main">
-        <div id="loadingScreen" style="display: none; align-items: center; justify-content: center; height: 100vh; background: rgba(15,32,39,0.95); position: fixed; width: 100vw; z-index: 1000; top: 0; left: 0;">
-            <div style="text-align: center;">
-                <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #FFD700;"></i>
-                <h2 style="color: #fff; font-family: 'Roboto', Arial, sans-serif;">Loading...</h2>
-            </div>
+    <!-- Splash Screen -->
+    <div id="splashScreen">
+        <div class="splash-content">
+            <img src="icon-192x192.png" alt="Pong" class="splash-icon">
+            <h1 class="splash-title">PONG</h1>
+            <div class="splash-loader"><div class="splash-loader-bar"></div></div>
         </div>
-        <div id="mainMenu" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 90vh; background: linear-gradient(135deg, #232526 0%, #414345 100%); border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); margin: 32px auto; max-width: 400px;">
-            <div style="margin-bottom: 24px;">
-                <img src="icon-192x192.png" alt="Pong Game Icon" style="width: 96px; height: 96px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-            </div>
-            <h1 style="font-size: 2.2rem; color: #FFD700; font-family: 'Orbitron', Arial, sans-serif; margin-bottom: 16px; letter-spacing: 1px;">Pong Game</h1>
-            <input id="player1NameInput" type="text" placeholder="Enter Player 1 Name" style="margin: 10px; padding: 12px; font-size: 1rem; border-radius: 8px; border: none; width: 80%; background: #232526; color: #FFD700; font-family: 'Roboto', Arial, sans-serif;" />
-            <input id="player2NameInput" type="text" placeholder="Enter Player 2 Name" style="margin: 10px; padding: 12px; font-size: 1rem; border-radius: 8px; border: none; width: 80%; background: #232526; color: #FFD700; font-family: 'Roboto', Arial, sans-serif;" />
-            <select id="gameMode" style="margin: 10px; padding: 12px; font-size: 1rem; border-radius: 8px; border: none; width: 80%; background: #232526; color: #FFD700; font-family: 'Roboto', Arial, sans-serif;">
+    </div>
+
+    <!-- Main Menu -->
+    <div id="mainMenu" style="display:none;">
+        <div class="menu-card">
+            <img src="icon-192x192.png" alt="Pong" class="menu-icon">
+            <h1 class="menu-title">PONG</h1>
+            <input id="player1NameInput" type="text" placeholder="Player 1 Name" maxlength="12" autocomplete="off">
+            <input id="player2NameInput" type="text" placeholder="Player 2 Name" maxlength="12" autocomplete="off">
+            <select id="gameMode">
                 <option value="1">1 Player (vs AI)</option>
                 <option value="2">2 Players</option>
             </select>
-            <button id="startGameButton" class="btn btn-primary" aria-label="Start Game" style="margin: 10px; padding: 14px 0; font-size: 1.1rem; border-radius: 8px; width: 80%; background: linear-gradient(90deg, #FFD700 0%, #FFB300 100%); color: #232526; font-weight: bold; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-family: 'Orbitron', Arial, sans-serif; letter-spacing: 1px;"> <i class="fas fa-play"></i> Start Game</button>
-            <button id="settingsButton" class="btn btn-secondary" aria-label="Open Settings" style="margin: 10px; padding: 12px 0; font-size: 1rem; border-radius: 8px; width: 80%; background: #232526; color: #FFD700; border: 1px solid #FFD700; font-family: 'Roboto', Arial, sans-serif;"> <i class="fas fa-cog"></i> Settings</button>
-            <button id="howToPlayButton" style="margin: 10px; padding: 12px 0; font-size: 1rem; border-radius: 8px; width: 80%; background: #232526; color: #FFD700; border: 1px solid #FFD700; font-family: 'Roboto', Arial, sans-serif;"> <i class="fas fa-question-circle"></i> How to Play</button>
-            <button id="rateUsButton" class="btn btn-secondary" aria-label="Rate Us" style="margin: 10px; padding: 12px 0; font-size: 1rem; border-radius: 8px; width: 80%; background: #232526; color: #FFD700; border: 1px solid #FFD700; font-family: 'Roboto', Arial, sans-serif;"> <i class="fas fa-star"></i> Rate Us</button>
-            <button id="exitButton" class="btn btn-secondary" aria-label="Exit Game" style="margin: 10px; padding: 12px 0; font-size: 1rem; border-radius: 8px; width: 80%; background: #232526; color: #FFD700; border: 1px solid #FFD700; font-family: 'Roboto', Arial, sans-serif;"> <i class="fas fa-sign-out-alt"></i> Exit</button>
+            <button id="startGameButton" class="btn-primary">&#9654; Start Game</button>
+            <button id="settingsButton" class="btn-secondary">&#9881; Settings</button>
+            <button id="howToPlayButton" class="btn-secondary">&#63; How to Play</button>
+            <button id="rateUsButton" class="btn-secondary">&#9733; Rate Us</button>
         </div>
-        <div id="settingsMenu" style="display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 90vh; background: linear-gradient(135deg, #232526 0%, #414345 100%); border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); margin: 32px auto; max-width: 400px;">
-            <h1 style="font-size: 2.2rem; color: #FFD700; font-family: 'Orbitron', Arial, sans-serif; margin-bottom: 16px; letter-spacing: 1px;">Settings</h1>
-            <label style="margin: 10px; font-size: 1rem; color: #FFD700; font-family: 'Roboto', Arial, sans-serif; display: flex; align-items: center;">
-                <input type="checkbox" id="toggleMusic" style="margin-right: 10px;"> <i class="fas fa-music" style="margin-right: 8px;"></i> Toggle Background Music
+    </div>
+
+    <!-- Settings -->
+    <div id="settingsMenu" style="display:none;">
+        <div class="menu-card">
+            <h1 class="menu-title">Settings</h1>
+            <label class="toggle-row">
+                <span>Music</span>
+                <input type="checkbox" id="toggleMusic" checked>
+                <span class="toggle-slider"></span>
             </label>
-            <label style="margin: 10px; font-size: 1rem; color: #FFD700; font-family: 'Roboto', Arial, sans-serif; display: flex; align-items: center;">
-                <input type="checkbox" id="toggleSoundEffects" style="margin-right: 10px;"> <i class="fas fa-volume-up" style="margin-right: 8px;"></i> Toggle Sound Effects
+            <label class="toggle-row">
+                <span>Sound Effects</span>
+                <input type="checkbox" id="toggleSoundEffects" checked>
+                <span class="toggle-slider"></span>
             </label>
-            <label style="margin: 10px; font-size: 1rem; color: #FFD700; font-family: 'Roboto', Arial, sans-serif; display: flex; align-items: center;">
-                <select id="difficulty" style="margin-right: 10px; border-radius: 8px; border: none; background: #232526; color: #FFD700; font-family: 'Roboto', Arial, sans-serif; padding: 8px;">
+            <label class="select-row">
+                <span>Difficulty</span>
+                <select id="difficulty">
                     <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
+                    <option value="medium" selected>Medium</option>
                     <option value="hard">Hard</option>
-                </select> <span style="margin-left: 8px;">Select Difficulty</span>
+                </select>
             </label>
-            <label style="margin: 10px; font-size: 1rem; color: #FFD700; font-family: 'Roboto', Arial, sans-serif; display: flex; align-items: center;">
-                <input type="checkbox" id="colorblindMode" style="margin-right: 10px;"> <i class="fas fa-eye" style="margin-right: 8px;"></i> Enable Colorblind Mode
+            <label class="toggle-row">
+                <span>High Contrast</span>
+                <input type="checkbox" id="colorblindMode">
+                <span class="toggle-slider"></span>
             </label>
-            <button id="backToMenuButton" style="margin: 10px; padding: 12px 0; font-size: 1rem; border-radius: 8px; width: 80%; background: #232526; color: #FFD700; border: 1px solid #FFD700; font-family: 'Roboto', Arial, sans-serif;"> <i class="fas fa-arrow-left"></i> Back to Menu</button>
+            <button id="backToMenuButton" class="btn-secondary">&#8592; Back</button>
         </div>
-        <canvas id="gameCanvas" aria-label="Pong Game Canvas" style="display: none;"></canvas>
-        <div class="button-container" style="display: none;">
-            <button id="startButton">Start Game</button>
-            <button id="pauseButton" aria-label="Pause Game">Pause</button>
-            <button id="restartButton" aria-label="Restart Game">Restart</button>
+    </div>
+
+    <!-- How to Play -->
+    <div id="howToPlay" style="display:none;">
+        <div class="menu-card">
+            <h1 class="menu-title">How to Play</h1>
+            <div class="instructions">
+                <p><strong>Touch:</strong> Drag your finger on your side of the screen to move your paddle.</p>
+                <p><strong>Goal:</strong> Hit the ball past your opponent's paddle to score.</p>
+                <p><strong>Power-ups:</strong> Collect power-ups that appear during the game for special abilities.</p>
+                <p><strong>Win:</strong> First player to reach 10 points wins!</p>
+            </div>
+            <button id="backFromHowToPlay" class="btn-secondary">&#8592; Back</button>
         </div>
-        <div id="gameOverScreen" role="dialog" aria-labelledby="winnerMessage" style="display: none;">
+    </div>
+
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas" style="display:none;"></canvas>
+
+    <!-- Game HUD -->
+    <div id="gameHUD" style="display:none;">
+        <div id="scoreDisplay">
+            <span id="leftScoreHUD">0</span>
+            <span class="score-divider">-</span>
+            <span id="rightScoreHUD">0</span>
+        </div>
+        <div id="timerDisplay">1:00</div>
+    </div>
+
+    <!-- Game Controls -->
+    <div id="gameControls" style="display:none;">
+        <button id="pauseBtn" class="ctrl-btn">&#10074;&#10074;</button>
+        <button id="restartBtn" class="ctrl-btn">&#8634;</button>
+    </div>
+
+    <!-- Pause Overlay -->
+    <div id="pauseOverlay" style="display:none;">
+        <div class="pause-card">
+            <h2>PAUSED</h2>
+            <button id="resumeBtn" class="btn-primary">&#9654; Resume</button>
+            <button id="pauseRestartBtn" class="btn-secondary">&#8634; Restart</button>
+            <button id="pauseQuitBtn" class="btn-secondary">&#8592; Quit</button>
+        </div>
+    </div>
+
+    <!-- Game Over -->
+    <div id="gameOverScreen" style="display:none;">
+        <div class="gameover-card">
             <h1 id="winnerMessage">Game Over</h1>
-            <button id="playAgainButton" aria-label="Play Again">Play Again</button>
-            <button id="mainMenuButton" aria-label="Main Menu">Main Menu</button>
+            <p id="finalScore"></p>
+            <button id="playAgainButton" class="btn-primary">&#9654; Play Again</button>
+            <button id="mainMenuButton" class="btn-secondary">&#8592; Main Menu</button>
         </div>
-        <div id="tooltips" style="display: none;">
-            <p>Use arrow keys to move the paddle (desktop).</p>
-            <p>Tap on the screen to move the paddle (mobile).</p>
-        </div>
-        <!-- Add timer element -->
-        <div id="timer">Time Left: 60s</div>
+    </div>
 
-        <!-- Add splash screen element -->
-        <div id="splashScreen" style="display: none;">Welcome to Pong Game!</div>
+    <!-- Audio -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="Original Tetris theme (Tetris Soundtrack).mp3" type="audio/mpeg">
+    </audio>
+    <audio id="hitSound" preload="auto"><source src="hit.mp3" type="audio/mpeg"></audio>
+    <audio id="scoreSound" preload="auto"><source src="score.mp3" type="audio/mpeg"></audio>
+    <audio id="powerUpSound" preload="auto"><source src="power-up.mp3" type="audio/mpeg"></audio>
 
-        <!-- Add How to Play section -->
-        <div id="howToPlay" style="display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 90vh; background: linear-gradient(135deg, #232526 0%, #414345 100%); border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); margin: 32px auto; max-width: 400px;">
-            <h1 style="font-size: 2.2rem; color: #FFD700; font-family: 'Orbitron', Arial, sans-serif; margin-bottom: 16px; letter-spacing: 1px;">How to Play</h1>
-            <p style="font-size: 1rem; color: #FFD700; text-align: center; max-width: 90%; font-family: 'Roboto', Arial, sans-serif; background: #232526; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-                <i class="fas fa-gamepad"></i> Use the <b>arrow keys</b> to move your paddle (desktop) or <b>tap</b> on the screen (mobile).<br>
-                <i class="fas fa-bolt"></i> Hit the ball to score points and collect power-ups to gain an advantage.<br>
-                <i class="fas fa-hourglass-half"></i> The game ends when the timer runs out or a player reaches the winning score.
-            </p>
-            <button id="backToMenuFromHowToPlay" style="margin: 10px; padding: 12px 0; font-size: 1rem; border-radius: 8px; width: 80%; background: #232526; color: #FFD700; border: 1px solid #FFD700; font-family: 'Roboto', Arial, sans-serif;"> <i class="fas fa-arrow-left"></i> Back to Menu</button>
-        </div>
-        <!-- Add missing pauseMessage element -->
-        <div id="pauseMessage" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.7); color: white; padding: 20px; border-radius: 8px; text-align: center;">Paused</div>
-        <!-- Ensure all referenced elements exist -->
-        <!-- Add missing elements for event listeners -->
-        <button id="missingButton" style="display: none;">Placeholder Button</button>
-    </main>
-    <footer>
-        <!-- Ensure all required resources are referenced correctly -->
-        <audio id="bgMusic" loop>
-            <source src="Original Tetris theme (Tetris Soundtrack).mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-        <audio id="scoreSound">
-            <source src="score.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-        <audio id="hitSound">
-            <source src="hit.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-        <audio id="powerUpSound">
-            <source src="power-up.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-    </footer>
-    <script>
-        // All event listeners and UI logic are now handled in script.js for maintainability and clarity.
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
