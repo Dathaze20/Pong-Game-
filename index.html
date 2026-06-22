@@ -32,8 +32,22 @@
         <div class="menu-card">
             <div class="menu-emoji">&#127955;</div>
             <h1 class="menu-title">SUPER PONG!</h1>
-            <input id="player1NameInput" type="text" placeholder="&#11088; Your Name" maxlength="12" autocomplete="off">
-            <input id="player2NameInput" type="text" placeholder="&#129302; Player 2 Name" maxlength="12" autocomplete="off">
+            <div class="avatar-row">
+                <div class="avatar-pick" id="p1AvatarPick">
+                    <img id="p1AvatarImg" src="" alt="">
+                    <span class="avatar-placeholder">&#128247;</span>
+                    <input type="file" id="p1AvatarFile" accept="image/*" hidden>
+                </div>
+                <input id="player1NameInput" type="text" placeholder="&#11088; Your Name" maxlength="12" autocomplete="off">
+            </div>
+            <div class="avatar-row" id="p2Row">
+                <div class="avatar-pick" id="p2AvatarPick">
+                    <img id="p2AvatarImg" src="" alt="">
+                    <span class="avatar-placeholder">&#128247;</span>
+                    <input type="file" id="p2AvatarFile" accept="image/*" hidden>
+                </div>
+                <input id="player2NameInput" type="text" placeholder="&#129302; Player 2 Name" maxlength="12" autocomplete="off">
+            </div>
             <select id="gameMode">
                 <option value="1">&#129302; VS Robot</option>
                 <option value="2">&#129309; VS Friend</option>
@@ -95,14 +109,24 @@
     <!-- Game Canvas -->
     <canvas id="gameCanvas" style="display:none;"></canvas>
 
-    <!-- Game HUD -->
+    <!-- Game HUD — Street Fighter style -->
     <div id="gameHUD" style="display:none;">
-        <div id="scoreDisplay">
-            <span id="leftScoreHUD" class="score-left">0</span>
-            <span class="score-vs">VS</span>
-            <span id="rightScoreHUD" class="score-right">0</span>
+        <div class="sf-hud">
+            <div class="sf-plate sf-left">
+                <img id="hudP1Pic" class="sf-avatar" src="" alt="">
+                <span id="hudP1Name" class="sf-name sf-name-left">P1</span>
+                <span id="leftScoreHUD" class="sf-score sf-score-left">0</span>
+            </div>
+            <div class="sf-center">
+                <span class="sf-vs">VS</span>
+                <div id="timerDisplay">1:30</div>
+            </div>
+            <div class="sf-plate sf-right">
+                <span id="rightScoreHUD" class="sf-score sf-score-right">0</span>
+                <span id="hudP2Name" class="sf-name sf-name-right">P2</span>
+                <img id="hudP2Pic" class="sf-avatar" src="" alt="">
+            </div>
         </div>
-        <div id="timerDisplay">1:30</div>
     </div>
 
     <!-- Combo / announcement text -->
