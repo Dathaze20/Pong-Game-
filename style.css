@@ -198,6 +198,7 @@ html, body {
     background: linear-gradient(90deg, #FF6BF5, #FFD700, #00F0FF);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
+    filter: drop-shadow(0 0 12px rgba(255,215,0,.6)) drop-shadow(0 2px 4px rgba(0,0,0,.8));
     animation: announceIn .4s cubic-bezier(.17,.67,.3,1.33);
 }
 @keyframes announceIn {

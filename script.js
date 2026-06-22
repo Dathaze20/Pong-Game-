@@ -136,10 +136,18 @@ function synthWin() {
 }
 
 const bgMusicEl = $('bgMusic');
+let musicReady = false;
+bgMusicEl.addEventListener('canplaythrough', () => { musicReady = true; });
+
 function startMusic() {
     if (!settings.musicOn || !bgMusicEl) return;
     bgMusicEl.volume = 0.35;
-    bgMusicEl.play().catch(() => {});
+    const p = bgMusicEl.play();
+    if (p) p.catch(() => {
+        setTimeout(() => {
+            bgMusicEl.play().catch(() => {});
+        }, 300);
+    });
     updateMusicBtn();
 }
 function stopMusic() {
@@ -201,9 +209,9 @@ const GAME_TIME = 90;
 const POWERUP_INTERVAL = 10;
 
 const AI_CFG = {
-    easy:   { speed: 0.85, err: 30, react: 0.95 },
-    medium: { speed: 1.0,  err: 12, react: 1.0 },
-    hard:   { speed: 1.15, err: 3,  react: 1.0 }
+    easy:   { speed: 0.9,  err: 25, react: 0.92 },
+    medium: { speed: 1.15, err: 8,  react: 1.0 },
+    hard:   { speed: 1.3,  err: 2,  react: 1.0 }
 };
 
 // ===== STATE =====
@@ -220,9 +228,11 @@ let screenShake = 0;
 let combo = 0, lastScorer = '';
 let hue = 0, glowPulse = 0;
 let totalHits = 0, maxCombo = 0;
+let serveTimer = 0;
 
 let dpr = 1, W = 0, H = 0;
 let leftPaddleGrad = null, rightPaddleGrad = null;
+let aiTargetY = 0, aiUpdateTimer = 0;
 
 // ===== RESIZE =====
 function resize() {
@@ -281,6 +291,10 @@ function applySettings() {
     $('difficulty').value = settings.difficulty;
     $('colorblindMode').checked = settings.highContrast;
     document.body.classList.toggle('high-contrast', settings.highContrast);
+    const p1 = settings.p1Name;
+    const p2 = settings.p2Name;
+    if (p1 && p1 !== 'Player 1') $('player1NameInput').value = p1;
+    if (p2 && p2 !== 'Player 2') $('player2NameInput').value = p2;
 }
 
 $('toggleMusic').addEventListener('change', e => { settings.musicOn = e.target.checked; });
@@ -301,7 +315,6 @@ $('rateUsButton').addEventListener('click', () => alert('Thanks for playing Supe
 // ===== START =====
 $('startGameButton').addEventListener('click', () => {
     getAudioCtx();
-    if (bgMusicEl) bgMusicEl.load();
     settings.p1Name = $('player1NameInput').value.trim() || 'Player 1';
     settings.p2Name = $('player2NameInput').value.trim() || 'Player 2';
     settings.gameMode = $('gameMode').value;
@@ -329,6 +342,8 @@ function resetState() {
     totalHits = 0; maxCombo = 0;
     ly = ry = (H - ph) / 2;
     tLeftY = tRightY = null;
+    aiTargetY = H / 2; aiUpdateTimer = 0;
+    serveTimer = 0;
     resetBall();
     updateHUD();
 }
@@ -342,6 +357,7 @@ function resetBall() {
     const len = Math.sqrt(bdx * bdx + bdy * bdy);
     bdx = (bdx / len) * bspd;
     bdy = (bdy / len) * bspd;
+    serveTimer = 0.6;
 }
 
 // ===== TIMER =====
@@ -353,7 +369,7 @@ function startTimer() {
         if (paused) return;
         timer--;
         updateTimer();
-        if (timer <= 10 && timer > 0) { synthCountdown(); vibrate(8); }
+        if (timer <= 10 && timer > 0) { synthCountdown(); vibrate(15); }
         if (timer <= 0) {
             clearInterval(timerInt);
             endGame(lscore > rscore ? settings.p1Name + ' Wins!' :
@@ -404,7 +420,7 @@ function announce(text) {
     el.offsetHeight;
     el.style.animation = 'announceIn .4s cubic-bezier(.17,.67,.3,1.33)';
     clearTimeout(announceQ);
-    announceQ = setTimeout(() => { el.style.display = 'none'; }, 1400);
+    announceQ = setTimeout(() => { el.style.display = 'none'; }, 2200);
 }
 
 // ===== PARTICLES =====
@@ -456,6 +472,21 @@ function update(dt) {
     hue = (hue + dt * 120) % 360;
     glowPulse += dt * 3;
 
+    // Serve delay — ball sits at center briefly after score
+    if (serveTimer > 0) {
+        serveTimer -= dt;
+        const pph = ph * phMod;
+        if (tLeftY !== null) ly = tLeftY - pph / 2;
+        if (tRightY !== null && settings.gameMode === 2) ry = tRightY - pph / 2;
+        if (keys.has('ArrowUp') || keys.has('w')) ly -= pspd * dt;
+        if (keys.has('ArrowDown') || keys.has('s')) ly += pspd * dt;
+        ly = Math.max(0, Math.min(H - pph, ly));
+        ry = Math.max(0, Math.min(H - pph, ry));
+        if (settings.gameMode === 1) updateAI(dt);
+        updateParticles(dt);
+        return;
+    }
+
     const spd = bspd * bspdMod;
     const len = Math.sqrt(bdx * bdx + bdy * bdy);
     if (len > 0) { bdx = (bdx / len) * spd; bdy = (bdy / len) * spd; }
@@ -463,8 +494,8 @@ function update(dt) {
     bx += bdx * dt;
     by += bdy * dt;
 
-    if (by - brad < 0) { by = brad; bdy = Math.abs(bdy); synthWall(); vibrate(5); }
-    if (by + brad > H) { by = H - brad; bdy = -Math.abs(bdy); synthWall(); vibrate(5); }
+    if (by - brad < 0) { by = brad; bdy = Math.abs(bdy); synthWall(); vibrate(10); }
+    if (by + brad > H) { by = H - brad; bdy = -Math.abs(bdy); synthWall(); vibrate(10); }
 
     const pph = ph * phMod;
 
@@ -478,8 +509,8 @@ function update(dt) {
         bdy = Math.sin(a) * spd;
         bspdMod = Math.min(bspdMod * 1.04, 2.2);
         totalHits++;
-        synthHit(); vibrate([15, 10, 15]);
-        spawnParticles(lx, by, ['#00F0FF', '#39FF14', '#fff'], 8, false);
+        synthHit(); vibrate([25, 15, 25]);
+        spawnParticles(lx, by, ['#00F0FF', '#39FF14', '#fff'], 10, false);
         screenShake = 0.08;
     }
 
@@ -493,8 +524,8 @@ function update(dt) {
         bdy = Math.sin(a) * spd;
         bspdMod = Math.min(bspdMod * 1.04, 2.2);
         totalHits++;
-        synthHit(); vibrate([15, 10, 15]);
-        spawnParticles(rx, by, ['#FF6BF5', '#FFD700', '#fff'], 8, false);
+        synthHit(); vibrate([25, 15, 25]);
+        spawnParticles(rx, by, ['#FF6BF5', '#FFD700', '#fff'], 10, false);
         screenShake = 0.08;
     }
 
@@ -503,9 +534,9 @@ function update(dt) {
         bspdMod = 1;
         if (lastScorer === 'right') { combo++; } else { combo = 1; lastScorer = 'right'; }
         if (combo > maxCombo) maxCombo = combo;
-        synthScore(); vibrate([30, 50, 30, 50, 40]);
-        spawnParticles(0, by, ['#FF6BF5', '#FFD700', '#00F0FF', '#39FF14'], 20, true);
-        screenShake = 0.18;
+        synthScore(); vibrate([40, 60, 40, 60, 50]);
+        spawnParticles(0, by, ['#FF6BF5', '#FFD700', '#00F0FF', '#39FF14'], 25, true);
+        screenShake = 0.2;
         let msg;
         if (combo >= 3) msg = settings.p2Name + ' ' + combo + 'x COMBO!! \u{1F525}';
         else msg = scoreAnnounce(settings.p2Name);
@@ -519,9 +550,9 @@ function update(dt) {
         bspdMod = 1;
         if (lastScorer === 'left') { combo++; } else { combo = 1; lastScorer = 'left'; }
         if (combo > maxCombo) maxCombo = combo;
-        synthScore(); vibrate([30, 50, 30, 50, 40]);
-        spawnParticles(W, by, ['#00F0FF', '#FFD700', '#FF6BF5', '#39FF14'], 20, true);
-        screenShake = 0.18;
+        synthScore(); vibrate([40, 60, 40, 60, 50]);
+        spawnParticles(W, by, ['#00F0FF', '#FFD700', '#FF6BF5', '#39FF14'], 25, true);
+        screenShake = 0.2;
         let msg;
         if (combo >= 3) msg = settings.p1Name + ' ' + combo + 'x COMBO!! \u{1F525}';
         else msg = scoreAnnounce(settings.p1Name);
@@ -554,31 +585,36 @@ function update(dt) {
     if (screenShake > 0) screenShake = Math.max(0, screenShake - dt);
 }
 
-// ===== AI =====
+// ===== AI (smooth, no jitter) =====
 function updateAI(dt) {
     const cfg = AI_CFG[settings.difficulty] || AI_CFG.medium;
     const pph = ph * phMod;
-    let targetY;
 
-    if (bdx > 0) {
-        const dist = W - pmar - pw - bx;
-        const ttr = dist / (Math.abs(bdx) || 1);
-        let py = by + bdy * ttr;
-        for (let i = 0; i < 12 && (py < 0 || py > H); i++) {
-            if (py < 0) py = -py;
-            if (py > H) py = 2 * H - py;
+    aiUpdateTimer -= dt;
+    if (aiUpdateTimer <= 0) {
+        aiUpdateTimer = 0.12 + Math.random() * 0.1;
+
+        if (bdx > 0) {
+            const dist = W - pmar - pw - bx;
+            const ttr = dist / (Math.abs(bdx) || 1);
+            let py = by + bdy * ttr;
+            for (let i = 0; i < 12 && (py < 0 || py > H); i++) {
+                if (py < 0) py = -py;
+                if (py > H) py = 2 * H - py;
+            }
+            aiTargetY = py + (Math.random() - 0.5) * cfg.err;
+        } else {
+            aiTargetY = H / 2 + (Math.random() - 0.5) * pph * 0.4;
         }
-        targetY = py + (Math.random() - 0.5) * cfg.err;
-    } else {
-        targetY = by + (Math.random() - 0.5) * cfg.err * 2;
     }
 
     const center = ry + pph / 2;
-    const diff = targetY - center;
+    const diff = aiTargetY - center;
     const maxMove = pspd * cfg.speed * cfg.react * dt;
 
-    if (Math.abs(diff) > 2) {
-        ry += Math.sign(diff) * Math.min(Math.abs(diff), maxMove);
+    if (Math.abs(diff) > 5) {
+        const moveAmt = Math.min(Math.abs(diff) * 0.12, maxMove);
+        ry += Math.sign(diff) * moveAmt;
     }
     ry = Math.max(0, Math.min(H - pph, ry));
 }
@@ -607,9 +643,9 @@ function checkPowerUp() {
     const dx = bx - powerUp.x, dy = by - powerUp.y;
     if (dx * dx + dy * dy < (powerUp.size + brad) * (powerUp.size + brad)) {
         applyPowerUp(powerUp.type);
-        synthPowerUp(); vibrate([20, 15, 20]);
+        synthPowerUp(); vibrate([30, 20, 30]);
         announce(powerUp.emoji + ' ' + powerUp.label);
-        spawnParticles(powerUp.x, powerUp.y, [powerUp.color, '#fff', '#FFD700'], 12, true);
+        spawnParticles(powerUp.x, powerUp.y, [powerUp.color, '#fff', '#FFD700'], 15, true);
         powerUp = null;
     }
 }
@@ -674,8 +710,14 @@ function render() {
         const bh = H - inset * 2;
         const cr = Math.min(24, Math.min(bw, bh) * 0.035);
 
-        ctx.strokeStyle = `rgba(${br},${bg},${bb},${0.2 + bPulse * 0.25})`;
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = `rgba(${br},${bg},${bb},${0.1 + bPulse * 0.12})`;
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.roundRect(inset - 1, inset - 1, bw + 2, bh + 2, cr + 1);
+        ctx.stroke();
+
+        ctx.strokeStyle = `rgba(${br},${bg},${bb},${0.25 + bPulse * 0.3})`;
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.roundRect(inset, inset, bw, bh, cr);
         ctx.stroke();
@@ -702,8 +744,8 @@ function render() {
 
     // Left paddle glow
     if (!hc) {
-        ctx.fillStyle = `rgba(0,240,255,${0.04 + glowAmt * 0.04})`;
-        ctx.fillRect(pmar - 8, ly + hoverOff - 8, pw + 16, pph + 16);
+        ctx.fillStyle = `rgba(0,240,255,${0.04 + glowAmt * 0.05})`;
+        ctx.fillRect(pmar - 10, ly + hoverOff - 10, pw + 20, pph + 20);
     }
     ctx.fillStyle = hc ? '#FFF' : leftPaddleGrad;
     ctx.beginPath();
@@ -712,8 +754,8 @@ function render() {
 
     // Right paddle glow
     if (!hc) {
-        ctx.fillStyle = `rgba(255,107,245,${0.04 + glowAmt * 0.04})`;
-        ctx.fillRect(W - pmar - pw - 8, ry + hoverOff - 8, pw + 16, pph + 16);
+        ctx.fillStyle = `rgba(255,107,245,${0.04 + glowAmt * 0.05})`;
+        ctx.fillRect(W - pmar - pw - 10, ry + hoverOff - 10, pw + 20, pph + 20);
     }
     ctx.fillStyle = hc ? '#FFF' : rightPaddleGrad;
     ctx.beginPath();
@@ -731,10 +773,23 @@ function render() {
         }
     }
 
+    // Ball glow
+    if (!hc) {
+        ctx.beginPath();
+        ctx.arc(bx, by, brad * 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${hue}, 100%, 50%, 0.08)`;
+        ctx.fill();
+    }
+
     // Ball
     ctx.beginPath();
     ctx.arc(bx, by, brad, 0, Math.PI * 2);
     ctx.fillStyle = ballColor;
+    ctx.fill();
+    // Ball highlight
+    ctx.beginPath();
+    ctx.arc(bx - brad * 0.2, by - brad * 0.2, brad * 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
     ctx.fill();
 
     // Power-up
@@ -778,7 +833,7 @@ $('bgPickerBtn').addEventListener('click', () => {
     const panel = $('bgPickerPanel');
     panel.style.display = bgPickerOpen ? 'flex' : 'none';
     if (bgPickerOpen) buildBgPicker();
-    vibrate(8);
+    vibrate(12);
 });
 
 function buildBgPicker() {
@@ -793,7 +848,7 @@ function buildBgPicker() {
             settings.bgTheme = i;
             bgGrad = null;
             buildBgPicker();
-            vibrate(10);
+            vibrate(12);
         });
         panel.appendChild(btn);
     });
@@ -802,7 +857,7 @@ function buildBgPicker() {
 // ===== MUSIC TOGGLE =====
 $('musicToggleBtn').addEventListener('click', () => {
     toggleMusicLive();
-    vibrate(8);
+    vibrate(12);
 });
 
 // ===== TOUCH =====
@@ -864,7 +919,7 @@ function endGame(msg) {
     if (rafId) cancelAnimationFrame(rafId);
     stopMusic();
     synthWin();
-    vibrate([50, 80, 50, 80, 80, 50]);
+    vibrate([80, 100, 80, 100, 80, 60]);
 
     canvas.style.display = 'none';
     screens.hud.style.display = 'none';
