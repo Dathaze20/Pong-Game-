@@ -171,6 +171,16 @@ function updateMusicBtn() {
 }
 function vibrate(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
 
+let wakeLock = null;
+async function requestWakeLock() {
+    try {
+        if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+    } catch (_) {}
+}
+function releaseWakeLock() {
+    if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+}
+
 // ===== SETTINGS =====
 const settings = {
     get musicOn() { return localStorage.getItem('musicOn') !== 'false'; },
@@ -223,6 +233,7 @@ let timer, timerInt;
 let tLeftY = null, tRightY = null;
 let powerUp = null, puTimer = 0;
 let phMod = 1, bspdMod = 1;
+let puTimers = [];
 let particles = [], announceQ = null;
 let screenShake = 0;
 let combo = 0, lastScorer = '';
@@ -291,10 +302,12 @@ function applySettings() {
     $('difficulty').value = settings.difficulty;
     $('colorblindMode').checked = settings.highContrast;
     document.body.classList.toggle('high-contrast', settings.highContrast);
+    $('gameMode').value = settings.gameMode;
+    $('player2NameInput').style.display = settings.gameMode === 2 ? '' : 'none';
     const p1 = settings.p1Name;
     const p2 = settings.p2Name;
     if (p1 && p1 !== 'Player 1') $('player1NameInput').value = p1;
-    if (p2 && p2 !== 'Player 2') $('player2NameInput').value = p2;
+    if (p2 && p2 !== 'Player 2' && p2 !== 'Robot') $('player2NameInput').value = p2;
 }
 
 $('toggleMusic').addEventListener('change', e => { settings.musicOn = e.target.checked; });
@@ -312,12 +325,21 @@ $('howToPlayButton').addEventListener('click', () => showScreen('howToPlay'));
 $('backFromHowToPlay').addEventListener('click', () => showScreen('menu'));
 $('rateUsButton').addEventListener('click', () => alert('Thanks for playing Super Pong! You rock! ⭐'));
 
+$('gameMode').addEventListener('change', e => {
+    $('player2NameInput').style.display = e.target.value === '2' ? '' : 'none';
+});
+$('player2NameInput').style.display = $('gameMode').value === '2' ? '' : 'none';
+
 // ===== START =====
 $('startGameButton').addEventListener('click', () => {
     getAudioCtx();
     settings.p1Name = $('player1NameInput').value.trim() || 'Player 1';
-    settings.p2Name = $('player2NameInput').value.trim() || 'Player 2';
-    settings.gameMode = $('gameMode').value;
+    const mode = $('gameMode').value;
+    settings.p2Name = mode === '2' ? ($('player2NameInput').value.trim() || 'Player 2') : 'Robot';
+    settings.gameMode = mode;
+    const el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
     startGame();
 });
 
@@ -327,6 +349,7 @@ function startGame() {
     showGame();
     startMusic();
     startTimer();
+    requestWakeLock();
     gameOn = true; paused = false;
     lastT = performance.now();
     announce('READY? GO! \u{1F525}');
@@ -337,6 +360,8 @@ function resetState() {
     lscore = rscore = 0;
     phMod = bspdMod = 1;
     powerUp = null; puTimer = 0;
+    puTimers.forEach(t => clearTimeout(t));
+    puTimers = [];
     particles = []; announceQ = null;
     screenShake = 0; combo = 0; lastScorer = '';
     totalHits = 0; maxCombo = 0;
@@ -652,22 +677,24 @@ function checkPowerUp() {
 
 function applyPowerUp(type) {
     const dur = 6000;
+    let t;
     if (type === 'speed') {
         bspdMod *= 1.5;
-        setTimeout(() => { bspdMod = Math.max(1, bspdMod / 1.5); }, dur);
+        t = setTimeout(() => { bspdMod = Math.max(1, bspdMod / 1.5); }, dur);
     } else if (type === 'slow') {
         bspdMod *= 0.5;
-        setTimeout(() => { bspdMod = Math.min(2.2, bspdMod / 0.5); }, dur);
+        t = setTimeout(() => { bspdMod = Math.min(2.2, bspdMod / 0.5); }, dur);
     } else if (type === 'grow') {
         phMod = 1.6;
-        setTimeout(() => { phMod = 1; }, dur);
+        t = setTimeout(() => { phMod = 1; }, dur);
     } else if (type === 'shrink') {
         phMod = 0.55;
-        setTimeout(() => { phMod = 1; }, dur);
+        t = setTimeout(() => { phMod = 1; }, dur);
     } else if (type === 'mega') {
         bspdMod *= 1.3; phMod = 1.4;
-        setTimeout(() => { bspdMod = Math.max(1, bspdMod / 1.3); phMod = 1; }, dur);
+        t = setTimeout(() => { bspdMod = Math.max(1, bspdMod / 1.3); phMod = 1; }, dur);
     }
+    if (t) puTimers.push(t);
 }
 
 // ===== RENDER =====
@@ -918,6 +945,7 @@ function endGame(msg) {
     clearInterval(timerInt);
     if (rafId) cancelAnimationFrame(rafId);
     stopMusic();
+    releaseWakeLock();
     synthWin();
     vibrate([80, 100, 80, 100, 80, 60]);
 
@@ -953,6 +981,8 @@ function quit() {
     $('announceText').style.display = 'none';
     $('bgPickerPanel').style.display = 'none';
     bgPickerOpen = false;
+    releaseWakeLock();
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     showScreen('menu');
 }
 
