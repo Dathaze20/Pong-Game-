@@ -253,7 +253,7 @@ function scale() {
     ph = Math.max(90, r * (isLandscape ? 0.28 : 0.22));
     pmar = Math.max(12, r * 0.025);
     pspd = r * 1.8;
-    bspd = r * 0.75;
+    bspd = r * 1.05;
 }
 
 function createPaddleGrads() {
