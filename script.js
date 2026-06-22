@@ -241,9 +241,15 @@ let hue = 0, glowPulse = 0;
 let totalHits = 0, maxCombo = 0;
 let serveTimer = 0;
 
+let scoreFlash = 0;
+let leftHitGlow = 0, rightHitGlow = 0;
+
 let dpr = 1, W = 0, H = 0;
 let leftPaddleGrad = null, rightPaddleGrad = null;
 let aiTargetY = 0, aiUpdateTimer = 0;
+
+let p1AvatarData = null, p2AvatarData = null;
+let p1AvatarImg = null, p2AvatarImg = null;
 
 // ===== RESIZE =====
 function resize() {
@@ -303,7 +309,7 @@ function applySettings() {
     $('colorblindMode').checked = settings.highContrast;
     document.body.classList.toggle('high-contrast', settings.highContrast);
     $('gameMode').value = settings.gameMode;
-    $('player2NameInput').style.display = settings.gameMode === 2 ? '' : 'none';
+    $('p2Row').style.display = settings.gameMode === 2 ? '' : 'none';
     const p1 = settings.p1Name;
     const p2 = settings.p2Name;
     if (p1 && p1 !== 'Player 1') $('player1NameInput').value = p1;
@@ -326,9 +332,63 @@ $('backFromHowToPlay').addEventListener('click', () => showScreen('menu'));
 $('rateUsButton').addEventListener('click', () => alert('Thanks for playing Super Pong! You rock! ⭐'));
 
 $('gameMode').addEventListener('change', e => {
-    $('player2NameInput').style.display = e.target.value === '2' ? '' : 'none';
+    $('p2Row').style.display = e.target.value === '2' ? '' : 'none';
 });
-$('player2NameInput').style.display = $('gameMode').value === '2' ? '' : 'none';
+$('p2Row').style.display = $('gameMode').value === '2' ? '' : 'none';
+
+// ===== AVATAR UPLOAD =====
+function setupAvatar(pickId, fileId, imgId, storageKey) {
+    const pick = $(pickId), file = $(fileId), img = $(imgId);
+    pick.addEventListener('click', () => file.click());
+    file.addEventListener('change', e => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+            const canvas2 = document.createElement('canvas');
+            const img2 = new Image();
+            img2.onload = () => {
+                const sz = 128;
+                canvas2.width = sz; canvas2.height = sz;
+                const c2 = canvas2.getContext('2d');
+                const min = Math.min(img2.width, img2.height);
+                const sx = (img2.width - min) / 2, sy = (img2.height - min) / 2;
+                c2.drawImage(img2, sx, sy, min, min, 0, 0, sz, sz);
+                const dataUrl = canvas2.toDataURL('image/jpeg', 0.7);
+                localStorage.setItem(storageKey, dataUrl);
+                img.src = dataUrl;
+                img.classList.add('has-pic');
+            };
+            img2.src = ev.target.result;
+        };
+        reader.readAsDataURL(f);
+    });
+    const saved = localStorage.getItem(storageKey);
+    if (saved) { img.src = saved; img.classList.add('has-pic'); }
+}
+setupAvatar('p1AvatarPick', 'p1AvatarFile', 'p1AvatarImg', 'p1Avatar');
+setupAvatar('p2AvatarPick', 'p2AvatarFile', 'p2AvatarImg', 'p2Avatar');
+
+function loadAvatarImages() {
+    const d1 = localStorage.getItem('p1Avatar');
+    const d2 = localStorage.getItem('p2Avatar');
+    if (d1) {
+        p1AvatarImg = new Image();
+        p1AvatarImg.src = d1;
+        $('hudP1Pic').src = d1;
+    } else {
+        p1AvatarImg = null;
+        $('hudP1Pic').src = '';
+    }
+    if (d2) {
+        p2AvatarImg = new Image();
+        p2AvatarImg.src = d2;
+        $('hudP2Pic').src = d2;
+    } else {
+        p2AvatarImg = null;
+        $('hudP2Pic').src = '';
+    }
+}
 
 // ===== START =====
 $('startGameButton').addEventListener('click', () => {
@@ -337,6 +397,9 @@ $('startGameButton').addEventListener('click', () => {
     const mode = $('gameMode').value;
     settings.p2Name = mode === '2' ? ($('player2NameInput').value.trim() || 'Player 2') : 'Robot';
     settings.gameMode = mode;
+    $('hudP1Name').textContent = settings.p1Name;
+    $('hudP2Name').textContent = settings.p2Name;
+    loadAvatarImages();
     const el = document.documentElement;
     if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
     else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
@@ -365,6 +428,7 @@ function resetState() {
     particles = []; announceQ = null;
     screenShake = 0; combo = 0; lastScorer = '';
     totalHits = 0; maxCombo = 0;
+    scoreFlash = 0; leftHitGlow = 0; rightHitGlow = 0;
     ly = ry = (H - ph) / 2;
     tLeftY = tRightY = null;
     aiTargetY = H / 2; aiUpdateTimer = 0;
@@ -534,8 +598,9 @@ function update(dt) {
         bdy = Math.sin(a) * spd;
         bspdMod = Math.min(bspdMod * 1.04, 2.2);
         totalHits++;
+        leftHitGlow = 0.4;
         synthHit(); vibrate([25, 15, 25]);
-        spawnParticles(lx, by, ['#00F0FF', '#39FF14', '#fff'], 10, false);
+        spawnParticles(lx, by, ['#00F0FF', '#39FF14', '#fff'], 12, false);
         screenShake = 0.08;
     }
 
@@ -549,14 +614,16 @@ function update(dt) {
         bdy = Math.sin(a) * spd;
         bspdMod = Math.min(bspdMod * 1.04, 2.2);
         totalHits++;
+        rightHitGlow = 0.4;
         synthHit(); vibrate([25, 15, 25]);
-        spawnParticles(rx, by, ['#FF6BF5', '#FFD700', '#fff'], 10, false);
+        spawnParticles(rx, by, ['#FF6BF5', '#FFD700', '#fff'], 12, false);
         screenShake = 0.08;
     }
 
     if (bx < -brad * 2) {
         rscore++;
         bspdMod = 1;
+        scoreFlash = 0.35;
         if (lastScorer === 'right') { combo++; } else { combo = 1; lastScorer = 'right'; }
         if (combo > maxCombo) maxCombo = combo;
         synthScore(); vibrate([40, 60, 40, 60, 50]);
@@ -573,6 +640,7 @@ function update(dt) {
     if (bx > W + brad * 2) {
         lscore++;
         bspdMod = 1;
+        scoreFlash = 0.35;
         if (lastScorer === 'left') { combo++; } else { combo = 1; lastScorer = 'left'; }
         if (combo > maxCombo) maxCombo = combo;
         synthScore(); vibrate([40, 60, 40, 60, 50]);
@@ -604,10 +672,16 @@ function update(dt) {
 
     puTimer += dt;
     if (!powerUp && puTimer >= POWERUP_INTERVAL) { spawnPowerUp(); puTimer = 0; }
-    if (powerUp) checkPowerUp();
+    if (powerUp) {
+        powerUp.y += powerUp.vy * dt;
+        checkPowerUp();
+    }
 
     updateParticles(dt);
     if (screenShake > 0) screenShake = Math.max(0, screenShake - dt);
+    if (scoreFlash > 0) scoreFlash = Math.max(0, scoreFlash - dt);
+    if (leftHitGlow > 0) leftHitGlow = Math.max(0, leftHitGlow - dt);
+    if (rightHitGlow > 0) rightHitGlow = Math.max(0, rightHitGlow - dt);
 }
 
 // ===== AI (smooth, no jitter) =====
@@ -644,35 +718,41 @@ function updateAI(dt) {
     ry = Math.max(0, Math.min(H - pph, ry));
 }
 
-// ===== POWER-UPS =====
+// ===== POWER-UPS (Arkanoid SNES style) =====
 const PU_TYPES = [
-    { type: 'speed',  color: '#FF4444', emoji: '\u{1F525}', label: 'TURBO!' },
-    { type: 'slow',   color: '#4488FF', emoji: '\u{2744}\u{FE0F}', label: 'FREEZE!' },
-    { type: 'grow',   color: '#39FF14', emoji: '\u{1F4AA}', label: 'BIG!' },
-    { type: 'shrink', color: '#FF6BF5', emoji: '\u{1F41C}', label: 'TINY!' },
-    { type: 'mega',   color: '#FFD700', emoji: '⭐', label: 'MEGA!' }
+    { type: 'speed',  color: '#FF4444', letter: 'S', label: 'TURBO!',   color2: '#FF8800' },
+    { type: 'slow',   color: '#4488FF', letter: 'F', label: 'FREEZE!',  color2: '#00CCFF' },
+    { type: 'grow',   color: '#39FF14', letter: 'G', label: 'GROW!',    color2: '#00FF88' },
+    { type: 'shrink', color: '#FF6BF5', letter: 'T', label: 'TINY!',    color2: '#FF33CC' },
+    { type: 'mega',   color: '#FFD700', letter: 'M', label: 'MEGA!',    color2: '#FFAA00' }
 ];
 
 function spawnPowerUp() {
     const k = PU_TYPES[Math.floor(Math.random() * PU_TYPES.length)];
+    const sz = Math.max(18, Math.min(W, H) * 0.04);
     powerUp = {
         x: W * 0.25 + Math.random() * W * 0.5,
-        y: H * 0.15 + Math.random() * H * 0.7,
-        size: Math.max(18, Math.min(W, H) * 0.045),
+        y: -sz,
+        vy: Math.min(W, H) * 0.18,
+        w: sz * 2.2,
+        h: sz,
         ...k
     };
 }
 
 function checkPowerUp() {
     if (!powerUp) return;
-    const dx = bx - powerUp.x, dy = by - powerUp.y;
-    if (dx * dx + dy * dy < (powerUp.size + brad) * (powerUp.size + brad)) {
-        applyPowerUp(powerUp.type);
+    const pu = powerUp;
+    const hw = pu.w / 2, hh = pu.h / 2;
+    if (bx + brad > pu.x - hw && bx - brad < pu.x + hw &&
+        by + brad > pu.y - hh && by - brad < pu.y + hh) {
+        applyPowerUp(pu.type);
         synthPowerUp(); vibrate([30, 20, 30]);
-        announce(powerUp.emoji + ' ' + powerUp.label);
-        spawnParticles(powerUp.x, powerUp.y, [powerUp.color, '#fff', '#FFD700'], 15, true);
+        announce(pu.letter + ' ' + pu.label);
+        spawnParticles(pu.x, pu.y, [pu.color, pu.color2, '#fff'], 18, true);
         powerUp = null;
     }
+    if (pu && pu.y > H + pu.h) powerUp = null;
 }
 
 function applyPowerUp(type) {
@@ -750,18 +830,30 @@ function render() {
         ctx.stroke();
     }
 
-    // Center line
-    ctx.setLineDash([8, 14]);
-    ctx.strokeStyle = hc ? 'rgba(255,255,255,.25)' : 'rgba(255,255,255,.08)';
-    ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
-    ctx.setLineDash([]);
+    // Center divider — subtle glow line
+    if (!hc) {
+        const divGrad = ctx.createLinearGradient(W / 2, 0, W / 2, H);
+        divGrad.addColorStop(0, `rgba(${br},${bg},${bb},0)`);
+        divGrad.addColorStop(0.3, `rgba(${br},${bg},${bb},0.08)`);
+        divGrad.addColorStop(0.5, `rgba(${br},${bg},${bb},0.12)`);
+        divGrad.addColorStop(0.7, `rgba(${br},${bg},${bb},0.08)`);
+        divGrad.addColorStop(1, `rgba(${br},${bg},${bb},0)`);
+        ctx.strokeStyle = divGrad;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
+    } else {
+        ctx.setLineDash([8, 14]);
+        ctx.strokeStyle = 'rgba(255,255,255,.2)';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
+        ctx.setLineDash([]);
+    }
 
     // Center circle
     ctx.beginPath();
     ctx.arc(W / 2, H / 2, Math.min(W, H) * 0.08, 0, Math.PI * 2);
-    ctx.strokeStyle = hc ? 'rgba(255,255,255,.15)' : 'rgba(255,255,255,.05)';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = hc ? 'rgba(255,255,255,.12)' : `rgba(${br},${bg},${bb},0.06)`;
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
     const pph = ph * phMod;
@@ -769,25 +861,41 @@ function render() {
     const glowAmt = 0.5 + Math.sin(glowPulse * 2) * 0.3;
     const hoverOff = Math.sin(glowPulse * 1.5) * 3;
 
-    // Left paddle glow
+    // Left paddle glow + hit flash
     if (!hc) {
-        ctx.fillStyle = `rgba(0,240,255,${0.04 + glowAmt * 0.05})`;
-        ctx.fillRect(pmar - 10, ly + hoverOff - 10, pw + 20, pph + 20);
+        const lGlow = 0.04 + glowAmt * 0.05 + leftHitGlow * 0.6;
+        ctx.fillStyle = `rgba(0,240,255,${lGlow})`;
+        const lExpand = leftHitGlow * 15;
+        ctx.fillRect(pmar - 10 - lExpand, ly + hoverOff - 10 - lExpand, pw + 20 + lExpand * 2, pph + 20 + lExpand * 2);
     }
     ctx.fillStyle = hc ? '#FFF' : leftPaddleGrad;
     ctx.beginPath();
     ctx.roundRect(pmar, ly + hoverOff, pw, pph, pw / 2.5);
     ctx.fill();
+    if (leftHitGlow > 0 && !hc) {
+        ctx.fillStyle = `rgba(255,255,255,${leftHitGlow * 0.5})`;
+        ctx.beginPath();
+        ctx.roundRect(pmar, ly + hoverOff, pw, pph, pw / 2.5);
+        ctx.fill();
+    }
 
-    // Right paddle glow
+    // Right paddle glow + hit flash
     if (!hc) {
-        ctx.fillStyle = `rgba(255,107,245,${0.04 + glowAmt * 0.05})`;
-        ctx.fillRect(W - pmar - pw - 10, ry + hoverOff - 10, pw + 20, pph + 20);
+        const rGlow = 0.04 + glowAmt * 0.05 + rightHitGlow * 0.6;
+        ctx.fillStyle = `rgba(255,107,245,${rGlow})`;
+        const rExpand = rightHitGlow * 15;
+        ctx.fillRect(W - pmar - pw - 10 - rExpand, ry + hoverOff - 10 - rExpand, pw + 20 + rExpand * 2, pph + 20 + rExpand * 2);
     }
     ctx.fillStyle = hc ? '#FFF' : rightPaddleGrad;
     ctx.beginPath();
     ctx.roundRect(W - pmar - pw, ry + hoverOff, pw, pph, pw / 2.5);
     ctx.fill();
+    if (rightHitGlow > 0 && !hc) {
+        ctx.fillStyle = `rgba(255,255,255,${rightHitGlow * 0.5})`;
+        ctx.beginPath();
+        ctx.roundRect(W - pmar - pw, ry + hoverOff, pw, pph, pw / 2.5);
+        ctx.fill();
+    }
 
     // Ball trail
     if (!hc) {
@@ -819,35 +927,59 @@ function render() {
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     ctx.fill();
 
-    // Power-up
+    // Power-up — Arkanoid SNES capsule
     if (powerUp) {
         const pu = powerUp;
-        const pulse = 1 + Math.sin(performance.now() / 200) * 0.2;
+        const pulse = 1 + Math.sin(performance.now() / 180) * 0.12;
+        const hw = pu.w / 2 * pulse, hh = pu.h / 2 * pulse;
+        const cr = hh;
+
+        // Capsule glow
+        if (!hc) {
+            ctx.fillStyle = `${pu.color}22`;
+            ctx.beginPath();
+            ctx.roundRect(pu.x - hw - 4, pu.y - hh - 4, hw * 2 + 8, hh * 2 + 8, cr + 4);
+            ctx.fill();
+        }
+
+        // Capsule body gradient
+        const capGrad = ctx.createLinearGradient(pu.x, pu.y - hh, pu.x, pu.y + hh);
+        capGrad.addColorStop(0, pu.color2);
+        capGrad.addColorStop(0.4, pu.color);
+        capGrad.addColorStop(1, pu.color2);
+        ctx.fillStyle = capGrad;
         ctx.beginPath();
-        ctx.arc(pu.x, pu.y, pu.size * pulse, 0, Math.PI * 2);
-        ctx.strokeStyle = pu.color;
-        ctx.lineWidth = 3;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(pu.x, pu.y, pu.size * 0.45 * pulse, 0, Math.PI * 2);
-        ctx.fillStyle = pu.color;
+        ctx.roundRect(pu.x - hw, pu.y - hh, hw * 2, hh * 2, cr);
         ctx.fill();
-        const fs = Math.round(pu.size * 0.7);
-        ctx.font = `${fs}px sans-serif`;
+
+        // Capsule highlight
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        ctx.beginPath();
+        ctx.roundRect(pu.x - hw + 2, pu.y - hh + 2, hw * 2 - 4, hh * 0.7, cr);
+        ctx.fill();
+
+        // Capsule border
+        ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(pu.x - hw, pu.y - hh, hw * 2, hh * 2, cr);
+        ctx.stroke();
+
+        // Letter
+        const fs = Math.round(hh * 1.4);
+        ctx.font = `900 ${fs}px 'Bungee', sans-serif`;
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(pu.emoji, pu.x, pu.y);
+        ctx.fillStyle = '#fff';
+        ctx.fillText(pu.letter, pu.x, pu.y + 1);
     }
 
     renderParticles();
 
-    // Player names
-    const nameSz = Math.round(Math.min(W, H) * 0.035);
-    ctx.font = `900 ${nameSz}px 'Nunito', sans-serif`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-    ctx.fillStyle = hc ? 'rgba(255,255,255,.3)' : 'rgba(0,240,255,.3)';
-    ctx.fillText(settings.p1Name, W * 0.25, H - 14);
-    ctx.fillStyle = hc ? 'rgba(255,255,255,.3)' : 'rgba(255,107,245,.3)';
-    ctx.fillText(settings.p2Name, W * 0.75, H - 14);
+    // Score flash overlay
+    if (scoreFlash > 0 && !hc) {
+        ctx.fillStyle = `rgba(255,255,255,${scoreFlash * 0.2})`;
+        ctx.fillRect(-10, -10, W + 20, H + 20);
+    }
 
     ctx.restore();
 }

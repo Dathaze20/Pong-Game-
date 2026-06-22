@@ -85,6 +85,30 @@ html, body {
 .menu-card input::placeholder { color: rgba(255,255,255,.45); }
 .menu-card select option { background: #0a1628; color: #fff; }
 
+/* === AVATAR ROW === */
+.avatar-row {
+    width: 100%; display: flex; align-items: center; gap: 10px;
+}
+.avatar-row input[type="text"] { flex: 1; }
+.avatar-pick {
+    width: 52px; height: 52px; flex-shrink: 0;
+    border-radius: 50%; border: 2.5px solid rgba(0,180,255,.4);
+    background: rgba(0,0,0,.35);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; overflow: hidden;
+    transition: border-color .2s, box-shadow .2s;
+}
+.avatar-pick:active { transform: scale(.92); }
+.avatar-pick img {
+    width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+    display: none;
+}
+.avatar-pick img.has-pic { display: block; }
+.avatar-pick .avatar-placeholder {
+    font-size: 1.4rem; color: rgba(255,255,255,.5);
+}
+.avatar-pick img.has-pic ~ .avatar-placeholder { display: none; }
+
 /* === BUTTONS === */
 .btn-play {
     width: 100%; padding: 16px; border: none; border-radius: 16px;
@@ -163,29 +187,58 @@ html, body {
     z-index: 1; touch-action: none;
 }
 
-/* === HUD === */
+/* === HUD — Street Fighter Style === */
 #gameHUD {
     position: fixed; top: 0; left: 0; right: 0;
     z-index: 10; pointer-events: none;
-    display: flex; justify-content: center; align-items: flex-start;
-    padding: 6px 16px; gap: 10px;
+    padding: 4px 6px 0;
 }
-#scoreDisplay {
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(0,0,0,.7); backdrop-filter: blur(10px);
-    padding: 5px 18px; border-radius: 14px;
-    border: 2px solid rgba(0,180,255,.2);
-    font-family: 'Bungee', sans-serif; font-size: 1.6rem;
+.sf-hud {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; width: 100%;
 }
-.score-left { color: #00F0FF; min-width: 28px; text-align: center; }
-.score-right { color: #FF6BF5; min-width: 28px; text-align: center; }
-.score-vs { color: rgba(255,255,255,.35); font-size: .7rem; padding: 0 2px; }
+.sf-plate {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(0,0,0,.75); backdrop-filter: blur(10px);
+    padding: 4px 10px; border-radius: 12px;
+    border: 2px solid rgba(0,180,255,.25);
+    flex: 1; max-width: 200px;
+}
+.sf-left { border-color: rgba(0,240,255,.35); justify-content: flex-start; }
+.sf-right { border-color: rgba(255,107,245,.35); justify-content: flex-end; }
+.sf-avatar {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,.3);
+    object-fit: cover; background: rgba(255,255,255,.08);
+}
+.sf-avatar[src=""] { display: none; }
+.sf-name {
+    font-family: 'Bungee', sans-serif; font-size: .7rem;
+    letter-spacing: .5px; text-transform: uppercase;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 80px;
+    -webkit-text-stroke: .5px rgba(0,0,0,.6);
+}
+.sf-name-left { color: #00F0FF; }
+.sf-name-right { color: #FF6BF5; }
+.sf-score {
+    font-family: 'Bungee', sans-serif; font-size: 1.4rem;
+    min-width: 22px; text-align: center;
+    text-shadow: 0 0 8px currentColor;
+}
+.sf-score-left { color: #00F0FF; margin-left: auto; }
+.sf-score-right { color: #FF6BF5; margin-right: auto; }
+.sf-center {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 0 6px; flex-shrink: 0;
+}
+.sf-vs {
+    font-family: 'Bungee', sans-serif; font-size: .55rem;
+    color: rgba(255,255,255,.35); letter-spacing: 1px;
+}
 #timerDisplay {
-    background: rgba(0,0,0,.7); backdrop-filter: blur(10px);
-    padding: 5px 14px; border-radius: 14px;
-    border: 2px solid rgba(0,180,255,.2);
-    font-family: 'Bungee', sans-serif; font-size: .9rem;
-    color: #FFD700;
+    font-family: 'Bungee', sans-serif; font-size: .75rem;
+    color: #FFD700; line-height: 1;
 }
 
 /* === ANNOUNCE TEXT === */
@@ -308,8 +361,14 @@ body.high-contrast .menu-card, body.high-contrast .gameover-card, body.high-cont
     .menu-card input[type="text"], .menu-card select { padding: 6px 10px; font-size: .85rem; }
     .toggle-row, .select-row { padding: 5px 10px; font-size: .85rem; }
     #announceText { font-size: 1.6rem; }
-    #scoreDisplay { font-size: 1.3rem; padding: 4px 14px; }
-    #timerDisplay { font-size: .8rem; padding: 4px 10px; }
+    .sf-plate { padding: 3px 8px; max-width: 180px; }
+    .sf-score { font-size: 1.2rem; }
+    .sf-name { font-size: .6rem; max-width: 60px; }
+    .sf-avatar { width: 24px; height: 24px; }
+    #timerDisplay { font-size: .65rem; }
+    .sf-vs { font-size: .45rem; }
+    .avatar-row { gap: 6px; }
+    .avatar-pick { width: 40px; height: 40px; }
     .gameover-card #finalScore { font-size: .85rem; }
 }
 
