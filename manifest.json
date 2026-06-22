@@ -6,8 +6,8 @@
     "scope": "./",
     "display": "fullscreen",
     "orientation": "any",
-    "background_color": "#0f2027",
-    "theme_color": "#0f2027",
+    "background_color": "#0a1628",
+    "theme_color": "#0a1628",
     "categories": ["games", "entertainment"],
     "lang": "en",
     "icons": [
