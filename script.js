@@ -77,7 +77,7 @@ function synthPowerUp() {
         o.type = 'sine';
         o.frequency.setValueAtTime(400, c.currentTime);
         o.frequency.exponentialRampToValueAtTime(1600, c.currentTime + 0.2);
-        g.gain.setValueAtTime(0.2, c.currentTime);
+        g.gain.setValueAtTime(0.3, c.currentTime);
         g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.25);
         o.start(c.currentTime); o.stop(c.currentTime + 0.25);
         const o2 = c.createOscillator(), g2 = c.createGain();
@@ -85,7 +85,7 @@ function synthPowerUp() {
         o2.type = 'triangle';
         o2.frequency.setValueAtTime(800, c.currentTime + 0.05);
         o2.frequency.exponentialRampToValueAtTime(2400, c.currentTime + 0.2);
-        g2.gain.setValueAtTime(0.1, c.currentTime + 0.05);
+        g2.gain.setValueAtTime(0.18, c.currentTime + 0.05);
         g2.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.25);
         o2.start(c.currentTime + 0.05); o2.stop(c.currentTime + 0.25);
     } catch (_) {}
@@ -200,7 +200,11 @@ const settings = {
     get gameMode() { return parseInt(localStorage.getItem('gameMode') || '1'); },
     set gameMode(v) { localStorage.setItem('gameMode', v); },
     get bgTheme() { return parseInt(localStorage.getItem('bgTheme') || '0'); },
-    set bgTheme(v) { localStorage.setItem('bgTheme', v); }
+    set bgTheme(v) { localStorage.setItem('bgTheme', v); },
+    get bestScore() { return parseInt(localStorage.getItem('bestScore') || '0'); },
+    set bestScore(v) { localStorage.setItem('bestScore', v); },
+    get totalWins() { return parseInt(localStorage.getItem('totalWins') || '0'); },
+    set totalWins(v) { localStorage.setItem('totalWins', v); }
 };
 
 // ===== BACKGROUND THEMES =====
@@ -252,6 +256,7 @@ let leftHitGlow = 0, rightHitGlow = 0;
 let bradMod = 1;
 let shieldTimer = 0;
 let multiActive = false;
+let multiTimer = null;
 
 let dpr = 1, W = 0, H = 0;
 let leftPaddleGrad = null, rightPaddleGrad = null;
@@ -441,6 +446,7 @@ function resetState() {
     totalHits = 0; maxCombo = 0;
     scoreFlash = 0; leftHitGlow = 0; rightHitGlow = 0;
     bradMod = 1; shieldTimer = 0; multiActive = false;
+    if (multiTimer) { clearTimeout(multiTimer); multiTimer = null; }
     ly = ry = (H - ph) / 2;
     tLeftY = tRightY = null;
     aiTargetY = H / 2; aiUpdateTimer = 0;
@@ -693,7 +699,7 @@ function update(dt) {
 
     if (bx < -br * 2) {
         let pts = 1;
-        if (multiActive) { pts = 3; multiActive = false; announce('3x SCORE!'); speak('Triple points!'); }
+        if (multiActive) { pts = 3; multiActive = false; if (multiTimer) { clearTimeout(multiTimer); multiTimer = null; } announce('3x SCORE!'); speak('Triple points!'); }
         rscore += pts;
         bspdMod = 1; bradMod = 1;
         scoreFlash = 0.35;
@@ -716,7 +722,7 @@ function update(dt) {
     }
     if (bx > W + br * 2) {
         let pts = 1;
-        if (multiActive) { pts = 3; multiActive = false; announce('3x SCORE!'); speak('Triple points!'); }
+        if (multiActive) { pts = 3; multiActive = false; if (multiTimer) { clearTimeout(multiTimer); multiTimer = null; } announce('3x SCORE!'); speak('Triple points!'); }
         lscore += pts;
         bspdMod = 1; bradMod = 1;
         scoreFlash = 0.35;
@@ -877,6 +883,8 @@ function applyPowerUp(type) {
         t = setTimeout(() => { bradMod = 1; }, dur);
     } else if (type === 'multi') {
         multiActive = true;
+        if (multiTimer) clearTimeout(multiTimer);
+        multiTimer = setTimeout(() => { multiActive = false; multiTimer = null; }, 12000);
     } else if (type === 'shield') {
         shieldTimer = 5;
     }
@@ -1069,14 +1077,29 @@ function render() {
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     ctx.fill();
 
-    // Multi-point indicator
-    if (multiActive && !hc) {
-        const mPulse = 0.5 + Math.sin(performance.now() / 200) * 0.3;
-        const fs = Math.round(Math.min(W, H) * 0.06);
-        ctx.font = `900 ${fs}px 'Bungee', sans-serif`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-        ctx.fillStyle = `rgba(180,79,255,${mPulse})`;
-        ctx.fillText('3x NEXT GOAL!', W / 2, H * 0.06);
+    // Active power-up indicators
+    if (!hc) {
+        const inds = [];
+        if (bspdMod > 1.1) inds.push({ label: '\u{1F525} TURBO', color: '#FF4444' });
+        if (bspdMod < 0.9) inds.push({ label: '\u{2744}\u{FE0F} FREEZE', color: '#4488FF' });
+        if (phMod > 1.1) inds.push({ label: '\u{1F4AA} GROW', color: '#39FF14' });
+        if (bradMod > 1.1) inds.push({ label: '\u{1F3C0} BIG BALL', color: '#FF8800' });
+        if (multiActive) inds.push({ label: '\u{26A1} 3x NEXT GOAL', color: '#B44FFF' });
+        if (shieldTimer > 0) inds.push({ label: '\u{1F6E1}\u{FE0F} SHIELD', color: '#FFD700' });
+        if (inds.length > 0) {
+            const fs = Math.round(Math.min(W, H) * 0.032);
+            ctx.font = `900 ${fs}px 'Bungee', sans-serif`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+            inds.forEach((ind, i) => {
+                const pulse = 0.5 + Math.sin(performance.now() / 250 + i * 2) * 0.4;
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.fillText(ind.label, W / 2 + 1, H - 54 - i * (fs + 6) + 1);
+                ctx.globalAlpha = pulse;
+                ctx.fillStyle = ind.color;
+                ctx.fillText(ind.label, W / 2, H - 54 - i * (fs + 6));
+                ctx.globalAlpha = 1;
+            });
+        }
     }
 
     // Power-up — Arkanoid SNES capsule
@@ -1256,6 +1279,11 @@ function endGame(msg) {
     synthWin();
     vibrate([80, 100, 80, 100, 80, 60]);
 
+    const p1Won = lscore > rscore;
+    if (p1Won && settings.gameMode === 1) settings.totalWins = settings.totalWins + 1;
+    const best = Math.max(lscore, rscore);
+    if (best > settings.bestScore) settings.bestScore = best;
+
     canvas.style.display = 'none';
     screens.hud.style.display = 'none';
     screens.controls.style.display = 'none';
@@ -1264,11 +1292,34 @@ function endGame(msg) {
     $('bgPickerPanel').style.display = 'none';
     bgPickerOpen = false;
 
-    $('winnerMessage').textContent = msg;
-    speak(msg);
-    const statsLine = lscore + ' - ' + rscore + '  •  ' + totalHits + ' hits  •  ' + maxCombo + 'x best combo';
+    const diff = Math.abs(lscore - rscore);
+    const winner = p1Won ? settings.p1Name : settings.p2Name;
+    let displayMsg;
+    if (msg === "It's a Tie!") {
+        displayMsg = "IT'S A TIE! EPIC BATTLE!";
+    } else if (diff >= 10) {
+        displayMsg = winner + ' DOMINATED! \u{1F451}';
+    } else if (diff >= 5) {
+        displayMsg = winner + ' CRUSHED IT! \u{1F4AA}';
+    } else if (diff <= 2) {
+        displayMsg = 'SO CLOSE! ' + winner + ' WINS!';
+    } else {
+        const msgs = [
+            winner + ' IS CHAMPION! \u{1F3C6}',
+            winner + ' WINS! AMAZING!',
+            'LEGENDARY ' + winner + '! \u{1F525}',
+            winner + ' IS ON FIRE!',
+            winner + ' UNSTOPPABLE! \u{26A1}'
+        ];
+        displayMsg = msgs[Math.floor(Math.random() * msgs.length)];
+    }
+    $('winnerMessage').textContent = displayMsg;
+    speak(displayMsg);
+
+    const winsText = settings.gameMode === 1 ? '  \u{2022}  ' + settings.totalWins + ' wins' : '';
+    const statsLine = lscore + ' - ' + rscore + '  \u{2022}  ' + totalHits + ' hits  \u{2022}  ' + maxCombo + 'x combo' + winsText;
     $('finalScore').textContent = statsLine;
-    const emojis = ['\u{1F3C6}', '\u{1F389}', '⭐', '\u{1F525}', '\u{1F4AA}', '\u{1F451}', '\u{1F38A}'];
+    const emojis = ['\u{1F3C6}', '\u{1F389}', '\u{2B50}', '\u{1F525}', '\u{1F4AA}', '\u{1F451}', '\u{1F38A}'];
     $('gameOverEmoji').textContent = emojis[Math.floor(Math.random() * emojis.length)];
     screens.gameOver.style.display = 'flex';
 }
