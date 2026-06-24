@@ -105,16 +105,18 @@ function synthWall() {
     } catch (_) {}
 }
 
-function synthCountdown() {
+function synthCountdown(high) {
     if (!settings.sfxOn) return;
     try {
         const c = getAudioCtx(), o = c.createOscillator(), g = c.createGain();
         o.connect(g); g.connect(c.destination);
         o.type = 'sine';
-        o.frequency.setValueAtTime(880, c.currentTime);
-        g.gain.setValueAtTime(0.15, c.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.15);
-        o.start(c.currentTime); o.stop(c.currentTime + 0.15);
+        const freq = high ? 1320 : 880;
+        const dur = high ? 0.25 : 0.15;
+        o.frequency.setValueAtTime(freq, c.currentTime);
+        g.gain.setValueAtTime(0.18, c.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+        o.start(c.currentTime); o.stop(c.currentTime + dur);
     } catch (_) {}
 }
 
@@ -240,6 +242,10 @@ let combo = 0, lastScorer = '';
 let hue = 0, glowPulse = 0;
 let totalHits = 0, maxCombo = 0;
 let serveTimer = 0;
+let serveDir = 1;
+let countdownNum = 0;
+let countdownBeepPlayed = 0;
+let timerStarted = false;
 
 let scoreFlash = 0;
 let leftHitGlow = 0, rightHitGlow = 0;
@@ -411,11 +417,13 @@ function startGame() {
     resetState();
     showGame();
     startMusic();
-    startTimer();
     requestWakeLock();
     gameOn = true; paused = false;
+    serveTimer = 3.2;
+    countdownNum = 3;
+    countdownBeepPlayed = 0;
+    timerStarted = false;
     lastT = performance.now();
-    announce('READY? GO! \u{1F525}');
     rafId = requestAnimationFrame(loop);
 }
 
@@ -432,21 +440,23 @@ function resetState() {
     ly = ry = (H - ph) / 2;
     tLeftY = tRightY = null;
     aiTargetY = H / 2; aiUpdateTimer = 0;
-    serveTimer = 0;
+    serveTimer = 0; timerStarted = false;
     resetBall();
     updateHUD();
 }
 
-function resetBall() {
+function resetBall(dir) {
     bx = W / 2; by = H / 2;
+    serveDir = dir || (Math.random() > 0.5 ? 1 : -1);
     const ang = (Math.random() - 0.5) * Math.PI / 4;
-    const dir = Math.random() > 0.5 ? 1 : -1;
-    bdx = dir * Math.cos(ang);
+    bdx = serveDir * Math.cos(ang);
     bdy = Math.sin(ang);
     const len = Math.sqrt(bdx * bdx + bdy * bdy);
     bdx = (bdx / len) * bspd;
     bdy = (bdy / len) * bspd;
-    serveTimer = 0.6;
+    serveTimer = 2.4;
+    countdownNum = 3;
+    countdownBeepPlayed = 0;
 }
 
 // ===== TIMER =====
@@ -561,9 +571,27 @@ function update(dt) {
     hue = (hue + dt * 120) % 360;
     glowPulse += dt * 3;
 
-    // Serve delay — ball sits at center briefly after score
+    // Serve countdown — ball sits at center, 3-2-1-GO
     if (serveTimer > 0) {
         serveTimer -= dt;
+        const prev = countdownNum;
+        if (serveTimer > 1.6) countdownNum = 3;
+        else if (serveTimer > 0.8) countdownNum = 2;
+        else if (serveTimer > 0) countdownNum = 1;
+        else countdownNum = 0;
+
+        if (countdownNum !== prev && countdownNum > 0) {
+            synthCountdown(false);
+            vibrate(20);
+        }
+        if (countdownNum === 0 && prev > 0) {
+            synthCountdown(true);
+            vibrate([30, 15, 30]);
+            announce('GO! \u{1F525}');
+            if (!timerStarted) { startTimer(); timerStarted = true; }
+        }
+
+        bx = W / 2; by = H / 2;
         const pph = ph * phMod;
         if (tLeftY !== null) ly = tLeftY - pph / 2;
         if (tRightY !== null && settings.gameMode === 2) ry = tRightY - pph / 2;
@@ -573,6 +601,7 @@ function update(dt) {
         ry = Math.max(0, Math.min(H - pph, ry));
         if (settings.gameMode === 1) updateAI(dt);
         updateParticles(dt);
+        if (scoreFlash > 0) scoreFlash = Math.max(0, scoreFlash - dt);
         return;
     }
 
@@ -583,8 +612,14 @@ function update(dt) {
     bx += bdx * dt;
     by += bdy * dt;
 
-    if (by - brad < 0) { by = brad; bdy = Math.abs(bdy); synthWall(); vibrate(10); }
-    if (by + brad > H) { by = H - brad; bdy = -Math.abs(bdy); synthWall(); vibrate(10); }
+    if (by - brad < 0) {
+        by = brad; bdy = Math.abs(bdy); synthWall(); vibrate(10);
+        spawnParticles(bx, 0, ['#fff', '#FFD700'], 6, false);
+    }
+    if (by + brad > H) {
+        by = H - brad; bdy = -Math.abs(bdy); synthWall(); vibrate(10);
+        spawnParticles(bx, H, ['#fff', '#FFD700'], 6, false);
+    }
 
     const pph = ph * phMod;
 
@@ -635,7 +670,10 @@ function update(dt) {
         announce(msg);
         updateHUD();
         if (rscore >= WIN_SCORE) { endGame(settings.p2Name + ' Wins!'); return; }
-        resetBall();
+        if (rscore === WIN_SCORE - 1 || lscore === WIN_SCORE - 1) {
+            setTimeout(() => announce('MATCH POINT!! \u{1F525}\u{1F525}'), 1200);
+        }
+        resetBall(-1);
     }
     if (bx > W + brad * 2) {
         lscore++;
@@ -652,7 +690,10 @@ function update(dt) {
         announce(msg);
         updateHUD();
         if (lscore >= WIN_SCORE) { endGame(settings.p1Name + ' Wins!'); return; }
-        resetBall();
+        if (lscore === WIN_SCORE - 1 || rscore === WIN_SCORE - 1) {
+            setTimeout(() => announce('MATCH POINT!! \u{1F525}\u{1F525}'), 1200);
+        }
+        resetBall(1);
     }
 
     if (tLeftY !== null) { ly = tLeftY - pph / 2; }
@@ -981,6 +1022,27 @@ function render() {
         ctx.fillRect(-10, -10, W + 20, H + 20);
     }
 
+    // Serve countdown number
+    if (serveTimer > 0 && countdownNum > 0) {
+        const cSize = Math.round(Math.min(W, H) * 0.22);
+        const pulse = 1 + Math.sin(performance.now() / 120) * 0.08;
+        ctx.font = `900 ${Math.round(cSize * pulse)}px 'Bungee', sans-serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.fillText(countdownNum, W / 2 + 3, H / 2 + 3);
+        ctx.fillStyle = `rgba(255,215,0,${0.6 + Math.sin(performance.now() / 150) * 0.3})`;
+        ctx.fillText(countdownNum, W / 2, H / 2);
+    }
+
+    // Ball pulse during serve
+    if (serveTimer > 0) {
+        const servePulse = 0.3 + Math.sin(performance.now() / 200) * 0.2;
+        ctx.beginPath();
+        ctx.arc(W / 2, H / 2, brad * 1.8, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${hue}, 100%, 60%, ${servePulse})`;
+        ctx.fill();
+    }
+
     ctx.restore();
 }
 
@@ -1067,7 +1129,9 @@ function togglePause() {
 
 $('restartBtn').addEventListener('click', restart);
 function restart() {
-    clearInterval(timerInt); resetState(); startTimer(); startMusic();
+    clearInterval(timerInt); resetState();
+    serveTimer = 3.2; countdownNum = 3; countdownBeepPlayed = 0; timerStarted = false;
+    startMusic();
     paused = false; screens.pause.style.display = 'none';
 }
 
