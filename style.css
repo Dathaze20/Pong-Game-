@@ -198,25 +198,26 @@ html, body {
     gap: 0; width: 100%;
 }
 .sf-plate {
-    display: flex; align-items: center; gap: 6px;
+    display: flex; align-items: center; gap: 8px;
     background: rgba(0,0,0,.75); backdrop-filter: blur(10px);
-    padding: 4px 10px; border-radius: 12px;
+    padding: 5px 12px; border-radius: 14px;
     border: 2px solid rgba(0,180,255,.25);
-    flex: 1; max-width: 200px;
+    flex: 1; max-width: 240px;
 }
 .sf-left { border-color: rgba(0,240,255,.35); justify-content: flex-start; }
 .sf-right { border-color: rgba(255,107,245,.35); justify-content: flex-end; }
 .sf-avatar {
-    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
-    border: 2px solid rgba(255,255,255,.3);
+    width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+    border: 2.5px solid rgba(255,255,255,.4);
     object-fit: cover; background: rgba(255,255,255,.08);
+    box-shadow: 0 0 8px rgba(0,180,255,.3);
 }
 .sf-avatar[src=""] { display: none; }
 .sf-name {
-    font-family: 'Bungee', sans-serif; font-size: .7rem;
+    font-family: 'Bungee', sans-serif; font-size: .8rem;
     letter-spacing: .5px; text-transform: uppercase;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    max-width: 80px;
+    max-width: 90px;
     -webkit-text-stroke: .5px rgba(0,0,0,.6);
 }
 .sf-name-left { color: #00F0FF; }
@@ -361,10 +362,10 @@ body.high-contrast .menu-card, body.high-contrast .gameover-card, body.high-cont
     .menu-card input[type="text"], .menu-card select { padding: 6px 10px; font-size: .85rem; }
     .toggle-row, .select-row { padding: 5px 10px; font-size: .85rem; }
     #announceText { font-size: 1.6rem; }
-    .sf-plate { padding: 3px 8px; max-width: 180px; }
+    .sf-plate { padding: 4px 10px; max-width: 220px; }
     .sf-score { font-size: 1.2rem; }
-    .sf-name { font-size: .6rem; max-width: 60px; }
-    .sf-avatar { width: 24px; height: 24px; }
+    .sf-name { font-size: .65rem; max-width: 80px; }
+    .sf-avatar { width: 36px; height: 36px; }
     #timerDisplay { font-size: .65rem; }
     .sf-vs { font-size: .45rem; }
     .avatar-row { gap: 6px; }
