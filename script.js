@@ -522,6 +522,19 @@ function announce(text) {
     announceQ = setTimeout(() => { el.style.display = 'none'; }, 2200);
 }
 
+// ===== VOICE ANNOUNCER =====
+function speak(text) {
+    if (!settings.sfxOn) return;
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const clean = text.replace(/[^\w\s!?']/g, '');
+    const utter = new SpeechSynthesisUtterance(clean);
+    utter.rate = 1.15;
+    utter.pitch = 1.1;
+    utter.volume = 0.85;
+    window.speechSynthesis.speak(utter);
+}
+
 // ===== PARTICLES =====
 function spawnParticles(x, y, colors, count, big) {
     const sz = big ? 6 : 3;
@@ -588,6 +601,7 @@ function update(dt) {
             synthCountdown(true);
             vibrate([30, 15, 30]);
             announce('GO! \u{1F525}');
+            speak('Go!');
             if (!timerStarted) { startTimer(); timerStarted = true; }
         }
 
@@ -668,10 +682,11 @@ function update(dt) {
         if (combo >= 3) msg = settings.p2Name + ' ' + combo + 'x COMBO!! \u{1F525}';
         else msg = scoreAnnounce(settings.p2Name);
         announce(msg);
+        speak(msg);
         updateHUD();
         if (rscore >= WIN_SCORE) { endGame(settings.p2Name + ' Wins!'); return; }
         if (rscore === WIN_SCORE - 1 || lscore === WIN_SCORE - 1) {
-            setTimeout(() => announce('MATCH POINT!! \u{1F525}\u{1F525}'), 1200);
+            setTimeout(() => { announce('MATCH POINT!! \u{1F525}\u{1F525}'); speak('Match Point!'); }, 1200);
         }
         resetBall(-1);
     }
@@ -688,10 +703,11 @@ function update(dt) {
         if (combo >= 3) msg = settings.p1Name + ' ' + combo + 'x COMBO!! \u{1F525}';
         else msg = scoreAnnounce(settings.p1Name);
         announce(msg);
+        speak(msg);
         updateHUD();
         if (lscore >= WIN_SCORE) { endGame(settings.p1Name + ' Wins!'); return; }
         if (lscore === WIN_SCORE - 1 || rscore === WIN_SCORE - 1) {
-            setTimeout(() => announce('MATCH POINT!! \u{1F525}\u{1F525}'), 1200);
+            setTimeout(() => { announce('MATCH POINT!! \u{1F525}\u{1F525}'); speak('Match Point!'); }, 1200);
         }
         resetBall(1);
     }
@@ -790,6 +806,7 @@ function checkPowerUp() {
         applyPowerUp(pu.type);
         synthPowerUp(); vibrate([30, 20, 30]);
         announce(pu.letter + ' ' + pu.label);
+        speak(pu.label);
         spawnParticles(pu.x, pu.y, [pu.color, pu.color2, '#fff'], 18, true);
         powerUp = null;
     }
@@ -1154,6 +1171,7 @@ function endGame(msg) {
     bgPickerOpen = false;
 
     $('winnerMessage').textContent = msg;
+    speak(msg);
     const statsLine = lscore + ' - ' + rscore + '  •  ' + totalHits + ' hits  •  ' + maxCombo + 'x best combo';
     $('finalScore').textContent = statsLine;
     const emojis = ['\u{1F3C6}', '\u{1F389}', '⭐', '\u{1F525}', '\u{1F4AA}', '\u{1F451}', '\u{1F38A}'];
@@ -1169,6 +1187,7 @@ function quit() {
     clearInterval(timerInt);
     if (rafId) cancelAnimationFrame(rafId);
     stopMusic();
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     canvas.style.display = 'none';
     screens.hud.style.display = 'none';
     screens.controls.style.display = 'none';
