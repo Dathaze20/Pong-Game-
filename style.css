@@ -357,6 +357,19 @@ html, body {
     font-family: 'Bungee', sans-serif;
 }
 
+/* === WINNER AVATAR === */
+.winner-avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #FFD700;
+    box-shadow: 0 0 20px rgba(255,215,0,.5), 0 0 40px rgba(255,215,0,.2);
+    animation: popIn .4s cubic-bezier(.17,.67,.3,1.33), winnerGlow 1.5s ease infinite;
+}
+@keyframes winnerGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,.5), 0 0 40px rgba(255,215,0,.2); }
+    50% { box-shadow: 0 0 30px rgba(255,107,245,.5), 0 0 50px rgba(0,240,255,.3); }
+}
+
 /* === NEW BEST BADGE === */
 .new-best-badge {
     font-family: 'Bungee', sans-serif; font-size: 1rem;
@@ -434,6 +447,7 @@ body.high-contrast .menu-card, body.high-contrast .gameover-card, body.high-cont
     .gameover-card #finalScore { font-size: .85rem; }
     .new-best-badge { font-size: .8rem; }
     .menu-stats { font-size: .65rem; padding: 4px 8px; }
+    .winner-avatar { width: 56px; height: 56px; }
 }
 
 @media (max-width: 360px) {

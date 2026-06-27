@@ -252,7 +252,7 @@ let countdownNum = 0;
 let countdownBeepPlayed = 0;
 let timerStarted = false;
 
-let scoreFlash = 0;
+let scoreFlash = 0, scoreFlashSide = '';
 let leftHitGlow = 0, rightHitGlow = 0;
 let bradMod = 1;
 let shieldTimer = 0;
@@ -262,6 +262,13 @@ let multiTimer = null;
 let dpr = 1, W = 0, H = 0;
 let leftPaddleGrad = null, rightPaddleGrad = null;
 let aiTargetY = 0, aiUpdateTimer = 0;
+
+let scorePopups = [];
+let prevLy = 0, prevRy = 0;
+let halftimeShown = false;
+let hurryUpShown = false;
+let puStartTimes = {};
+const PU_DURATIONS = { speed: 6, freeze: 6, grow: 6, giant: 6, multi: 12, shield: 5 };
 
 let p1AvatarData = null, p2AvatarData = null;
 let p1AvatarImg = null, p2AvatarImg = null;
@@ -468,7 +475,10 @@ function resetState() {
     scoreFlash = 0; leftHitGlow = 0; rightHitGlow = 0;
     bradMod = 1; shieldTimer = 0; multiActive = false;
     if (multiTimer) { clearTimeout(multiTimer); multiTimer = null; }
+    scorePopups = []; halftimeShown = false; hurryUpShown = false;
+    puStartTimes = {};
     ly = ry = (H - ph) / 2;
+    prevLy = ly; prevRy = ry;
     tLeftY = tRightY = null;
     aiTargetY = H / 2; aiUpdateTimer = 0;
     serveTimer = 0; timerStarted = false;
@@ -499,6 +509,11 @@ function startTimer() {
         if (paused) return;
         timer--;
         updateTimer();
+        if (timer === 30 && !hurryUpShown) {
+            hurryUpShown = true;
+            announce('HURRY UP!! \u{23F0}');
+            speak('Hurry up! 30 seconds left!');
+        }
         if (timer <= 10 && timer > 0) { synthCountdown(); vibrate(15); }
         if (timer <= 0) {
             clearInterval(timerInt);
@@ -514,14 +529,32 @@ function updateTimer() {
     if (timer <= 10) {
         el.style.color = '#FF4444';
         el.style.animation = 'pulse .5s ease';
+        el.style.fontSize = '1rem';
         setTimeout(() => { el.style.animation = ''; }, 500);
+    } else if (timer <= 30) {
+        el.style.color = '#FF8800';
+        el.style.fontSize = '.85rem';
     } else {
         el.style.color = '#FFD700';
+        el.style.fontSize = '';
     }
 }
 function updateHUD() {
     $('leftScoreHUD').textContent = lscore;
     $('rightScoreHUD').textContent = rscore;
+}
+
+function checkHalftime() {
+    if (halftimeShown) return;
+    const total = lscore + rscore;
+    if (total >= Math.floor(WIN_SCORE * 0.6)) {
+        halftimeShown = true;
+        const leader = lscore > rscore ? settings.p1Name : rscore > lscore ? settings.p2Name : null;
+        let msg;
+        if (!leader) msg = 'HALFTIME! ALL TIED UP!';
+        else msg = 'HALFTIME! ' + leader + ' LEADS!';
+        setTimeout(() => { announce(msg); speak(msg); }, 1500);
+    }
 }
 
 // ===== NAME ANNOUNCER =====
@@ -600,6 +633,45 @@ function renderParticles() {
         ctx.fill();
     }
     ctx.globalAlpha = 1;
+}
+
+// ===== SCORE POPUPS =====
+function spawnScorePopup(x, y, pts, side) {
+    scorePopups.push({
+        x, y,
+        text: '+' + pts,
+        color: side === 'left' ? '#00F0FF' : '#FF6BF5',
+        life: 1.2,
+        maxLife: 1.2,
+        vy: -120,
+        scale: 1.5
+    });
+}
+
+function updateScorePopups(dt) {
+    for (let i = scorePopups.length - 1; i >= 0; i--) {
+        const p = scorePopups[i];
+        p.y += p.vy * dt;
+        p.vy *= 0.97;
+        p.life -= dt;
+        p.scale = Math.max(1, p.scale - dt * 0.8);
+        if (p.life <= 0) scorePopups.splice(i, 1);
+    }
+}
+
+function renderScorePopups() {
+    for (const p of scorePopups) {
+        const alpha = Math.min(1, p.life / (p.maxLife * 0.3));
+        const fs = Math.round(Math.min(W, H) * 0.08 * p.scale);
+        ctx.font = `900 ${fs}px 'Bungee', sans-serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.globalAlpha = alpha;
+        ctx.fillText(p.text, p.x + 2, p.y + 2);
+        ctx.fillStyle = p.color;
+        ctx.fillText(p.text, p.x, p.y);
+        ctx.globalAlpha = 1;
+    }
 }
 
 // ===== GAME LOOP =====
@@ -725,7 +797,8 @@ function update(dt) {
         const wasLeader = lscore > rscore ? 'left' : rscore > lscore ? 'right' : '';
         rscore += pts;
         bspdMod = 1; bradMod = 1;
-        scoreFlash = 0.35;
+        scoreFlash = 0.35; scoreFlashSide = 'right';
+        spawnScorePopup(W * 0.75, H * 0.35, pts, 'right');
         if (lastScorer === 'right') { combo++; } else { combo = 1; lastScorer = 'right'; }
         if (combo > maxCombo) maxCombo = combo;
         synthScore(); vibrate([40, 60, 40, 60, 50]);
@@ -747,6 +820,7 @@ function update(dt) {
         announce(msg);
         speak(msg);
         updateHUD();
+        checkHalftime();
         if (rscore >= WIN_SCORE) { endGame(settings.p2Name + ' Wins!'); return; }
         if (rscore === WIN_SCORE - 1 || lscore === WIN_SCORE - 1) {
             setTimeout(() => { announce('MATCH POINT!! \u{1F525}\u{1F525}'); speak('Match Point!'); }, 1200);
@@ -759,7 +833,8 @@ function update(dt) {
         const wasLeader = lscore > rscore ? 'left' : rscore > lscore ? 'right' : '';
         lscore += pts;
         bspdMod = 1; bradMod = 1;
-        scoreFlash = 0.35;
+        scoreFlash = 0.35; scoreFlashSide = 'left';
+        spawnScorePopup(W * 0.25, H * 0.35, pts, 'left');
         if (lastScorer === 'left') { combo++; } else { combo = 1; lastScorer = 'left'; }
         if (combo > maxCombo) maxCombo = combo;
         synthScore(); vibrate([40, 60, 40, 60, 50]);
@@ -781,6 +856,7 @@ function update(dt) {
         announce(msg);
         speak(msg);
         updateHUD();
+        checkHalftime();
         if (lscore >= WIN_SCORE) { endGame(settings.p1Name + ' Wins!'); return; }
         if (lscore === WIN_SCORE - 1 || rscore === WIN_SCORE - 1) {
             setTimeout(() => { announce('MATCH POINT!! \u{1F525}\u{1F525}'); speak('Match Point!'); }, 1200);
@@ -812,7 +888,10 @@ function update(dt) {
         checkPowerUp();
     }
 
+    prevLy = ly; prevRy = ry;
+
     updateParticles(dt);
+    updateScorePopups(dt);
     if (screenShake > 0) screenShake = Math.max(0, screenShake - dt);
     if (scoreFlash > 0) scoreFlash = Math.max(0, scoreFlash - dt);
     if (leftHitGlow > 0) leftHitGlow = Math.max(0, leftHitGlow - dt);
@@ -912,25 +991,26 @@ function checkPowerUp() {
 }
 
 function applyPowerUp(type) {
-    const dur = 6000;
+    const dur = PU_DURATIONS[type] * 1000;
+    puStartTimes[type] = performance.now();
     let t;
     if (type === 'speed') {
         bspdMod *= 1.5;
-        t = setTimeout(() => { bspdMod = Math.max(1, bspdMod / 1.5); }, dur);
+        t = setTimeout(() => { bspdMod = Math.max(1, bspdMod / 1.5); delete puStartTimes.speed; }, dur);
     } else if (type === 'freeze') {
         bspdMod *= 0.45;
-        t = setTimeout(() => { bspdMod = Math.min(2.2, bspdMod / 0.45); }, dur);
+        t = setTimeout(() => { bspdMod = Math.min(2.2, bspdMod / 0.45); delete puStartTimes.freeze; }, dur);
     } else if (type === 'grow') {
         phMod = 1.7;
         createPaddleGrads();
-        t = setTimeout(() => { phMod = 1; createPaddleGrads(); }, dur);
+        t = setTimeout(() => { phMod = 1; createPaddleGrads(); delete puStartTimes.grow; }, dur);
     } else if (type === 'giant') {
         bradMod = 2.5;
-        t = setTimeout(() => { bradMod = 1; }, dur);
+        t = setTimeout(() => { bradMod = 1; delete puStartTimes.giant; }, dur);
     } else if (type === 'multi') {
         multiActive = true;
         if (multiTimer) clearTimeout(multiTimer);
-        multiTimer = setTimeout(() => { multiActive = false; multiTimer = null; }, 12000);
+        multiTimer = setTimeout(() => { multiActive = false; multiTimer = null; delete puStartTimes.multi; }, dur);
     } else if (type === 'shield') {
         shieldTimer = 5;
     }
@@ -988,6 +1068,16 @@ function render() {
         ctx.beginPath();
         ctx.roundRect(inset, inset, bw, bh, cr);
         ctx.stroke();
+
+        if (timerStarted && timer <= 30 && timer > 0) {
+            const urgency = timer <= 10 ? 0.5 + Math.sin(glowPulse * 6) * 0.4 : 0.2 + Math.sin(glowPulse * 3) * 0.15;
+            const urgColor = timer <= 10 ? '255,68,68' : '255,136,0';
+            ctx.strokeStyle = `rgba(${urgColor},${urgency})`;
+            ctx.lineWidth = timer <= 10 ? 4 : 2.5;
+            ctx.beginPath();
+            ctx.roundRect(inset, inset, bw, bh, cr);
+            ctx.stroke();
+        }
     }
 
     // Center divider — subtle glow line
@@ -1032,6 +1122,34 @@ function render() {
         ctx.lineWidth = 3;
         ctx.beginPath(); ctx.moveTo(pmar - 2, 0); ctx.lineTo(pmar - 2, H); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(W - pmar + 2, 0); ctx.lineTo(W - pmar + 2, H); ctx.stroke();
+    }
+
+    // Paddle motion trails
+    if (!hc) {
+        const lDelta = ly - prevLy;
+        const rDelta = ry - prevRy;
+        if (Math.abs(lDelta) > 3) {
+            const trailAlpha = Math.min(0.15, Math.abs(lDelta) * 0.003);
+            for (let i = 1; i <= 3; i++) {
+                ctx.globalAlpha = trailAlpha * (1 - i * 0.3);
+                ctx.fillStyle = '#00F0FF';
+                ctx.beginPath();
+                ctx.roundRect(pmar, ly + hoverOff + lDelta * i * 0.25, pw, pph, pw / 2.5);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
+        if (Math.abs(rDelta) > 3) {
+            const trailAlpha = Math.min(0.15, Math.abs(rDelta) * 0.003);
+            for (let i = 1; i <= 3; i++) {
+                ctx.globalAlpha = trailAlpha * (1 - i * 0.3);
+                ctx.fillStyle = '#FF6BF5';
+                ctx.beginPath();
+                ctx.roundRect(W - pmar - pw, ry + hoverOff + rDelta * i * 0.25, pw, pph, pw / 2.5);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
     }
 
     // Left paddle — crisp with subtle glow
@@ -1123,27 +1241,50 @@ function render() {
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     ctx.fill();
 
-    // Active power-up indicators
+    // Active power-up indicators with timer bars
     if (!hc) {
         const inds = [];
-        if (bspdMod > 1.1) inds.push({ label: '\u{1F525} TURBO', color: '#FF4444' });
-        if (bspdMod < 0.9) inds.push({ label: '\u{2744}\u{FE0F} FREEZE', color: '#4488FF' });
-        if (phMod > 1.1) inds.push({ label: '\u{1F4AA} GROW', color: '#39FF14' });
-        if (bradMod > 1.1) inds.push({ label: '\u{1F3C0} BIG BALL', color: '#FF8800' });
-        if (multiActive) inds.push({ label: '\u{26A1} 3x NEXT GOAL', color: '#B44FFF' });
-        if (shieldTimer > 0) inds.push({ label: '\u{1F6E1}\u{FE0F} SHIELD', color: '#FFD700' });
+        const now = performance.now();
+        if (bspdMod > 1.1) inds.push({ label: '\u{1F525} TURBO', color: '#FF4444', type: 'speed' });
+        if (bspdMod < 0.9) inds.push({ label: '\u{2744}\u{FE0F} FREEZE', color: '#4488FF', type: 'freeze' });
+        if (phMod > 1.1) inds.push({ label: '\u{1F4AA} GROW', color: '#39FF14', type: 'grow' });
+        if (bradMod > 1.1) inds.push({ label: '\u{1F3C0} BIG BALL', color: '#FF8800', type: 'giant' });
+        if (multiActive) inds.push({ label: '\u{26A1} 3x NEXT GOAL', color: '#B44FFF', type: 'multi' });
+        if (shieldTimer > 0) inds.push({ label: '\u{1F6E1}\u{FE0F} SHIELD', color: '#FFD700', type: 'shield' });
         if (inds.length > 0) {
             const fs = Math.round(Math.min(W, H) * 0.032);
+            const barW = Math.min(120, W * 0.15);
+            const barH = Math.max(3, fs * 0.22);
             ctx.font = `900 ${fs}px 'Bungee', sans-serif`;
             ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
             inds.forEach((ind, i) => {
-                const pulse = 0.5 + Math.sin(performance.now() / 250 + i * 2) * 0.4;
+                const yPos = H - 54 - i * (fs + 10);
+                const pulse = 0.5 + Math.sin(now / 250 + i * 2) * 0.4;
                 ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                ctx.fillText(ind.label, W / 2 + 1, H - 54 - i * (fs + 6) + 1);
+                ctx.fillText(ind.label, W / 2 + 1, yPos + 1);
                 ctx.globalAlpha = pulse;
                 ctx.fillStyle = ind.color;
-                ctx.fillText(ind.label, W / 2, H - 54 - i * (fs + 6));
+                ctx.fillText(ind.label, W / 2, yPos);
                 ctx.globalAlpha = 1;
+
+                const startT = puStartTimes[ind.type];
+                if (startT) {
+                    const elapsed = (now - startT) / 1000;
+                    const total = PU_DURATIONS[ind.type];
+                    const remaining = Math.max(0, 1 - elapsed / total);
+                    const bx0 = W / 2 - barW / 2;
+                    const by0 = yPos + 3;
+                    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                    ctx.beginPath();
+                    ctx.roundRect(bx0, by0, barW, barH, barH / 2);
+                    ctx.fill();
+                    ctx.fillStyle = ind.color;
+                    ctx.globalAlpha = 0.8;
+                    ctx.beginPath();
+                    ctx.roundRect(bx0, by0, barW * remaining, barH, barH / 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
             });
         }
     }
@@ -1196,11 +1337,25 @@ function render() {
 
     renderParticles();
 
-    // Score flash overlay
+    // Score flash overlay — side-colored
     if (scoreFlash > 0 && !hc) {
-        ctx.fillStyle = `rgba(255,255,255,${scoreFlash * 0.2})`;
+        const flashAlpha = scoreFlash * 0.25;
+        if (scoreFlashSide === 'right') {
+            const fg = ctx.createLinearGradient(W, 0, 0, 0);
+            fg.addColorStop(0, `rgba(255,107,245,${flashAlpha})`);
+            fg.addColorStop(0.6, `rgba(255,107,245,0)`);
+            ctx.fillStyle = fg;
+        } else {
+            const fg = ctx.createLinearGradient(0, 0, W, 0);
+            fg.addColorStop(0, `rgba(0,240,255,${flashAlpha})`);
+            fg.addColorStop(0.6, `rgba(0,240,255,0)`);
+            ctx.fillStyle = fg;
+        }
         ctx.fillRect(-10, -10, W + 20, H + 20);
     }
+
+    // Score popups (+1, +3)
+    renderScorePopups();
 
     // Serve countdown number
     if (serveTimer > 0 && countdownNum > 0) {
@@ -1459,8 +1614,18 @@ function endGame(msg) {
         $('newBestBadge').style.display = 'none';
     }
 
-    const emojis = ['\u{1F3C6}', '\u{1F389}', '\u{2B50}', '\u{1F525}', '\u{1F4AA}', '\u{1F451}', '\u{1F38A}'];
-    $('gameOverEmoji').textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    const winnerAvatar = $('winnerAvatar');
+    const winnerAvatarData = p1Won ? localStorage.getItem('p1Avatar') : localStorage.getItem('p2Avatar');
+    if (winnerAvatarData && msg !== "It's a Tie!") {
+        winnerAvatar.src = winnerAvatarData;
+        winnerAvatar.style.display = 'block';
+        $('gameOverEmoji').style.display = 'none';
+    } else {
+        winnerAvatar.style.display = 'none';
+        $('gameOverEmoji').style.display = 'block';
+        const emojis = ['\u{1F3C6}', '\u{1F389}', '\u{2B50}', '\u{1F525}', '\u{1F4AA}', '\u{1F451}', '\u{1F38A}'];
+        $('gameOverEmoji').textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    }
     screens.gameOver.style.display = 'flex';
 }
 
