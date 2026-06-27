@@ -1471,6 +1471,30 @@ $('musicToggleBtn').addEventListener('click', () => {
     vibrate(12);
 });
 
+// ===== MY MUSIC PICKER =====
+let customMusicUrl = null;
+$('myMusicBtn').addEventListener('click', () => {
+    $('myMusicFile').click();
+    vibrate(12);
+});
+$('myMusicFile').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (customMusicUrl) URL.revokeObjectURL(customMusicUrl);
+    customMusicUrl = URL.createObjectURL(f);
+    bgMusicEl.pause();
+    bgMusicEl.src = customMusicUrl;
+    bgMusicEl.load();
+    bgMusicEl.volume = 0.12;
+    bgMusicEl.play().catch(() => {});
+    settings.musicOn = true;
+    updateMusicBtn();
+    const label = $('myMusicBtn').querySelector('.ctrl-label');
+    const name = f.name.replace(/\.[^.]+$/, '');
+    if (label) label.textContent = name.length > 8 ? name.slice(0, 8) + '…' : name;
+    vibrate([15, 10, 15]);
+});
+
 // ===== TOUCH =====
 canvas.addEventListener('touchstart', handleTouch, { passive: false });
 canvas.addEventListener('touchmove', handleTouch, { passive: false });
@@ -1699,6 +1723,14 @@ function quit() {
     confettiActive = false; confetti = [];
     if (celebrationRafId) { cancelAnimationFrame(celebrationRafId); celebrationRafId = null; }
     stopMusic();
+    if (customMusicUrl) {
+        URL.revokeObjectURL(customMusicUrl);
+        customMusicUrl = null;
+        bgMusicEl.src = 'Original Tetris theme (Tetris Soundtrack).mp3';
+        bgMusicEl.load();
+        const label = $('myMusicBtn').querySelector('.ctrl-label');
+        if (label) label.textContent = 'My Music';
+    }
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     canvas.style.display = 'none';
     screens.hud.style.display = 'none';
