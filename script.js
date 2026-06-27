@@ -1770,17 +1770,6 @@ window.addEventListener('resize', () => {
 
 document.addEventListener('touchmove', e => { if (gameOn) e.preventDefault(); }, { passive: false });
 
-// ===== PORTRAIT NUDGE =====
-function checkOrientation() {
-    const nudge = $('landscapeNudge');
-    if (!nudge) return;
-    const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    nudge.style.display = (isMobile && window.innerHeight > window.innerWidth) ? 'flex' : 'none';
-}
-window.addEventListener('resize', checkOrientation);
-window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
-checkOrientation();
-
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js').then(reg => {
         reg.addEventListener('updatefound', () => {

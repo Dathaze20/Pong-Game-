@@ -420,31 +420,6 @@ html, body {
     width: 100%;
 }
 
-/* === LANDSCAPE NUDGE === */
-#landscapeNudge {
-    position: fixed; inset: 0; z-index: 10000;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(10,22,40,.95);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-}
-.nudge-content {
-    text-align: center; animation: popIn .4s cubic-bezier(.17,.67,.3,1.33);
-}
-.nudge-icon {
-    font-size: 64px; margin-bottom: 16px;
-    animation: rotateNudge 2s ease-in-out infinite;
-}
-.nudge-content p {
-    font-family: 'Bungee', sans-serif; font-size: 1.1rem;
-    color: rgba(255,255,255,.8); max-width: 260px; margin: 0 auto;
-}
-@keyframes rotateNudge {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(90deg); }
-    50% { transform: rotate(90deg); }
-    75% { transform: rotate(0deg); }
-}
-
 /* === HIGH CONTRAST === */
 body.high-contrast { background: #000; }
 body.high-contrast .menu-card, body.high-contrast .gameover-card, body.high-contrast .pause-card {
