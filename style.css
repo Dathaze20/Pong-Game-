@@ -135,13 +135,6 @@ html, body {
 }
 .btn-small:active { transform: scale(.95); }
 
-.btn-tiny {
-    padding: 8px 20px; border: none; border-radius: 10px;
-    font-family: 'Nunito', sans-serif; font-size: .85rem; font-weight: 700;
-    background: transparent; color: rgba(255,255,255,.5);
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
-}
-
 .menu-row { display: flex; gap: 10px; width: 100%; }
 
 /* === TOGGLES === */
