@@ -355,7 +355,7 @@ function applySettings() {
     $('colorblindMode').checked = settings.highContrast;
     document.body.classList.toggle('high-contrast', settings.highContrast);
     $('gameMode').value = settings.gameMode;
-    $('p2Row').style.display = settings.gameMode === 2 ? '' : 'none';
+    $('p2Row').style.display = String(settings.gameMode) === '2' ? '' : 'none';
     const p1 = settings.p1Name;
     const p2 = settings.p2Name;
     if (p1 && p1 !== 'Player 1') $('player1NameInput').value = p1;
@@ -1496,6 +1496,7 @@ $('myMusicFile').addEventListener('change', e => {
     nameEl.textContent = '\u{1F3B5} ' + songName;
     nameEl.style.display = '';
     settings.musicOn = true;
+    $('toggleMusic').checked = true;
     vibrate([15, 10, 15]);
 });
 
