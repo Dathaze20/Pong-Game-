@@ -1,15 +1,17 @@
 {
-    "name": "Pong Game - Classic Arcade",
-    "short_name": "Pong",
-    "description": "Classic Pong arcade game with AI opponent, multiplayer, power-ups, and retro music. Play free!",
+    "name": "Super Pong - Fun Arcade Game for Kids",
+    "short_name": "Super Pong",
+    "description": "The ultimate Pong arcade game! Neon graphics, power-ups, AI opponent, and 2-player mode. Fun for all ages!",
     "start_url": "./index.html",
     "scope": "./",
+    "id": "/index.html",
     "display": "fullscreen",
-    "orientation": "any",
+    "orientation": "landscape",
     "background_color": "#0a1628",
     "theme_color": "#0a1628",
     "categories": ["games", "entertainment"],
     "lang": "en",
+    "dir": "ltr",
     "icons": [
         {
             "src": "icon-192x192.png",
@@ -34,6 +36,15 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Super Pong gameplay"
         }
     ]
 }

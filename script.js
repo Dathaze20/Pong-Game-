@@ -252,6 +252,8 @@ let serveDir = 1;
 let serveRamp = 0;
 let countdownNum = 0;
 let countdownBeepPlayed = 0;
+let countdownScale = 0;
+let goFlash = 0;
 let timerStarted = false;
 
 let scoreFlash = 0, scoreFlashSide = '';
@@ -485,7 +487,7 @@ function resetState() {
     scoreFlash = 0; leftHitGlow = 0; rightHitGlow = 0;
     bradMod = 1; shieldTimer = 0; multiActive = false;
     if (multiTimer) { clearTimeout(multiTimer); multiTimer = null; }
-    scorePopups = []; halftimeShown = false; hurryUpShown = false;
+    scorePopups = []; halftimeShown = false; hurryUpShown = false; goFlash = 0; countdownScale = 0;
     puStartTimes = {};
     ly = ry = (H - ph) / 2;
     prevLy = ly; prevRy = ry;
@@ -709,12 +711,15 @@ function update(dt) {
         else countdownNum = 0;
 
         if (countdownNum !== prev && countdownNum > 0) {
+            countdownScale = 2.5;
             synthCountdown(false);
-            vibrate(20);
+            vibrate(countdownNum === 1 ? [30, 20, 30] : 20);
         }
+        if (countdownScale > 1) countdownScale = Math.max(1, countdownScale - dt * 8);
         if (countdownNum === 0 && prev > 0) {
+            goFlash = 0.6;
             synthCountdown(true);
-            vibrate([30, 15, 30]);
+            vibrate([40, 30, 40, 30, 50]);
             announce('GO! \u{1F525}');
             speak('Go!');
             if (!timerStarted) { startTimer(); timerStarted = true; }
@@ -731,9 +736,11 @@ function update(dt) {
         if (settings.gameMode === 1) updateAI(dt);
         updateParticles(dt);
         if (scoreFlash > 0) scoreFlash = Math.max(0, scoreFlash - dt);
+        if (goFlash > 0) goFlash = Math.max(0, goFlash - dt);
         return;
     }
 
+    if (goFlash > 0) goFlash = Math.max(0, goFlash - dt);
     serveRamp = Math.min(serveRamp + dt / 1.5, 1);
     const rampFactor = 0.55 + 0.45 * serveRamp;
     const spd = bspd * bspdMod * rampFactor;
@@ -1000,7 +1007,7 @@ function checkPowerUp() {
     if (bx + br > pu.x - hw && bx - br < pu.x + hw &&
         by + br > pu.y - hh && by - br < pu.y + hh) {
         applyPowerUp(pu.type);
-        synthPowerUp(); vibrate([30, 20, 30]);
+        synthPowerUp(); vibrate([20, 15, 20, 15, 40]);
         announce(pu.letter + ' ' + pu.label);
         speak(pu.label);
         spawnParticles(pu.x, pu.y, [pu.color, pu.color2, '#fff'], 18, true);
@@ -1376,25 +1383,55 @@ function render() {
     // Score popups (+1, +3)
     renderScorePopups();
 
-    // Serve countdown number
-    if (serveTimer > 0 && countdownNum > 0) {
-        const cSize = Math.round(Math.min(W, H) * 0.22);
-        const pulse = 1 + Math.sin(performance.now() / 120) * 0.08;
-        ctx.font = `900 ${Math.round(cSize * pulse)}px 'Bungee', sans-serif`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillStyle = 'rgba(0,0,0,0.25)';
-        ctx.fillText(countdownNum, W / 2 + 3, H / 2 + 3);
-        ctx.fillStyle = `rgba(255,215,0,${0.6 + Math.sin(performance.now() / 150) * 0.3})`;
-        ctx.fillText(countdownNum, W / 2, H / 2);
-    }
-
-    // Ball pulse during serve
+    // Serve countdown
     if (serveTimer > 0) {
+        const cdColors = { 3: '#00F0FF', 2: '#FFD700', 1: '#FF4444' };
+        const cdGlows = { 3: '0,240,255', 2: '255,215,0', 1: '255,68,68' };
+        if (countdownNum > 0) {
+            const baseSize = Math.round(Math.min(W, H) * 0.3);
+            const sc = countdownScale > 1 ? countdownScale : 1;
+            const sz = Math.round(baseSize * sc);
+            const col = cdColors[countdownNum] || '#FFD700';
+            const glow = cdGlows[countdownNum] || '255,215,0';
+
+            const ringAlpha = Math.max(0, (sc - 1) * 0.6);
+            if (ringAlpha > 0) {
+                const ringR = baseSize * 0.6 * (3.5 - sc);
+                ctx.beginPath();
+                ctx.arc(W / 2, H / 2, ringR, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(${glow},${ringAlpha})`;
+                ctx.lineWidth = 4;
+                ctx.stroke();
+            }
+
+            ctx.font = `900 ${sz}px 'Bungee', sans-serif`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillStyle = `rgba(0,0,0,${0.3 * Math.min(1, sc)})`;
+            ctx.fillText(countdownNum, W / 2 + 4, H / 2 + 4);
+            ctx.shadowColor = `rgba(${glow},0.7)`;
+            ctx.shadowBlur = 30;
+            ctx.fillStyle = col;
+            ctx.fillText(countdownNum, W / 2, H / 2);
+            ctx.shadowBlur = 0;
+        }
+
         const servePulse = 0.3 + Math.sin(performance.now() / 200) * 0.2;
         ctx.beginPath();
         ctx.arc(W / 2, H / 2, bRad * 1.8, 0, Math.PI * 2);
         ctx.fillStyle = `hsla(${hue}, 100%, 60%, ${servePulse})`;
         ctx.fill();
+    }
+
+    if (goFlash > 0) {
+        const goSz = Math.round(Math.min(W, H) * 0.35 * (1 + (0.6 - goFlash) * 0.3));
+        const goAlpha = Math.min(1, goFlash * 2.5);
+        ctx.font = `900 ${goSz}px 'Bungee', sans-serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(57,255,20,0.8)';
+        ctx.shadowBlur = 40;
+        ctx.fillStyle = `rgba(57,255,20,${goAlpha})`;
+        ctx.fillText('GO!', W / 2, H / 2);
+        ctx.shadowBlur = 0;
     }
 
     ctx.restore();
