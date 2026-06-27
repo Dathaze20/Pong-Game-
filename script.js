@@ -243,6 +243,7 @@ let puTimers = [];
 let particles = [], announceQ = null;
 let screenShake = 0;
 let combo = 0, lastScorer = '';
+let prevLeader = '';
 let hue = 0, glowPulse = 0;
 let totalHits = 0, maxCombo = 0;
 let serveTimer = 0;
@@ -264,6 +265,9 @@ let aiTargetY = 0, aiUpdateTimer = 0;
 
 let p1AvatarData = null, p2AvatarData = null;
 let p1AvatarImg = null, p2AvatarImg = null;
+
+let confetti = [];
+let confettiActive = false;
 
 // ===== RESIZE =====
 function resize() {
@@ -313,8 +317,25 @@ function showGame() {
     screens.controls.style.display = 'flex';
 }
 
+// ===== MENU STATS =====
+function updateMenuStats() {
+    const el = $('menuStats');
+    if (!el) return;
+    const wins = settings.totalWins;
+    const best = settings.bestScore;
+    if (wins > 0 || best > 0) {
+        const parts = [];
+        if (wins > 0) parts.push('\u{1F3C6} ' + wins + ' Win' + (wins !== 1 ? 's' : ''));
+        if (best > 0) parts.push('\u{2B50} Best: ' + best);
+        el.textContent = parts.join('  \u{2022}  ');
+        el.style.display = 'block';
+    } else {
+        el.style.display = 'none';
+    }
+}
+
 // ===== SPLASH =====
-setTimeout(() => { screens.splash.style.display = 'none'; showScreen('menu'); applySettings(); }, 2000);
+setTimeout(() => { screens.splash.style.display = 'none'; showScreen('menu'); applySettings(); updateMenuStats(); }, 2000);
 
 function applySettings() {
     $('toggleMusic').checked = settings.musicOn;
@@ -442,7 +463,7 @@ function resetState() {
     puTimers.forEach(t => clearTimeout(t));
     puTimers = [];
     particles = []; announceQ = null;
-    screenShake = 0; combo = 0; lastScorer = '';
+    screenShake = 0; combo = 0; lastScorer = ''; prevLeader = '';
     totalHits = 0; maxCombo = 0;
     scoreFlash = 0; leftHitGlow = 0; rightHitGlow = 0;
     bradMod = 1; shieldTimer = 0; multiActive = false;
@@ -574,8 +595,9 @@ function renderParticles() {
     for (const p of particles) {
         ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
         ctx.fillStyle = p.color;
-        const hs = p.size / 2;
-        ctx.fillRect(p.x - hs, p.y - hs, p.size, p.size);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
     }
     ctx.globalAlpha = 1;
 }
@@ -700,6 +722,7 @@ function update(dt) {
     if (bx < -br * 2) {
         let pts = 1;
         if (multiActive) { pts = 3; multiActive = false; if (multiTimer) { clearTimeout(multiTimer); multiTimer = null; } announce('3x SCORE!'); speak('Triple points!'); }
+        const wasLeader = lscore > rscore ? 'left' : rscore > lscore ? 'right' : '';
         rscore += pts;
         bspdMod = 1; bradMod = 1;
         scoreFlash = 0.35;
@@ -709,8 +732,18 @@ function update(dt) {
         spawnParticles(0, by, ['#FF6BF5', '#FFD700', '#00F0FF', '#39FF14'], 25, true);
         screenShake = 0.2;
         let msg;
-        if (combo >= 3) msg = settings.p2Name + ' ' + combo + 'x COMBO!! \u{1F525}';
-        else msg = scoreAnnounce(settings.p2Name);
+        const nowLeader = lscore > rscore ? 'left' : rscore > lscore ? 'right' : '';
+        if (rscore === 1 && lscore === 0) {
+            msg = 'FIRST BLOOD! ' + settings.p2Name + '! \u{1F4A5}';
+        } else if (wasLeader === 'left' && nowLeader === 'right') {
+            msg = settings.p2Name + ' TAKES THE LEAD! \u{1F525}';
+        } else if (wasLeader === 'left' && lscore === rscore) {
+            msg = 'TIED UP! COMEBACK! \u{26A1}';
+        } else if (combo >= 3) {
+            msg = settings.p2Name + ' ' + combo + 'x COMBO!! \u{1F525}';
+        } else {
+            msg = scoreAnnounce(settings.p2Name);
+        }
         announce(msg);
         speak(msg);
         updateHUD();
@@ -723,6 +756,7 @@ function update(dt) {
     if (bx > W + br * 2) {
         let pts = 1;
         if (multiActive) { pts = 3; multiActive = false; if (multiTimer) { clearTimeout(multiTimer); multiTimer = null; } announce('3x SCORE!'); speak('Triple points!'); }
+        const wasLeader = lscore > rscore ? 'left' : rscore > lscore ? 'right' : '';
         lscore += pts;
         bspdMod = 1; bradMod = 1;
         scoreFlash = 0.35;
@@ -732,8 +766,18 @@ function update(dt) {
         spawnParticles(W, by, ['#00F0FF', '#FFD700', '#FF6BF5', '#39FF14'], 25, true);
         screenShake = 0.2;
         let msg;
-        if (combo >= 3) msg = settings.p1Name + ' ' + combo + 'x COMBO!! \u{1F525}';
-        else msg = scoreAnnounce(settings.p1Name);
+        const nowLeader = lscore > rscore ? 'left' : rscore > lscore ? 'right' : '';
+        if (lscore === 1 && rscore === 0) {
+            msg = 'FIRST BLOOD! ' + settings.p1Name + '! \u{1F4A5}';
+        } else if (wasLeader === 'right' && nowLeader === 'left') {
+            msg = settings.p1Name + ' TAKES THE LEAD! \u{1F525}';
+        } else if (wasLeader === 'right' && lscore === rscore) {
+            msg = 'TIED UP! COMEBACK! \u{26A1}';
+        } else if (combo >= 3) {
+            msg = settings.p1Name + ' ' + combo + 'x COMBO!! \u{1F525}';
+        } else {
+            msg = scoreAnnounce(settings.p1Name);
+        }
         announce(msg);
         speak(msg);
         updateHUD();
@@ -763,6 +807,8 @@ function update(dt) {
     if (!powerUp && puTimer >= POWERUP_INTERVAL) { spawnPowerUp(); puTimer = 0; }
     if (powerUp) {
         powerUp.y += powerUp.vy * dt;
+        const dxToBall = bx - powerUp.x;
+        powerUp.x += dxToBall * 0.3 * dt;
         checkPowerUp();
     }
 
@@ -1228,17 +1274,25 @@ function handleTouch(e) {
         $('bgPickerPanel').style.display = 'none';
     }
     for (const t of e.touches) {
-        if (t.clientX < W / 2) tLeftY = t.clientY;
-        else tRightY = t.clientY;
+        if (settings.gameMode === 1) {
+            tLeftY = t.clientY;
+        } else {
+            if (t.clientX < W / 2) tLeftY = t.clientY;
+            else tRightY = t.clientY;
+        }
     }
 }
 function handleTouchEnd(e) {
-    const still = new Set();
-    for (const t of e.touches) {
-        if (t.clientX < W / 2) still.add('l'); else still.add('r');
+    if (settings.gameMode === 1) {
+        if (e.touches.length === 0) tLeftY = null;
+    } else {
+        const still = new Set();
+        for (const t of e.touches) {
+            if (t.clientX < W / 2) still.add('l'); else still.add('r');
+        }
+        if (!still.has('l')) tLeftY = null;
+        if (!still.has('r')) tRightY = null;
     }
-    if (!still.has('l')) tLeftY = null;
-    if (!still.has('r')) tRightY = null;
 }
 
 // ===== KEYBOARD =====
@@ -1269,6 +1323,78 @@ function restart() {
     paused = false; screens.pause.style.display = 'none';
 }
 
+// ===== CONFETTI =====
+function spawnConfetti() {
+    confetti = [];
+    const colors = ['#FF6BF5', '#FFD700', '#00F0FF', '#39FF14', '#FF4444', '#B44FFF', '#FF8800', '#fff'];
+    for (let i = 0; i < 120; i++) {
+        confetti.push({
+            x: Math.random() * W,
+            y: -20 - Math.random() * H * 0.5,
+            vx: (Math.random() - 0.5) * 200,
+            vy: 150 + Math.random() * 300,
+            size: 4 + Math.random() * 6,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rot: Math.random() * Math.PI * 2,
+            rotV: (Math.random() - 0.5) * 8,
+            life: 3 + Math.random() * 2,
+            maxLife: 3 + Math.random() * 2
+        });
+    }
+    confettiActive = true;
+}
+
+function updateConfetti(dt) {
+    if (!confettiActive) return;
+    let alive = false;
+    for (let i = confetti.length - 1; i >= 0; i--) {
+        const c = confetti[i];
+        c.x += c.vx * dt;
+        c.y += c.vy * dt;
+        c.vy += 80 * dt;
+        c.vx *= 0.99;
+        c.rot += c.rotV * dt;
+        c.life -= dt;
+        if (c.life <= 0 || c.y > H + 30) { confetti.splice(i, 1); continue; }
+        alive = true;
+    }
+    if (!alive) confettiActive = false;
+}
+
+function renderConfetti() {
+    if (!confettiActive) return;
+    for (const c of confetti) {
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, c.life / (c.maxLife * 0.3));
+        ctx.translate(c.x, c.y);
+        ctx.rotate(c.rot);
+        ctx.fillStyle = c.color;
+        ctx.fillRect(-c.size / 2, -c.size / 4, c.size, c.size / 2);
+        ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+}
+
+let celebrationRafId = null;
+function celebrationLoop() {
+    if (!confettiActive) {
+        canvas.style.display = 'none';
+        celebrationRafId = null;
+        return;
+    }
+    const now = performance.now();
+    const dt = Math.min((now - (celebrationLoop._last || now)) / 1000, 0.05);
+    celebrationLoop._last = now;
+    updateConfetti(dt);
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = 'rgba(6,14,26,0.92)';
+    ctx.fillRect(0, 0, W, H);
+    renderConfetti();
+    ctx.restore();
+    celebrationRafId = requestAnimationFrame(celebrationLoop);
+}
+
 // ===== END =====
 function endGame(msg) {
     gameOn = false; paused = false;
@@ -1282,15 +1408,20 @@ function endGame(msg) {
     const p1Won = lscore > rscore;
     if (p1Won && settings.gameMode === 1) settings.totalWins = settings.totalWins + 1;
     const best = Math.max(lscore, rscore);
-    if (best > settings.bestScore) settings.bestScore = best;
+    const isNewBest = best > settings.bestScore;
+    if (isNewBest) settings.bestScore = best;
 
-    canvas.style.display = 'none';
     screens.hud.style.display = 'none';
     screens.controls.style.display = 'none';
     screens.pause.style.display = 'none';
     $('announceText').style.display = 'none';
     $('bgPickerPanel').style.display = 'none';
     bgPickerOpen = false;
+
+    resize();
+    spawnConfetti();
+    celebrationLoop._last = performance.now();
+    celebrationRafId = requestAnimationFrame(celebrationLoop);
 
     const diff = Math.abs(lscore - rscore);
     const winner = p1Won ? settings.p1Name : settings.p2Name;
@@ -1316,21 +1447,37 @@ function endGame(msg) {
     $('winnerMessage').textContent = displayMsg;
     speak(displayMsg);
 
-    const winsText = settings.gameMode === 1 ? '  \u{2022}  ' + settings.totalWins + ' wins' : '';
-    const statsLine = lscore + ' - ' + rscore + '  \u{2022}  ' + totalHits + ' hits  \u{2022}  ' + maxCombo + 'x combo' + winsText;
+    let statsLine = lscore + ' - ' + rscore + '  \u{2022}  ' + totalHits + ' hits  \u{2022}  ' + maxCombo + 'x combo';
+    if (settings.gameMode === 1) statsLine += '  \u{2022}  ' + settings.totalWins + ' wins';
+    if (isNewBest) statsLine += '  \u{2022}  NEW BEST!';
     $('finalScore').textContent = statsLine;
+
+    if (isNewBest) {
+        $('newBestBadge').style.display = 'block';
+        setTimeout(() => speak('New personal best!'), 1500);
+    } else {
+        $('newBestBadge').style.display = 'none';
+    }
+
     const emojis = ['\u{1F3C6}', '\u{1F389}', '\u{2B50}', '\u{1F525}', '\u{1F4AA}', '\u{1F451}', '\u{1F38A}'];
     $('gameOverEmoji').textContent = emojis[Math.floor(Math.random() * emojis.length)];
     screens.gameOver.style.display = 'flex';
 }
 
-$('playAgainButton').addEventListener('click', () => { screens.gameOver.style.display = 'none'; startGame(); });
+$('playAgainButton').addEventListener('click', () => {
+    screens.gameOver.style.display = 'none';
+    confettiActive = false; confetti = [];
+    if (celebrationRafId) { cancelAnimationFrame(celebrationRafId); celebrationRafId = null; }
+    startGame();
+});
 $('mainMenuButton').addEventListener('click', quit);
 
 function quit() {
     gameOn = false; paused = false;
     clearInterval(timerInt);
     if (rafId) cancelAnimationFrame(rafId);
+    confettiActive = false; confetti = [];
+    if (celebrationRafId) { cancelAnimationFrame(celebrationRafId); celebrationRafId = null; }
     stopMusic();
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     canvas.style.display = 'none';
@@ -1344,6 +1491,7 @@ function quit() {
     releaseWakeLock();
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     showScreen('menu');
+    updateMenuStats();
 }
 
 // ===== RESIZE =====
@@ -1359,6 +1507,16 @@ window.addEventListener('resize', () => {
 });
 
 document.addEventListener('touchmove', e => { if (gameOn) e.preventDefault(); }, { passive: false });
+
+// ===== PORTRAIT NUDGE =====
+function checkOrientation() {
+    const nudge = $('landscapeNudge');
+    if (!nudge) return;
+    nudge.style.display = (window.innerHeight > window.innerWidth) ? 'flex' : 'none';
+}
+window.addEventListener('resize', checkOrientation);
+window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
+checkOrientation();
 
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js').catch(() => {});
