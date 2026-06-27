@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pong-game-v18';
+const CACHE_NAME = 'pong-game-v19';
 const ASSETS = [
     './',
     './index.html',
@@ -9,6 +9,10 @@ const ASSETS = [
     './icon-512x512.png',
     './Original Tetris theme (Tetris Soundtrack).mp3'
 ];
+
+self.addEventListener('message', event => {
+    if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
 
 self.addEventListener('install', event => {
     event.waitUntil(
