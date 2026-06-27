@@ -375,8 +375,6 @@ $('settingsButton').addEventListener('click', () => showScreen('settings'));
 $('backToMenuButton').addEventListener('click', () => { showScreen('menu'); applySettings(); });
 $('howToPlayButton').addEventListener('click', () => showScreen('howToPlay'));
 $('backFromHowToPlay').addEventListener('click', () => showScreen('menu'));
-$('rateUsButton').addEventListener('click', () => alert('Thanks for playing Super Pong! You rock! ⭐'));
-
 $('gameMode').addEventListener('change', e => {
     $('p2Row').style.display = e.target.value === '2' ? '' : 'none';
 });
@@ -550,6 +548,7 @@ function updateTimer() {
     } else {
         el.style.color = '#FFD700';
         el.style.fontSize = '';
+        el.style.animation = '';
     }
 }
 function updateHUD() {
@@ -741,8 +740,8 @@ function update(dt) {
     }
 
     if (goFlash > 0) goFlash = Math.max(0, goFlash - dt);
-    serveRamp = Math.min(serveRamp + dt / 1.5, 1);
-    const rampFactor = 0.55 + 0.45 * serveRamp;
+    serveRamp = Math.min(serveRamp + dt / 1.2, 1);
+    const rampFactor = 0.6 + 0.4 * serveRamp;
     const spd = bspd * bspdMod * rampFactor;
     const len = Math.sqrt(bdx * bdx + bdy * bdy);
     if (len > 0) { bdx = (bdx / len) * spd; bdy = (bdy / len) * spd; }
@@ -884,6 +883,8 @@ function update(dt) {
         resetBall(1);
     }
 
+    prevLy = ly; prevRy = ry;
+
     if (tLeftY !== null) { ly = tLeftY - pph / 2; }
     if (tRightY !== null && settings.gameMode === 2) { ry = tRightY - pph / 2; }
 
@@ -907,8 +908,6 @@ function update(dt) {
         powerUp.x += dxToBall * 0.3 * dt;
         checkPowerUp();
     }
-
-    prevLy = ly; prevRy = ry;
 
     updateParticles(dt);
     updateScorePopups(dt);
@@ -1025,7 +1024,7 @@ function applyPowerUp(type) {
         t = setTimeout(() => { bspdMod = Math.max(1, bspdMod / 1.5); delete puStartTimes.speed; }, dur);
     } else if (type === 'freeze') {
         bspdMod *= 0.45;
-        t = setTimeout(() => { bspdMod = Math.min(2.2, bspdMod / 0.45); delete puStartTimes.freeze; }, dur);
+        t = setTimeout(() => { bspdMod = Math.min(1.6, bspdMod / 0.45); delete puStartTimes.freeze; }, dur);
     } else if (type === 'grow') {
         phMod = 1.7;
         createPaddleGrads();
@@ -1284,7 +1283,7 @@ function render() {
             ctx.font = `900 ${fs}px 'Bungee', sans-serif`;
             ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
             inds.forEach((ind, i) => {
-                const yPos = H - 54 - i * (fs + 10);
+                const yPos = H - 68 - i * (fs + 10);
                 const pulse = 0.5 + Math.sin(now / 250 + i * 2) * 0.4;
                 ctx.fillStyle = 'rgba(0,0,0,0.4)';
                 ctx.fillText(ind.label, W / 2 + 1, yPos + 1);
@@ -1736,7 +1735,8 @@ document.addEventListener('touchmove', e => { if (gameOn) e.preventDefault(); },
 function checkOrientation() {
     const nudge = $('landscapeNudge');
     if (!nudge) return;
-    nudge.style.display = (window.innerHeight > window.innerWidth) ? 'flex' : 'none';
+    const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    nudge.style.display = (isMobile && window.innerHeight > window.innerWidth) ? 'flex' : 'none';
 }
 window.addEventListener('resize', checkOrientation);
 window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
