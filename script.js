@@ -169,7 +169,8 @@ function toggleMusicLive() {
 function updateMusicBtn() {
     const btn = $('musicToggleBtn');
     if (!btn) return;
-    btn.textContent = (bgMusicEl && !bgMusicEl.paused) ? '\u{1F50A}' : '\u{1F507}';
+    const icon = btn.querySelector('.ctrl-icon');
+    if (icon) icon.textContent = (bgMusicEl && !bgMusicEl.paused) ? '\u{1F3B5}' : '\u{1F507}';
 }
 function vibrate(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
 
@@ -444,8 +445,16 @@ $('startGameButton').addEventListener('click', () => {
     $('hudP2Name').textContent = settings.p2Name;
     loadAvatarImages();
     const el = document.documentElement;
-    if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
-    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    const goFS = el.requestFullscreen
+        ? el.requestFullscreen().catch(() => {})
+        : el.webkitRequestFullscreen
+            ? Promise.resolve(el.webkitRequestFullscreen())
+            : Promise.resolve();
+    goFS.then(() => {
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => {});
+        }
+    });
     startGame();
 });
 
@@ -1664,6 +1673,9 @@ function quit() {
     $('bgPickerPanel').style.display = 'none';
     bgPickerOpen = false;
     releaseWakeLock();
+    if (screen.orientation && screen.orientation.unlock) {
+        try { screen.orientation.unlock(); } catch (_) {}
+    }
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     showScreen('menu');
     updateMenuStats();
