@@ -1743,7 +1743,21 @@ window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 
 checkOrientation();
 
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+    navigator.serviceWorker.register('service-worker.js').then(reg => {
+        reg.addEventListener('updatefound', () => {
+            const newSW = reg.installing;
+            if (!newSW) return;
+            newSW.addEventListener('statechange', () => {
+                if (newSW.state === 'activated' && navigator.serviceWorker.controller) {
+                    if (!gameOn) window.location.reload();
+                }
+            });
+        });
+        setInterval(() => { reg.update().catch(() => {}); }, 60 * 60 * 1000);
+    }).catch(() => {});
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!gameOn) window.location.reload();
+    });
 }
 
 })();
