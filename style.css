@@ -109,6 +109,25 @@ html, body {
 }
 .avatar-pick img.has-pic ~ .avatar-placeholder { display: none; }
 
+/* Music picker circle */
+.music-pick {
+    width: 52px; height: 52px; flex-shrink: 0;
+    border-radius: 50%; border: 2.5px solid rgba(255,140,0,.5);
+    background: rgba(255,100,0,.15);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; overflow: hidden;
+    transition: border-color .2s, box-shadow .2s;
+}
+.music-pick:active { transform: scale(.92); }
+.music-placeholder { font-size: 1.4rem; color: rgba(255,200,100,.6); }
+.music-selected { font-size: 1.5rem; color: #ff9800; }
+.music-pick.has-song { border-color: rgba(255,160,0,.8); box-shadow: 0 0 10px rgba(255,140,0,.4); }
+.music-file-name {
+    font-size: 0.72rem; color: rgba(255,180,80,.8); text-align: left;
+    padding: 2px 0 0 62px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 100%;
+}
+
 /* === BUTTONS === */
 .btn-play {
     width: 100%; padding: 16px; border: none; border-radius: 16px;
@@ -273,7 +292,6 @@ html, body {
 .ctrl-icon { font-size: 1.15rem; line-height: 1; }
 .ctrl-label { font-family: 'Nunito', sans-serif; font-size: .55rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; opacity: .8; }
 .ctrl-theme { border-color: rgba(0,180,255,.35); background: linear-gradient(135deg, rgba(0,100,200,.3), rgba(0,180,255,.15)); }
-.ctrl-mymusic { border-color: rgba(255,140,0,.35); background: linear-gradient(135deg, rgba(200,100,0,.25), rgba(255,140,0,.12)); }
 .ctrl-music { border-color: rgba(57,255,20,.3); background: linear-gradient(135deg, rgba(20,150,20,.25), rgba(57,255,20,.1)); }
 .ctrl-pause { border-color: rgba(255,215,0,.3); background: linear-gradient(135deg, rgba(200,170,0,.25), rgba(255,215,0,.1)); }
 .ctrl-restart { border-color: rgba(255,107,245,.3); background: linear-gradient(135deg, rgba(200,50,180,.25), rgba(255,107,245,.1)); }
@@ -439,6 +457,8 @@ body.high-contrast .menu-card, body.high-contrast .gameover-card, body.high-cont
     .sf-vs { font-size: .45rem; }
     .avatar-row { gap: 6px; }
     .avatar-pick { width: 40px; height: 40px; }
+    .music-pick { width: 40px; height: 40px; }
+    .music-file-name { font-size: .62rem; padding-left: 50px; }
     .gameover-card #finalScore { font-size: .85rem; }
     .new-best-badge { font-size: .8rem; }
     .menu-stats { font-size: .65rem; padding: 4px 8px; }

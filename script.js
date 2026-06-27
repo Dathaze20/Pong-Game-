@@ -1475,9 +1475,9 @@ $('musicToggleBtn').addEventListener('click', () => {
     vibrate(12);
 });
 
-// ===== MY MUSIC PICKER =====
+// ===== MY MUSIC PICKER (menu screen) =====
 let customMusicUrl = null;
-$('myMusicBtn').addEventListener('click', () => {
+$('musicPick').addEventListener('click', () => {
     $('myMusicFile').click();
     vibrate(12);
 });
@@ -1486,18 +1486,17 @@ $('myMusicFile').addEventListener('change', e => {
     if (!f) return;
     if (customMusicUrl) URL.revokeObjectURL(customMusicUrl);
     customMusicUrl = URL.createObjectURL(f);
-    bgMusicEl.pause();
     bgMusicEl.src = customMusicUrl;
     bgMusicEl.load();
-    bgMusicEl.volume = 0.12;
-    bgMusicEl.play().catch(() => {});
+    const songName = f.name.replace(/\.[^.]+$/, '');
+    $('musicPick').classList.add('has-song');
+    $('musicPlaceholder').style.display = 'none';
+    $('musicSelected').style.display = '';
+    const nameEl = $('musicFileName');
+    nameEl.textContent = '\u{1F3B5} ' + songName;
+    nameEl.style.display = '';
     settings.musicOn = true;
-    updateMusicBtn();
-    const label = $('myMusicBtn').querySelector('.ctrl-label');
-    const name = f.name.replace(/\.[^.]+$/, '');
-    if (label) label.textContent = name.length > 8 ? name.slice(0, 8) + '…' : name;
     vibrate([15, 10, 15]);
-    if (!document.fullscreenElement) enterFullscreen();
 });
 
 // ===== TOUCH =====
@@ -1733,8 +1732,10 @@ function quit() {
         customMusicUrl = null;
         bgMusicEl.src = 'Original Tetris theme (Tetris Soundtrack).mp3';
         bgMusicEl.load();
-        const label = $('myMusicBtn').querySelector('.ctrl-label');
-        if (label) label.textContent = 'My Music';
+        $('musicPick').classList.remove('has-song');
+        $('musicPlaceholder').style.display = '';
+        $('musicSelected').style.display = 'none';
+        $('musicFileName').style.display = 'none';
     }
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     canvas.style.display = 'none';
