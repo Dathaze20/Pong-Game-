@@ -57,6 +57,7 @@
                 <button id="settingsButton" class="btn-small">&#9881; Settings</button>
                 <button id="howToPlayButton" class="btn-small">&#128161; How To Play</button>
             </div>
+            <div id="menuStats" class="menu-stats" style="display:none;"></div>
             <button id="rateUsButton" class="btn-tiny">&#11088; Rate Us</button>
         </div>
     </div>
@@ -97,7 +98,7 @@
         <div class="menu-card">
             <h1 class="menu-title">&#128161; How To Play</h1>
             <div class="instructions">
-                <p>&#128072; <strong>Slide your finger</strong> up and down on YOUR side of the screen!</p>
+                <p>&#128072; <strong>Slide your finger ANYWHERE</strong> on the screen to move your paddle!</p>
                 <p>&#127955; <strong>Hit the ball</strong> past the other paddle to score!</p>
                 <p>&#11088; <strong>Grab power-ups</strong> for awesome abilities!</p>
                 <p>&#127942; <strong>First to 15 points WINS!</strong></p>
@@ -158,9 +159,18 @@
         <div class="gameover-card">
             <div class="gameover-emoji" id="gameOverEmoji">&#127942;</div>
             <h1 id="winnerMessage">EPIC WIN!</h1>
+            <div id="newBestBadge" class="new-best-badge" style="display:none;">&#11088; NEW PERSONAL BEST! &#11088;</div>
             <p id="finalScore"></p>
             <button id="playAgainButton" class="btn-play">&#9889; Play Again!</button>
             <button id="mainMenuButton" class="btn-small">&#8592; Main Menu</button>
+        </div>
+    </div>
+
+    <!-- Landscape Nudge -->
+    <div id="landscapeNudge" style="display:none;">
+        <div class="nudge-content">
+            <div class="nudge-icon">&#128241;&#8635;</div>
+            <p>Rotate your phone for the best experience!</p>
         </div>
     </div>
 

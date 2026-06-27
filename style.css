@@ -357,6 +357,53 @@ html, body {
     font-family: 'Bungee', sans-serif;
 }
 
+/* === NEW BEST BADGE === */
+.new-best-badge {
+    font-family: 'Bungee', sans-serif; font-size: 1rem;
+    background: linear-gradient(90deg, #FFD700, #FF6BF5, #00F0FF, #FFD700);
+    background-size: 300% auto;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmerText 1.5s linear infinite, pulse 1s ease infinite;
+    text-align: center;
+}
+
+/* === MENU STATS === */
+.menu-stats {
+    font-family: 'Bungee', sans-serif; font-size: .75rem;
+    color: rgba(255,215,0,.8); text-align: center;
+    padding: 6px 12px;
+    background: rgba(255,215,0,.08);
+    border: 1.5px solid rgba(255,215,0,.2);
+    border-radius: 10px;
+    width: 100%;
+}
+
+/* === LANDSCAPE NUDGE === */
+#landscapeNudge {
+    position: fixed; inset: 0; z-index: 10000;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(10,22,40,.95);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.nudge-content {
+    text-align: center; animation: popIn .4s cubic-bezier(.17,.67,.3,1.33);
+}
+.nudge-icon {
+    font-size: 64px; margin-bottom: 16px;
+    animation: rotateNudge 2s ease-in-out infinite;
+}
+.nudge-content p {
+    font-family: 'Bungee', sans-serif; font-size: 1.1rem;
+    color: rgba(255,255,255,.8); max-width: 260px; margin: 0 auto;
+}
+@keyframes rotateNudge {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(90deg); }
+    50% { transform: rotate(90deg); }
+    75% { transform: rotate(0deg); }
+}
+
 /* === HIGH CONTRAST === */
 body.high-contrast { background: #000; }
 body.high-contrast .menu-card, body.high-contrast .gameover-card, body.high-contrast .pause-card {
@@ -385,6 +432,8 @@ body.high-contrast .menu-card, body.high-contrast .gameover-card, body.high-cont
     .avatar-row { gap: 6px; }
     .avatar-pick { width: 40px; height: 40px; }
     .gameover-card #finalScore { font-size: .85rem; }
+    .new-best-badge { font-size: .8rem; }
+    .menu-stats { font-size: .65rem; padding: 4px 8px; }
 }
 
 @media (max-width: 360px) {
