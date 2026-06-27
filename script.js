@@ -225,9 +225,9 @@ const GAME_TIME = 150;
 const POWERUP_INTERVAL = 8;
 
 const AI_CFG = {
-    easy:   { startSpd: 0.45, endSpd: 0.78, startErr: 60, endErr: 22, react: 0.72 },
-    medium: { startSpd: 0.55, endSpd: 0.95, startErr: 48, endErr: 14, react: 0.8 },
-    hard:   { startSpd: 0.7,  endSpd: 1.15, startErr: 32, endErr: 6,  react: 0.88 }
+    easy:   { startSpd: 0.3,  endSpd: 0.65, startErr: 90, endErr: 30, react: 0.55 },
+    medium: { startSpd: 0.38, endSpd: 0.82, startErr: 75, endErr: 20, react: 0.62 },
+    hard:   { startSpd: 0.55, endSpd: 1.0,  startErr: 50, endErr: 10, react: 0.75 }
 };
 
 // ===== STATE =====
@@ -248,6 +248,7 @@ let hue = 0, glowPulse = 0;
 let totalHits = 0, maxCombo = 0;
 let serveTimer = 0;
 let serveDir = 1;
+let serveRamp = 0;
 let countdownNum = 0;
 let countdownBeepPlayed = 0;
 let timerStarted = false;
@@ -295,7 +296,7 @@ function scale() {
     ph = Math.max(90, r * (isLandscape ? 0.28 : 0.22));
     pmar = Math.max(24, r * 0.04);
     pspd = r * (isLandscape ? 2.2 : 1.8);
-    bspd = r * (isLandscape ? 1.6 : 1.05);
+    bspd = r * (isLandscape ? 1.3 : 0.9);
 }
 
 function createPaddleGrads() {
@@ -489,13 +490,14 @@ function resetState() {
 function resetBall(dir) {
     bx = W / 2; by = H / 2;
     serveDir = dir || (Math.random() > 0.5 ? 1 : -1);
-    const ang = (Math.random() - 0.5) * Math.PI / 4;
+    const ang = (Math.random() - 0.5) * Math.PI / 5;
     bdx = serveDir * Math.cos(ang);
     bdy = Math.sin(ang);
     const len = Math.sqrt(bdx * bdx + bdy * bdy);
     bdx = (bdx / len) * bspd;
     bdy = (bdy / len) * bspd;
     serveTimer = 2.4;
+    serveRamp = 0;
     countdownNum = 3;
     countdownBeepPlayed = 0;
 }
@@ -723,7 +725,9 @@ function update(dt) {
         return;
     }
 
-    const spd = bspd * bspdMod;
+    serveRamp = Math.min(serveRamp + dt / 1.5, 1);
+    const rampFactor = 0.55 + 0.45 * serveRamp;
+    const spd = bspd * bspdMod * rampFactor;
     const len = Math.sqrt(bdx * bdx + bdy * bdy);
     if (len > 0) { bdx = (bdx / len) * spd; bdy = (bdy / len) * spd; }
 
@@ -751,7 +755,7 @@ function update(dt) {
         const a = hit * (Math.PI / 3);
         bdx = Math.abs(Math.cos(a)) * spd;
         bdy = Math.sin(a) * spd;
-        bspdMod = Math.min(bspdMod * 1.04, 2.2);
+        bspdMod = Math.min(bspdMod * 1.02, 1.6);
         totalHits++;
         leftHitGlow = 0.4;
         synthHit(); vibrate([25, 15, 25]);
@@ -767,7 +771,7 @@ function update(dt) {
         const a = hit * (Math.PI / 3);
         bdx = -Math.abs(Math.cos(a)) * spd;
         bdy = Math.sin(a) * spd;
-        bspdMod = Math.min(bspdMod * 1.04, 2.2);
+        bspdMod = Math.min(bspdMod * 1.02, 1.6);
         totalHits++;
         rightHitGlow = 0.4;
         synthHit(); vibrate([25, 15, 25]);
@@ -903,39 +907,45 @@ function update(dt) {
 function getProgressiveAI() {
     const cfg = AI_CFG[settings.difficulty] || AI_CFG.medium;
     const totalPts = lscore + rscore;
-    const progress = Math.min(totalPts / (WIN_SCORE * 1.5), 1);
+    const progress = Math.min(totalPts / (WIN_SCORE * 1.8), 1);
     const lerp = (a, b, t) => a + (b - a) * t;
     let spd = lerp(cfg.startSpd, cfg.endSpd, progress);
     let err = lerp(cfg.startErr, cfg.endErr, progress);
-    let react = cfg.react * (0.7 + progress * 0.3);
+    let react = cfg.react * (0.6 + progress * 0.4);
     const scoreDiff = rscore - lscore;
-    if (scoreDiff >= 4) { spd *= 0.75; err *= 1.6; }
-    else if (scoreDiff >= 3) { spd *= 0.82; err *= 1.35; }
-    else if (scoreDiff >= 2) { spd *= 0.9; err *= 1.2; }
-    else if (scoreDiff <= -4) { spd *= 1.12; err *= 0.7; }
+    if (scoreDiff >= 5) { spd *= 0.55; err *= 2.2; react *= 0.6; }
+    else if (scoreDiff >= 4) { spd *= 0.6; err *= 2.0; react *= 0.65; }
+    else if (scoreDiff >= 3) { spd *= 0.68; err *= 1.7; react *= 0.72; }
+    else if (scoreDiff >= 2) { spd *= 0.78; err *= 1.4; react *= 0.82; }
+    else if (scoreDiff >= 1) { spd *= 0.88; err *= 1.2; react *= 0.9; }
     else if (scoreDiff <= -3) { spd *= 1.08; err *= 0.8; }
+    else if (scoreDiff <= -2) { spd *= 1.05; err *= 0.9; }
     return { speed: spd, err: err, react: react };
 }
 
 function updateAI(dt) {
     const cfg = getProgressiveAI();
     const pph = ph * phMod;
+    const totalPts = lscore + rscore;
+    const progress = Math.min(totalPts / (WIN_SCORE * 1.8), 1);
 
     aiUpdateTimer -= dt;
+    const updateDelay = 0.18 + (1 - progress) * 0.15 + Math.random() * 0.1;
     if (aiUpdateTimer <= 0) {
-        aiUpdateTimer = 0.12 + Math.random() * 0.1;
+        aiUpdateTimer = updateDelay;
 
         if (bdx > 0) {
             const dist = W - pmar - pw - bx;
             const ttr = dist / (Math.abs(bdx) || 1);
             let py = by + bdy * ttr;
-            for (let i = 0; i < 12 && (py < 0 || py > H); i++) {
+            const bounceCalcs = Math.floor(3 + progress * 9);
+            for (let i = 0; i < bounceCalcs && (py < 0 || py > H); i++) {
                 if (py < 0) py = -py;
                 if (py > H) py = 2 * H - py;
             }
             aiTargetY = py + (Math.random() - 0.5) * cfg.err;
         } else {
-            aiTargetY = H / 2 + (Math.random() - 0.5) * pph * 0.4;
+            aiTargetY = H / 2 + (Math.random() - 0.5) * pph * 0.6;
         }
     }
 
@@ -943,8 +953,8 @@ function updateAI(dt) {
     const diff = aiTargetY - center;
     const maxMove = pspd * cfg.speed * cfg.react * dt;
 
-    if (Math.abs(diff) > 5) {
-        const moveAmt = Math.min(Math.abs(diff) * 0.12, maxMove);
+    if (Math.abs(diff) > 8) {
+        const moveAmt = Math.min(Math.abs(diff) * 0.1, maxMove);
         ry += Math.sign(diff) * moveAmt;
     }
     ry = Math.max(0, Math.min(H - pph, ry));
