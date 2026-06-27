@@ -359,7 +359,7 @@ function applySettings() {
     const p1 = settings.p1Name;
     const p2 = settings.p2Name;
     if (p1 && p1 !== 'Player 1') $('player1NameInput').value = p1;
-    if (p2 && p2 !== 'Player 2' && p2 !== 'Robot') $('player2NameInput').value = p2;
+    if (p2 && p2 !== 'Player 2' && p2 !== 'AI' && p2 !== 'Robot') $('player2NameInput').value = p2;
 }
 
 $('toggleMusic').addEventListener('change', e => { settings.musicOn = e.target.checked; });
@@ -434,16 +434,7 @@ function loadAvatarImages() {
     }
 }
 
-// ===== START =====
-$('startGameButton').addEventListener('click', () => {
-    getAudioCtx();
-    settings.p1Name = $('player1NameInput').value.trim() || 'Player 1';
-    const mode = $('gameMode').value;
-    settings.p2Name = mode === '2' ? ($('player2NameInput').value.trim() || 'Player 2') : 'Robot';
-    settings.gameMode = mode;
-    $('hudP1Name').textContent = settings.p1Name;
-    $('hudP2Name').textContent = settings.p2Name;
-    loadAvatarImages();
+function enterFullscreen() {
     const el = document.documentElement;
     const goFS = el.requestFullscreen
         ? el.requestFullscreen().catch(() => {})
@@ -455,6 +446,19 @@ $('startGameButton').addEventListener('click', () => {
             screen.orientation.lock('landscape').catch(() => {});
         }
     });
+}
+
+// ===== START =====
+$('startGameButton').addEventListener('click', () => {
+    getAudioCtx();
+    settings.p1Name = $('player1NameInput').value.trim() || 'Player 1';
+    const mode = $('gameMode').value;
+    settings.p2Name = mode === '2' ? ($('player2NameInput').value.trim() || 'Player 2') : 'AI';
+    settings.gameMode = mode;
+    $('hudP1Name').textContent = settings.p1Name;
+    $('hudP2Name').textContent = settings.p2Name;
+    loadAvatarImages();
+    enterFullscreen();
     startGame();
 });
 
@@ -1493,6 +1497,7 @@ $('myMusicFile').addEventListener('change', e => {
     const name = f.name.replace(/\.[^.]+$/, '');
     if (label) label.textContent = name.length > 8 ? name.slice(0, 8) + '…' : name;
     vibrate([15, 10, 15]);
+    if (!document.fullscreenElement) enterFullscreen();
 });
 
 // ===== TOUCH =====
