@@ -398,6 +398,26 @@ html, body {
     50% { box-shadow: 0 0 30px rgba(255,107,245,.5), 0 0 50px rgba(0,240,255,.3); }
 }
 
+/* === ACHIEVEMENT BADGES === */
+.badge-earned-row {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;
+    width: 100%; margin: 2px 0;
+}
+.badge-chip {
+    display: flex; align-items: center; gap: 5px;
+    background: linear-gradient(135deg, rgba(255,215,0,.18), rgba(255,107,245,.12));
+    border: 1.5px solid rgba(255,215,0,.5);
+    border-radius: 20px; padding: 4px 10px;
+    font-family: 'Nunito', sans-serif; font-weight: 900; font-size: .72rem;
+    color: #FFD700;
+    animation: badgePop .5s cubic-bezier(.17,.67,.3,1.4) both;
+}
+.badge-chip .badge-icon { font-size: 1rem; }
+@keyframes badgePop {
+    from { opacity: 0; transform: scale(.5); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
 /* === NEW BEST BADGE === */
 .new-best-badge {
     font-family: 'Bungee', sans-serif; font-size: 1rem;
@@ -459,4 +479,58 @@ body.high-contrast .menu-card, body.high-contrast .gameover-card, body.high-cont
     .menu-card { padding: 16px 14px; }
     .menu-title { font-size: 1.4rem; }
     .btn-play { padding: 14px; font-size: 1.1rem; }
+}
+
+/* === SW UPDATE TOAST === */
+#updateToast {
+    position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);
+    z-index: 9000;
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(10,22,40,.92);
+    border: 1px solid rgba(0,240,255,.35);
+    border-radius: 14px;
+    padding: 10px 16px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0,0,0,.5);
+    font-size: .85rem; color: #e0f7ff;
+    white-space: nowrap;
+    animation: slideUp .35s cubic-bezier(.17,.67,.3,1.2);
+}
+#updateToast #updateToastBtn {
+    background: linear-gradient(135deg, #00c8ff, #0070ff);
+    border: none; border-radius: 8px;
+    color: #fff; font-family: 'Nunito', sans-serif; font-weight: 900;
+    font-size: .8rem; padding: 5px 12px; cursor: pointer;
+}
+@keyframes slideUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* === PWA INSTALL BANNER === */
+#installBanner {
+    position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);
+    z-index: 8900;
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(10,22,40,.92);
+    border: 1px solid rgba(255,107,245,.35);
+    border-radius: 14px;
+    padding: 10px 14px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0,0,0,.5);
+    font-size: .85rem; color: #ffe0fc;
+    white-space: nowrap;
+    animation: slideUp .35s cubic-bezier(.17,.67,.3,1.2);
+}
+#installBanner #installBtn {
+    background: linear-gradient(135deg, #FF6BF5, #9b30e0);
+    border: none; border-radius: 8px;
+    color: #fff; font-family: 'Nunito', sans-serif; font-weight: 900;
+    font-size: .8rem; padding: 5px 12px; cursor: pointer;
+}
+#installBanner #installDismiss {
+    background: rgba(255,255,255,.1); border: none; border-radius: 6px;
+    color: rgba(255,255,255,.6); font-size: .75rem; padding: 4px 8px; cursor: pointer;
 }

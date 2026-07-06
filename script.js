@@ -137,6 +137,24 @@ function synthWin() {
     } catch (_) {}
 }
 
+function synthStreak(tier) {
+    if (!settings.sfxOn) return;
+    try {
+        const c = getAudioCtx();
+        const notes = tier === 1 ? [880, 1047, 1318] : tier === 2 ? [880, 1047, 1318, 1568] : [880, 1047, 1318, 1568, 2093];
+        notes.forEach((freq, i) => {
+            const o = c.createOscillator(), g = c.createGain();
+            o.connect(g); g.connect(c.destination);
+            o.type = 'sine';
+            o.frequency.setValueAtTime(freq, c.currentTime + i * 0.07);
+            g.gain.setValueAtTime(0.2, c.currentTime + i * 0.07);
+            g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + i * 0.07 + 0.2);
+            o.start(c.currentTime + i * 0.07);
+            o.stop(c.currentTime + i * 0.07 + 0.22);
+        });
+    } catch (_) {}
+}
+
 const bgMusicEl = $('bgMusic');
 let musicReady = false;
 bgMusicEl.addEventListener('canplaythrough', () => { musicReady = true; });
@@ -205,8 +223,25 @@ const settings = {
     get bestScore() { return parseInt(localStorage.getItem('bestScore') || '0'); },
     set bestScore(v) { localStorage.setItem('bestScore', v); },
     get totalWins() { return parseInt(localStorage.getItem('totalWins') || '0'); },
-    set totalWins(v) { localStorage.setItem('totalWins', v); }
+    set totalWins(v) { localStorage.setItem('totalWins', v); },
+    get totalGames() { return parseInt(localStorage.getItem('totalGames') || '0'); },
+    set totalGames(v) { localStorage.setItem('totalGames', v); }
 };
+
+// ===== ACHIEVEMENTS =====
+const BADGES = [
+    { id: 'first_win',  icon: '\u{1F3C6}', name: 'First Victory!',  desc: 'Win your first match' },
+    { id: 'shutout',    icon: '\u{1F512}', name: 'Shutout!',        desc: 'Win with opponent at 0' },
+    { id: 'rally8',     icon: '\u{1F525}', name: 'Rally Star!',     desc: 'Achieve an 8-hit rally' },
+    { id: 'comeback',   icon: '\u{26A1}',  name: 'Comeback Kid!',   desc: 'Win after being down 3+ points' },
+    { id: 'champ10',    icon: '\u{1F31F}', name: '10-Win Champ!',   desc: 'Win 10 matches total' },
+];
+const hasBadge = id => localStorage.getItem('badge_' + id) === 'true';
+const earnBadge = id => localStorage.setItem('badge_' + id, 'true');
+const badgeCount = () => BADGES.filter(b => hasBadge(b.id)).length;
+
+let playerWasDown = false;
+let sessionBadges = [];
 
 // ===== BACKGROUND THEMES =====
 const BG_THEMES = [
@@ -226,9 +261,9 @@ const GAME_TIME = 150;
 const POWERUP_INTERVAL = 8;
 
 const AI_CFG = {
-    easy:   { startSpd: 0.3,  endSpd: 0.65, startErr: 90, endErr: 30, react: 0.55 },
-    medium: { startSpd: 0.38, endSpd: 0.82, startErr: 75, endErr: 20, react: 0.62 },
-    hard:   { startSpd: 0.55, endSpd: 1.0,  startErr: 50, endErr: 10, react: 0.75 }
+    easy:   { startSpd: 0.30, endSpd: 0.60, startErr: 105, endErr: 50, react: 0.50 },
+    medium: { startSpd: 0.38, endSpd: 0.82, startErr: 72,  endErr: 22, react: 0.62 },
+    hard:   { startSpd: 0.55, endSpd: 1.0,  startErr: 50,  endErr: 10, react: 0.75 }
 };
 
 // ===== STATE =====
@@ -238,12 +273,16 @@ let pw, ph, pmar, pspd;
 let ly, ry, lscore, rscore;
 let timer, timerInt;
 let tLeftY = null, tRightY = null;
+let p1TouchId = null, p2TouchId = null;
+const TOUCH_DEAD_ZONE = 4;
 let powerUp = null, puTimer = 0;
 let phMod = 1, bspdMod = 1;
 let puTimers = [];
 let particles = [], announceQ = null;
 let screenShake = 0;
 let combo = 0, lastScorer = '';
+let rallyHits = 0;
+let ballSquash = 0, ballSquashHoriz = true;
 let prevLeader = '';
 let hue = 0, glowPulse = 0;
 let totalHits = 0, maxCombo = 0;
@@ -334,10 +373,13 @@ function updateMenuStats() {
     if (!el) return;
     const wins = settings.totalWins;
     const best = settings.bestScore;
-    if (wins > 0 || best > 0) {
+    const badges = badgeCount();
+    const games = settings.totalGames;
+    if (wins > 0 || best > 0 || badges > 0) {
         const parts = [];
         if (wins > 0) parts.push('\u{1F3C6} ' + wins + ' Win' + (wins !== 1 ? 's' : ''));
         if (best > 0) parts.push('\u{2B50} Best: ' + best);
+        if (badges > 0) parts.push('\u{1F3C5} ' + badges + '/' + BADGES.length + ' Badges');
         el.textContent = parts.join('  \u{2022}  ');
         el.style.display = 'block';
     } else {
@@ -485,7 +527,8 @@ function resetState() {
     puTimers = [];
     particles = []; announceQ = null;
     screenShake = 0; combo = 0; lastScorer = ''; prevLeader = '';
-    totalHits = 0; maxCombo = 0;
+    totalHits = 0; maxCombo = 0; rallyHits = 0; ballSquash = 0;
+    playerWasDown = false; sessionBadges = [];
     scoreFlash = 0; leftHitGlow = 0; rightHitGlow = 0;
     bradMod = 1; shieldTimer = 0; multiActive = false;
     if (multiTimer) { clearTimeout(multiTimer); multiTimer = null; }
@@ -493,7 +536,7 @@ function resetState() {
     puStartTimes = {};
     ly = ry = (H - ph) / 2;
     prevLy = ly; prevRy = ry;
-    tLeftY = tRightY = null;
+    tLeftY = tRightY = null; p1TouchId = null; p2TouchId = null;
     aiTargetY = H / 2; aiUpdateTimer = 0;
     serveTimer = 0; timerStarted = false;
     resetBall();
@@ -513,6 +556,7 @@ function resetBall(dir) {
     serveRamp = 0;
     countdownNum = 3;
     countdownBeepPlayed = 0;
+    rallyHits = 0; ballSquash = 0;
 }
 
 // ===== TIMER =====
@@ -758,10 +802,12 @@ function update(dt) {
     if (by - br < 0) {
         by = br; bdy = Math.abs(bdy); synthWall(); vibrate(10);
         spawnParticles(bx, 0, ['#fff', '#FFD700'], 6, false);
+        ballSquash = 0.28; ballSquashHoriz = false;
     }
     if (by + br > H) {
         by = H - br; bdy = -Math.abs(bdy); synthWall(); vibrate(10);
         spawnParticles(bx, H, ['#fff', '#FFD700'], 6, false);
+        ballSquash = 0.28; ballSquashHoriz = false;
     }
 
     const pph = ph * phMod;
@@ -780,6 +826,15 @@ function update(dt) {
         synthHit(); vibrate([25, 15, 25]);
         spawnParticles(lx, by, ['#00F0FF', '#39FF14', '#fff'], 12, false);
         screenShake = 0.08;
+        ballSquash = 0.45; ballSquashHoriz = true;
+        rallyHits++;
+        if (rallyHits === 3) { announce('3 HIT RALLY! \u{1F525}'); synthStreak(1); }
+        else if (rallyHits === 5) { announce('5 HIT STREAK! \u{1F4A5}'); synthStreak(2); }
+        else if (rallyHits === 8) {
+            announce('INSANE RALLY!! \u{1F525}\u{1F525}'); synthStreak(3);
+            if (!hasBadge('rally8')) { earnBadge('rally8'); sessionBadges.push('rally8'); }
+        }
+        else if (rallyHits >= 12 && rallyHits % 4 === 0) { announce('GODLIKE!! \u{26A1}'); synthStreak(3); }
     }
 
     const rx = W - pmar - pw;
@@ -796,6 +851,15 @@ function update(dt) {
         synthHit(); vibrate([25, 15, 25]);
         spawnParticles(rx, by, ['#FF6BF5', '#FFD700', '#fff'], 12, false);
         screenShake = 0.08;
+        ballSquash = 0.45; ballSquashHoriz = true;
+        rallyHits++;
+        if (rallyHits === 3) { announce('3 HIT RALLY! \u{1F525}'); synthStreak(1); }
+        else if (rallyHits === 5) { announce('5 HIT STREAK! \u{1F4A5}'); synthStreak(2); }
+        else if (rallyHits === 8) {
+            announce('INSANE RALLY!! \u{1F525}\u{1F525}'); synthStreak(3);
+            if (!hasBadge('rally8')) { earnBadge('rally8'); sessionBadges.push('rally8'); }
+        }
+        else if (rallyHits >= 12 && rallyHits % 4 === 0) { announce('GODLIKE!! \u{26A1}'); synthStreak(3); }
     }
 
     // Shield walls - bounce ball back
@@ -824,6 +888,7 @@ function update(dt) {
         spawnScorePopup(W * 0.75, H * 0.35, pts, 'right');
         if (lastScorer === 'right') { combo++; } else { combo = 1; lastScorer = 'right'; }
         if (combo > maxCombo) maxCombo = combo;
+        rallyHits = 0; ballSquash = 0;
         synthScore(); vibrate([40, 60, 40, 60, 50]);
         spawnParticles(0, by, ['#FF6BF5', '#FFD700', '#00F0FF', '#39FF14'], 25, true);
         screenShake = 0.2;
@@ -860,6 +925,7 @@ function update(dt) {
         spawnScorePopup(W * 0.25, H * 0.35, pts, 'left');
         if (lastScorer === 'left') { combo++; } else { combo = 1; lastScorer = 'left'; }
         if (combo > maxCombo) maxCombo = combo;
+        rallyHits = 0; ballSquash = 0;
         synthScore(); vibrate([40, 60, 40, 60, 50]);
         spawnParticles(W, by, ['#00F0FF', '#FFD700', '#FF6BF5', '#39FF14'], 25, true);
         screenShake = 0.2;
@@ -886,6 +952,8 @@ function update(dt) {
         }
         resetBall(1);
     }
+
+    if (rscore - lscore >= 3) playerWasDown = true;
 
     prevLy = ly; prevRy = ry;
 
@@ -916,6 +984,7 @@ function update(dt) {
     updateParticles(dt);
     updateScorePopups(dt);
     if (screenShake > 0) screenShake = Math.max(0, screenShake - dt);
+    if (ballSquash > 0) ballSquash = Math.max(0, ballSquash - dt * 5);
     if (scoreFlash > 0) scoreFlash = Math.max(0, scoreFlash - dt);
     if (leftHitGlow > 0) leftHitGlow = Math.max(0, leftHitGlow - dt);
     if (rightHitGlow > 0) rightHitGlow = Math.max(0, rightHitGlow - dt);
@@ -932,13 +1001,15 @@ function getProgressiveAI() {
     let err = lerp(cfg.startErr, cfg.endErr, progress);
     let react = cfg.react * (0.6 + progress * 0.4);
     const scoreDiff = rscore - lscore;
-    if (scoreDiff >= 5) { spd *= 0.55; err *= 2.2; react *= 0.6; }
-    else if (scoreDiff >= 4) { spd *= 0.6; err *= 2.0; react *= 0.65; }
-    else if (scoreDiff >= 3) { spd *= 0.68; err *= 1.7; react *= 0.72; }
-    else if (scoreDiff >= 2) { spd *= 0.78; err *= 1.4; react *= 0.82; }
-    else if (scoreDiff >= 1) { spd *= 0.88; err *= 1.2; react *= 0.9; }
-    else if (scoreDiff <= -3) { spd *= 1.08; err *= 0.8; }
-    else if (scoreDiff <= -2) { spd *= 1.05; err *= 0.9; }
+    // Error injection is the primary lever — keeps AI movement natural while reducing accuracy.
+    // Speed changes are kept small to avoid visibly "jerky" AI slow-down.
+    if (scoreDiff >= 5) { spd *= 0.76; err *= 3.0; react *= 0.78; }
+    else if (scoreDiff >= 4) { spd *= 0.82; err *= 2.5; react *= 0.83; }
+    else if (scoreDiff >= 3) { spd *= 0.87; err *= 2.0; react *= 0.88; }
+    else if (scoreDiff >= 2) { spd *= 0.92; err *= 1.55; react *= 0.93; }
+    else if (scoreDiff >= 1) { spd *= 0.96; err *= 1.28; react *= 0.97; }
+    else if (scoreDiff <= -3) { spd *= 1.04; err *= 0.76; }
+    else if (scoreDiff <= -2) { spd *= 1.02; err *= 0.86; }
     return { speed: spd, err: err, react: react };
 }
 
@@ -949,7 +1020,11 @@ function updateAI(dt) {
     const progress = Math.min(totalPts / (WIN_SCORE * 1.8), 1);
 
     aiUpdateTimer -= dt;
-    const updateDelay = 0.18 + (1 - progress) * 0.15 + Math.random() * 0.1;
+    const scoreDiff = rscore - lscore;
+    // When player is losing, add extra latency so AI reacts slower to deflections.
+    // This is invisible to the player — the AI still moves smoothly, just recalculates later.
+    const lagBonus = scoreDiff < -1 ? Math.min((-scoreDiff - 1) * 0.075, 0.22) : 0;
+    const updateDelay = 0.18 + (1 - progress) * 0.15 + Math.random() * 0.1 + lagBonus;
     if (aiUpdateTimer <= 0) {
         aiUpdateTimer = updateDelay;
 
@@ -1047,7 +1122,7 @@ function applyPowerUp(type) {
 }
 
 // ===== RENDER =====
-let bgGrad = null, bgW = 0, bgH = 0, bgThemeIdx = -1;
+let bgGrad = null, divGrad = null, bgW = 0, bgH = 0, bgThemeIdx = -1;
 
 function render() {
     let sx = 0, sy = 0;
@@ -1073,6 +1148,12 @@ function render() {
             bgGrad.addColorStop(0.5, theme.colors[1]);
             bgGrad.addColorStop(1, theme.colors[2]);
         }
+        divGrad = ctx.createLinearGradient(W / 2, 0, W / 2, H);
+        divGrad.addColorStop(0, `rgba(${br},${bg},${bb},0)`);
+        divGrad.addColorStop(0.3, `rgba(${br},${bg},${bb},0.08)`);
+        divGrad.addColorStop(0.5, `rgba(${br},${bg},${bb},0.12)`);
+        divGrad.addColorStop(0.7, `rgba(${br},${bg},${bb},0.08)`);
+        divGrad.addColorStop(1, `rgba(${br},${bg},${bb},0)`);
         bgW = W; bgH = H; bgThemeIdx = settings.bgTheme;
     }
     ctx.fillStyle = bgGrad;
@@ -1109,14 +1190,8 @@ function render() {
         }
     }
 
-    // Center divider — subtle glow line
+    // Center divider — subtle glow line (divGrad cached, recreated on theme/resize)
     if (!hc) {
-        const divGrad = ctx.createLinearGradient(W / 2, 0, W / 2, H);
-        divGrad.addColorStop(0, `rgba(${br},${bg},${bb},0)`);
-        divGrad.addColorStop(0.3, `rgba(${br},${bg},${bb},0.08)`);
-        divGrad.addColorStop(0.5, `rgba(${br},${bg},${bb},0.12)`);
-        divGrad.addColorStop(0.7, `rgba(${br},${bg},${bb},0.08)`);
-        divGrad.addColorStop(1, `rgba(${br},${bg},${bb},0)`);
         ctx.strokeStyle = divGrad;
         ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
@@ -1246,17 +1321,22 @@ function render() {
         }
     }
 
-    // Ball glow
+    // Ball glow + body + highlight (squash & stretch on hit)
+    ctx.save();
+    ctx.translate(bx, by);
+    if (ballSquash > 0) {
+        const sq = ballSquash;
+        if (ballSquashHoriz) { ctx.scale(1 - sq * 0.38, 1 + sq * 0.38); }
+        else { ctx.scale(1 + sq * 0.22, 1 - sq * 0.22); }
+    }
     if (!hc) {
         ctx.beginPath();
-        ctx.arc(bx, by, bRad * 2.5, 0, Math.PI * 2);
+        ctx.arc(0, 0, bRad * 2.5, 0, Math.PI * 2);
         ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${bradMod > 1 ? 0.15 : 0.08})`;
         ctx.fill();
     }
-
-    // Ball
     ctx.beginPath();
-    ctx.arc(bx, by, bRad, 0, Math.PI * 2);
+    ctx.arc(0, 0, bRad, 0, Math.PI * 2);
     ctx.fillStyle = ballColor;
     ctx.fill();
     if (bradMod > 1 && !hc) {
@@ -1264,11 +1344,11 @@ function render() {
         ctx.lineWidth = 2;
         ctx.stroke();
     }
-    // Ball highlight
     ctx.beginPath();
-    ctx.arc(bx - bRad * 0.2, by - bRad * 0.2, bRad * 0.3, 0, Math.PI * 2);
+    ctx.arc(-bRad * 0.2, -bRad * 0.2, bRad * 0.3, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     ctx.fill();
+    ctx.restore();
 
     // Active power-up indicators with timer bars
     if (!hc) {
@@ -1461,7 +1541,7 @@ function buildBgPicker() {
         btn.innerHTML = `<span class="swatch-label">${t.name}</span>`;
         btn.addEventListener('click', () => {
             settings.bgTheme = i;
-            bgGrad = null;
+            bgGrad = null; divGrad = null;
             buildBgPicker();
             vibrate(12);
         });
@@ -1501,38 +1581,44 @@ $('myMusicFile').addEventListener('change', e => {
 });
 
 // ===== TOUCH =====
-canvas.addEventListener('touchstart', handleTouch, { passive: false });
-canvas.addEventListener('touchmove', handleTouch, { passive: false });
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (bgPickerOpen) { bgPickerOpen = false; $('bgPickerPanel').style.display = 'none'; }
+    if (!gameOn || paused) return;
+    const rect = canvas.getBoundingClientRect();
+    const midX = rect.left + rect.width / 2;
+    for (const t of e.changedTouches) {
+        if (settings.gameMode === 1) {
+            if (p1TouchId === null) { p1TouchId = t.identifier; tLeftY = t.clientY; }
+        } else {
+            if (t.clientX < midX && p1TouchId === null) { p1TouchId = t.identifier; tLeftY = t.clientY; }
+            else if (t.clientX >= midX && p2TouchId === null) { p2TouchId = t.identifier; tRightY = t.clientY; }
+        }
+    }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!gameOn || paused) return;
+    for (const t of e.changedTouches) {
+        if (t.identifier === p1TouchId) {
+            if (tLeftY === null || Math.abs(t.clientY - tLeftY) >= TOUCH_DEAD_ZONE) tLeftY = t.clientY;
+        } else if (t.identifier === p2TouchId) {
+            if (tRightY === null || Math.abs(t.clientY - tRightY) >= TOUCH_DEAD_ZONE) tRightY = t.clientY;
+        }
+    }
+}, { passive: false });
+
+function handleTouchEnd(e) {
+    for (const t of e.changedTouches) {
+        if (t.identifier === p1TouchId) { p1TouchId = null; tLeftY = null; }
+        else if (t.identifier === p2TouchId) { p2TouchId = null; tRightY = null; }
+    }
+}
 canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
 canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
-
-function handleTouch(e) {
-    e.preventDefault();
-    if (bgPickerOpen) {
-        bgPickerOpen = false;
-        $('bgPickerPanel').style.display = 'none';
-    }
-    for (const t of e.touches) {
-        if (settings.gameMode === 1) {
-            tLeftY = t.clientY;
-        } else {
-            if (t.clientX < W / 2) tLeftY = t.clientY;
-            else tRightY = t.clientY;
-        }
-    }
-}
-function handleTouchEnd(e) {
-    if (settings.gameMode === 1) {
-        if (e.touches.length === 0) tLeftY = null;
-    } else {
-        const still = new Set();
-        for (const t of e.touches) {
-            if (t.clientX < W / 2) still.add('l'); else still.add('r');
-        }
-        if (!still.has('l')) tLeftY = null;
-        if (!still.has('r')) tRightY = null;
-    }
-}
 
 // ===== KEYBOARD =====
 const keys = new Set();
@@ -1634,6 +1720,28 @@ function celebrationLoop() {
     celebrationRafId = requestAnimationFrame(celebrationLoop);
 }
 
+// ===== BADGE CHECK =====
+function checkBadges() {
+    const tryEarn = id => { if (!hasBadge(id)) { earnBadge(id); sessionBadges.push(id); } };
+    if (settings.totalWins === 1) tryEarn('first_win');
+    if (rscore === 0) tryEarn('shutout');
+    if (playerWasDown) tryEarn('comeback');
+    if (settings.totalWins >= 10) tryEarn('champ10');
+}
+
+function renderBadgeEarned() {
+    const el = $('badgeEarned');
+    if (!el) return;
+    if (sessionBadges.length === 0) { el.style.display = 'none'; return; }
+    el.innerHTML = sessionBadges.map((id, i) => {
+        const b = BADGES.find(x => x.id === id);
+        if (!b) return '';
+        return `<div class="badge-chip" style="animation-delay:${i * 0.12}s">` +
+               `<span class="badge-icon">${b.icon}</span><span>${b.name}</span></div>`;
+    }).join('');
+    el.style.display = 'flex';
+}
+
 // ===== END =====
 function endGame(msg) {
     gameOn = false; paused = false;
@@ -1645,10 +1753,12 @@ function endGame(msg) {
     vibrate([80, 100, 80, 100, 80, 60]);
 
     const p1Won = lscore > rscore;
+    settings.totalGames = settings.totalGames + 1;
     if (p1Won && settings.gameMode === 1) settings.totalWins = settings.totalWins + 1;
     const best = Math.max(lscore, rscore);
     const isNewBest = best > settings.bestScore;
     if (isNewBest) settings.bestScore = best;
+    if (p1Won && settings.gameMode === 1) checkBadges();
 
     screens.hud.style.display = 'none';
     screens.controls.style.display = 'none';
@@ -1690,6 +1800,7 @@ function endGame(msg) {
     if (settings.gameMode === 1) statsLine += '  \u{2022}  ' + settings.totalWins + ' wins';
     if (isNewBest) statsLine += '  \u{2022}  NEW BEST!';
     $('finalScore').textContent = statsLine;
+    renderBadgeEarned();
 
     if (isNewBest) {
         $('newBestBadge').style.display = 'block';
@@ -1770,22 +1881,69 @@ window.addEventListener('resize', () => {
 
 document.addEventListener('touchmove', e => { if (gameOn) e.preventDefault(); }, { passive: false });
 
+// ===== BACKGROUND TAB AUDIO =====
+document.addEventListener('visibilitychange', () => {
+    if (!audioCtx) return;
+    if (document.hidden) {
+        audioCtx.suspend().catch(() => {});
+    } else if (gameOn && !paused) {
+        audioCtx.resume().catch(() => {});
+    }
+});
+
+// ===== SW UPDATE TOAST =====
+let pendingUpdateSW = null;
+function showUpdateToast() {
+    const toast = $('updateToast');
+    if (!toast) return;
+    toast.style.display = 'flex';
+    $('updateToastBtn').onclick = () => {
+        toast.style.display = 'none';
+        if (pendingUpdateSW) pendingUpdateSW.postMessage({ type: 'SKIP_WAITING' });
+        else window.location.reload();
+    };
+}
+
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js').then(reg => {
         reg.addEventListener('updatefound', () => {
             const newSW = reg.installing;
             if (!newSW) return;
             newSW.addEventListener('statechange', () => {
-                if (newSW.state === 'activated' && navigator.serviceWorker.controller) {
-                    if (!gameOn) window.location.reload();
+                if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                    pendingUpdateSW = newSW;
+                    showUpdateToast();
                 }
             });
         });
         setInterval(() => { reg.update().catch(() => {}); }, 60 * 60 * 1000);
     }).catch(() => {});
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!gameOn) window.location.reload();
+        window.location.reload();
     });
 }
+
+// ===== PWA INSTALL BUTTON =====
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    const banner = $('installBanner');
+    if (banner) banner.style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    const banner = $('installBanner');
+    if (banner) banner.style.display = 'none';
+});
+$('installBtn') && $('installBtn').addEventListener('click', () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(() => { deferredInstallPrompt = null; });
+    $('installBanner').style.display = 'none';
+});
+$('installDismiss') && $('installDismiss').addEventListener('click', () => {
+    $('installBanner').style.display = 'none';
+});
 
 })();
