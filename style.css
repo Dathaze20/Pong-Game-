@@ -398,6 +398,26 @@ html, body {
     50% { box-shadow: 0 0 30px rgba(255,107,245,.5), 0 0 50px rgba(0,240,255,.3); }
 }
 
+/* === ACHIEVEMENT BADGES === */
+.badge-earned-row {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;
+    width: 100%; margin: 2px 0;
+}
+.badge-chip {
+    display: flex; align-items: center; gap: 5px;
+    background: linear-gradient(135deg, rgba(255,215,0,.18), rgba(255,107,245,.12));
+    border: 1.5px solid rgba(255,215,0,.5);
+    border-radius: 20px; padding: 4px 10px;
+    font-family: 'Nunito', sans-serif; font-weight: 900; font-size: .72rem;
+    color: #FFD700;
+    animation: badgePop .5s cubic-bezier(.17,.67,.3,1.4) both;
+}
+.badge-chip .badge-icon { font-size: 1rem; }
+@keyframes badgePop {
+    from { opacity: 0; transform: scale(.5); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
 /* === NEW BEST BADGE === */
 .new-best-badge {
     font-family: 'Bungee', sans-serif; font-size: 1rem;

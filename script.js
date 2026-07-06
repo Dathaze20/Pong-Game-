@@ -223,8 +223,25 @@ const settings = {
     get bestScore() { return parseInt(localStorage.getItem('bestScore') || '0'); },
     set bestScore(v) { localStorage.setItem('bestScore', v); },
     get totalWins() { return parseInt(localStorage.getItem('totalWins') || '0'); },
-    set totalWins(v) { localStorage.setItem('totalWins', v); }
+    set totalWins(v) { localStorage.setItem('totalWins', v); },
+    get totalGames() { return parseInt(localStorage.getItem('totalGames') || '0'); },
+    set totalGames(v) { localStorage.setItem('totalGames', v); }
 };
+
+// ===== ACHIEVEMENTS =====
+const BADGES = [
+    { id: 'first_win',  icon: '\u{1F3C6}', name: 'First Victory!',  desc: 'Win your first match' },
+    { id: 'shutout',    icon: '\u{1F512}', name: 'Shutout!',        desc: 'Win with opponent at 0' },
+    { id: 'rally8',     icon: '\u{1F525}', name: 'Rally Star!',     desc: 'Achieve an 8-hit rally' },
+    { id: 'comeback',   icon: '\u{26A1}',  name: 'Comeback Kid!',   desc: 'Win after being down 3+ points' },
+    { id: 'champ10',    icon: '\u{1F31F}', name: '10-Win Champ!',   desc: 'Win 10 matches total' },
+];
+const hasBadge = id => localStorage.getItem('badge_' + id) === 'true';
+const earnBadge = id => localStorage.setItem('badge_' + id, 'true');
+const badgeCount = () => BADGES.filter(b => hasBadge(b.id)).length;
+
+let playerWasDown = false;
+let sessionBadges = [];
 
 // ===== BACKGROUND THEMES =====
 const BG_THEMES = [
@@ -356,10 +373,13 @@ function updateMenuStats() {
     if (!el) return;
     const wins = settings.totalWins;
     const best = settings.bestScore;
-    if (wins > 0 || best > 0) {
+    const badges = badgeCount();
+    const games = settings.totalGames;
+    if (wins > 0 || best > 0 || badges > 0) {
         const parts = [];
         if (wins > 0) parts.push('\u{1F3C6} ' + wins + ' Win' + (wins !== 1 ? 's' : ''));
         if (best > 0) parts.push('\u{2B50} Best: ' + best);
+        if (badges > 0) parts.push('\u{1F3C5} ' + badges + '/' + BADGES.length + ' Badges');
         el.textContent = parts.join('  \u{2022}  ');
         el.style.display = 'block';
     } else {
@@ -508,6 +528,7 @@ function resetState() {
     particles = []; announceQ = null;
     screenShake = 0; combo = 0; lastScorer = ''; prevLeader = '';
     totalHits = 0; maxCombo = 0; rallyHits = 0; ballSquash = 0;
+    playerWasDown = false; sessionBadges = [];
     scoreFlash = 0; leftHitGlow = 0; rightHitGlow = 0;
     bradMod = 1; shieldTimer = 0; multiActive = false;
     if (multiTimer) { clearTimeout(multiTimer); multiTimer = null; }
@@ -809,7 +830,10 @@ function update(dt) {
         rallyHits++;
         if (rallyHits === 3) { announce('3 HIT RALLY! \u{1F525}'); synthStreak(1); }
         else if (rallyHits === 5) { announce('5 HIT STREAK! \u{1F4A5}'); synthStreak(2); }
-        else if (rallyHits === 8) { announce('INSANE RALLY!! \u{1F525}\u{1F525}'); synthStreak(3); }
+        else if (rallyHits === 8) {
+            announce('INSANE RALLY!! \u{1F525}\u{1F525}'); synthStreak(3);
+            if (!hasBadge('rally8')) { earnBadge('rally8'); sessionBadges.push('rally8'); }
+        }
         else if (rallyHits >= 12 && rallyHits % 4 === 0) { announce('GODLIKE!! \u{26A1}'); synthStreak(3); }
     }
 
@@ -831,7 +855,10 @@ function update(dt) {
         rallyHits++;
         if (rallyHits === 3) { announce('3 HIT RALLY! \u{1F525}'); synthStreak(1); }
         else if (rallyHits === 5) { announce('5 HIT STREAK! \u{1F4A5}'); synthStreak(2); }
-        else if (rallyHits === 8) { announce('INSANE RALLY!! \u{1F525}\u{1F525}'); synthStreak(3); }
+        else if (rallyHits === 8) {
+            announce('INSANE RALLY!! \u{1F525}\u{1F525}'); synthStreak(3);
+            if (!hasBadge('rally8')) { earnBadge('rally8'); sessionBadges.push('rally8'); }
+        }
         else if (rallyHits >= 12 && rallyHits % 4 === 0) { announce('GODLIKE!! \u{26A1}'); synthStreak(3); }
     }
 
@@ -925,6 +952,8 @@ function update(dt) {
         }
         resetBall(1);
     }
+
+    if (rscore - lscore >= 3) playerWasDown = true;
 
     prevLy = ly; prevRy = ry;
 
@@ -1691,6 +1720,28 @@ function celebrationLoop() {
     celebrationRafId = requestAnimationFrame(celebrationLoop);
 }
 
+// ===== BADGE CHECK =====
+function checkBadges() {
+    const tryEarn = id => { if (!hasBadge(id)) { earnBadge(id); sessionBadges.push(id); } };
+    if (settings.totalWins === 1) tryEarn('first_win');
+    if (rscore === 0) tryEarn('shutout');
+    if (playerWasDown) tryEarn('comeback');
+    if (settings.totalWins >= 10) tryEarn('champ10');
+}
+
+function renderBadgeEarned() {
+    const el = $('badgeEarned');
+    if (!el) return;
+    if (sessionBadges.length === 0) { el.style.display = 'none'; return; }
+    el.innerHTML = sessionBadges.map((id, i) => {
+        const b = BADGES.find(x => x.id === id);
+        if (!b) return '';
+        return `<div class="badge-chip" style="animation-delay:${i * 0.12}s">` +
+               `<span class="badge-icon">${b.icon}</span><span>${b.name}</span></div>`;
+    }).join('');
+    el.style.display = 'flex';
+}
+
 // ===== END =====
 function endGame(msg) {
     gameOn = false; paused = false;
@@ -1702,10 +1753,12 @@ function endGame(msg) {
     vibrate([80, 100, 80, 100, 80, 60]);
 
     const p1Won = lscore > rscore;
+    settings.totalGames = settings.totalGames + 1;
     if (p1Won && settings.gameMode === 1) settings.totalWins = settings.totalWins + 1;
     const best = Math.max(lscore, rscore);
     const isNewBest = best > settings.bestScore;
     if (isNewBest) settings.bestScore = best;
+    if (p1Won && settings.gameMode === 1) checkBadges();
 
     screens.hud.style.display = 'none';
     screens.controls.style.display = 'none';
@@ -1747,6 +1800,7 @@ function endGame(msg) {
     if (settings.gameMode === 1) statsLine += '  \u{2022}  ' + settings.totalWins + ' wins';
     if (isNewBest) statsLine += '  \u{2022}  NEW BEST!';
     $('finalScore').textContent = statsLine;
+    renderBadgeEarned();
 
     if (isNewBest) {
         $('newBestBadge').style.display = 'block';
@@ -1826,6 +1880,16 @@ window.addEventListener('resize', () => {
 });
 
 document.addEventListener('touchmove', e => { if (gameOn) e.preventDefault(); }, { passive: false });
+
+// ===== BACKGROUND TAB AUDIO =====
+document.addEventListener('visibilitychange', () => {
+    if (!audioCtx) return;
+    if (document.hidden) {
+        audioCtx.suspend().catch(() => {});
+    } else if (gameOn && !paused) {
+        audioCtx.resume().catch(() => {});
+    }
+});
 
 // ===== SW UPDATE TOAST =====
 let pendingUpdateSW = null;
