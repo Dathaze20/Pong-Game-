@@ -44,7 +44,7 @@ html, body {
 }
 
 /* === SCREENS === */
-#mainMenu, #settingsMenu, #howToPlay, #gameOverScreen, #pauseOverlay {
+#mainMenu, #settingsMenu, #howToPlay, #badgeRoom, #gameOverScreen, #pauseOverlay {
     position: fixed; inset: 0; z-index: 100;
     display: flex; align-items: center; justify-content: center;
     background: radial-gradient(ellipse at 30% 20%, rgba(0,60,120,.25) 0%, transparent 50%),
@@ -199,12 +199,44 @@ html, body {
 }
 .select-row select { width: auto; flex: 1; }
 
-/* === INSTRUCTIONS === */
-.instructions {
-    width: 100%; text-align: left; line-height: 1.7;
-    color: rgba(255,255,255,.85); font-size: 1rem; font-weight: 700;
+/* === HOW TO PLAY GRID === */
+.htp-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;
 }
-.instructions p { margin-bottom: 10px; }
+.htp-panel {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 12px 8px;
+    background: linear-gradient(145deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
+    border: 1.5px solid rgba(0,200,255,.15);
+    border-radius: 14px; text-align: center;
+    animation: popIn .35s cubic-bezier(.17,.67,.3,1.33) both;
+}
+.htp-panel:nth-child(1) { animation-delay: .05s; }
+.htp-panel:nth-child(2) { animation-delay: .10s; }
+.htp-panel:nth-child(3) { animation-delay: .15s; }
+.htp-panel:nth-child(4) { animation-delay: .20s; }
+.htp-icon { font-size: 2rem; }
+.htp-title {
+    font-family: 'Bungee', sans-serif; font-size: .95rem;
+    background: linear-gradient(90deg, #FF6BF5, #FFD700);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.htp-desc { font-size: .68rem; color: rgba(255,255,255,.7); font-weight: 700; line-height: 1.3; }
+
+/* === LOSS FLASH === */
+@keyframes lossShake {
+    0%,100% { transform: translateX(0); border-color: rgba(255,68,68,.3); }
+    15%      { transform: translateX(-8px); border-color: rgba(255,68,68,.8); }
+    30%      { transform: translateX(8px); }
+    45%      { transform: translateX(-6px); }
+    60%      { transform: translateX(6px); }
+    75%      { transform: translateX(-3px); }
+}
+.gameover-card.loss-flash {
+    animation: lossShake .5s cubic-bezier(.36,.07,.19,.97) both;
+    box-shadow: 0 0 40px rgba(255,68,68,.25), 0 8px 32px rgba(0,0,0,.4);
+}
 
 /* === CANVAS === */
 #gameCanvas {
@@ -397,6 +429,35 @@ html, body {
     0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,.5), 0 0 40px rgba(255,215,0,.2); }
     50% { box-shadow: 0 0 30px rgba(255,107,245,.5), 0 0 50px rgba(0,240,255,.3); }
 }
+
+/* === BADGE ROOM === */
+.badge-room-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    width: 100%; margin: 4px 0;
+}
+.badge-room-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 10px 6px;
+    border-radius: 14px;
+    border: 1.5px solid;
+    text-align: center;
+}
+.badge-room-item.earned {
+    background: linear-gradient(145deg, rgba(255,215,0,.15), rgba(255,107,245,.1));
+    border-color: rgba(255,215,0,.5);
+}
+.badge-room-item.locked {
+    background: rgba(255,255,255,.04);
+    border-color: rgba(255,255,255,.1);
+    opacity: .55;
+    filter: grayscale(1);
+}
+.badge-room-item .br-icon { font-size: 1.6rem; }
+.badge-room-item .br-name {
+    font-family: 'Bungee', sans-serif; font-size: .6rem; color: #FFD700; line-height: 1.2;
+}
+.badge-room-item.locked .br-name { color: rgba(255,255,255,.4); }
+.badge-room-item .br-desc { font-size: .55rem; color: rgba(255,255,255,.5); line-height: 1.2; }
 
 /* === ACHIEVEMENT BADGES === */
 .badge-earned-row {

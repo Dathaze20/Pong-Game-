@@ -7,7 +7,8 @@ const ctx = canvas.getContext('2d', { alpha: false });
 
 const screens = {
     splash: $('splashScreen'), menu: $('mainMenu'), settings: $('settingsMenu'),
-    howToPlay: $('howToPlay'), gameOver: $('gameOverScreen'), pause: $('pauseOverlay'),
+    howToPlay: $('howToPlay'), badgeRoom: $('badgeRoom'),
+    gameOver: $('gameOverScreen'), pause: $('pauseOverlay'),
     hud: $('gameHUD'), controls: $('gameControls')
 };
 
@@ -23,11 +24,12 @@ function synthHit() {
     if (!settings.sfxOn) return;
     try {
         const c = getAudioCtx();
+        const pitch = 0.92 + Math.random() * 0.16;
         const o1 = c.createOscillator(), g1 = c.createGain();
         o1.connect(g1); g1.connect(c.destination);
         o1.type = 'square';
-        o1.frequency.setValueAtTime(660, c.currentTime);
-        o1.frequency.exponentialRampToValueAtTime(220, c.currentTime + 0.08);
+        o1.frequency.setValueAtTime(660 * pitch, c.currentTime);
+        o1.frequency.exponentialRampToValueAtTime(220 * pitch, c.currentTime + 0.08);
         g1.gain.setValueAtTime(0.32, c.currentTime);
         g1.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.1);
         o1.start(c.currentTime); o1.stop(c.currentTime + 0.1);
@@ -65,6 +67,21 @@ function synthScore() {
         gb.gain.setValueAtTime(0.45, c.currentTime);
         gb.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.2);
         ob.start(c.currentTime); ob.stop(c.currentTime + 0.2);
+    } catch (_) {}
+}
+
+function synthAIScore() {
+    if (!settings.sfxOn) return;
+    try {
+        const c = getAudioCtx();
+        const o = c.createOscillator(), g = c.createGain();
+        o.connect(g); g.connect(c.destination);
+        o.type = 'sine';
+        o.frequency.setValueAtTime(330, c.currentTime);
+        o.frequency.exponentialRampToValueAtTime(180, c.currentTime + 0.2);
+        g.gain.setValueAtTime(0.25, c.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.3);
+        o.start(c.currentTime); o.stop(c.currentTime + 0.3);
     } catch (_) {}
 }
 
@@ -258,7 +275,7 @@ const BG_THEMES = [
 // ===== CONFIG =====
 const WIN_SCORE = 15;
 const GAME_TIME = 150;
-const POWERUP_INTERVAL = 8;
+const POWERUP_INTERVAL = 5.5;
 
 const AI_CFG = {
     easy:   { startSpd: 0.30, endSpd: 0.60, startErr: 105, endErr: 50, react: 0.50 },
@@ -299,8 +316,7 @@ let scoreFlash = 0, scoreFlashSide = '';
 let leftHitGlow = 0, rightHitGlow = 0;
 let bradMod = 1;
 let shieldTimer = 0;
-let multiActive = false;
-let multiTimer = null;
+let extraBalls = [];
 
 let dpr = 1, W = 0, H = 0;
 let leftPaddleGrad = null, rightPaddleGrad = null;
@@ -311,7 +327,7 @@ let prevLy = 0, prevRy = 0;
 let halftimeShown = false;
 let hurryUpShown = false;
 let puStartTimes = {};
-const PU_DURATIONS = { speed: 6, freeze: 6, grow: 6, giant: 6, multi: 12, shield: 5 };
+const PU_DURATIONS = { speed: 6, freeze: 6, grow: 6, giant: 6, shield: 5 };
 
 let p1AvatarData = null, p2AvatarData = null;
 let p1AvatarImg = null, p2AvatarImg = null;
@@ -375,6 +391,8 @@ function updateMenuStats() {
     const best = settings.bestScore;
     const badges = badgeCount();
     const games = settings.totalGames;
+    const btn = $('badgeRoomBtn');
+    if (btn) btn.style.display = badges > 0 ? '' : 'none';
     if (wins > 0 || best > 0 || badges > 0) {
         const parts = [];
         if (wins > 0) parts.push('\u{1F3C6} ' + wins + ' Win' + (wins !== 1 ? 's' : ''));
@@ -421,6 +439,22 @@ $('gameMode').addEventListener('change', e => {
     $('p2Row').style.display = e.target.value === '2' ? '' : 'none';
 });
 $('p2Row').style.display = $('gameMode').value === '2' ? '' : 'none';
+
+// ===== BADGE ROOM NAV =====
+$('badgeRoomBtn').addEventListener('click', () => { renderBadgeRoom(); showScreen('badgeRoom'); vibrate(12); });
+$('backFromBadges').addEventListener('click', () => { showScreen('menu'); updateMenuStats(); });
+
+function renderBadgeRoom() {
+    const grid = $('badgeRoomGrid');
+    grid.innerHTML = BADGES.map(b => {
+        const earned = hasBadge(b.id);
+        return `<div class="badge-room-item ${earned ? 'earned' : 'locked'}">
+            <span class="br-icon">${b.icon}</span>
+            <span class="br-name">${b.name}</span>
+            <span class="br-desc">${b.desc}</span>
+        </div>`;
+    }).join('');
+}
 
 // ===== AVATAR UPLOAD =====
 function setupAvatar(pickId, fileId, imgId, storageKey) {
@@ -530,8 +564,7 @@ function resetState() {
     totalHits = 0; maxCombo = 0; rallyHits = 0; ballSquash = 0;
     playerWasDown = false; sessionBadges = [];
     scoreFlash = 0; leftHitGlow = 0; rightHitGlow = 0;
-    bradMod = 1; shieldTimer = 0; multiActive = false;
-    if (multiTimer) { clearTimeout(multiTimer); multiTimer = null; }
+    bradMod = 1; shieldTimer = 0; extraBalls = [];
     scorePopups = []; halftimeShown = false; hurryUpShown = false; goFlash = 0; countdownScale = 0;
     puStartTimes = {};
     ly = ry = (H - ph) / 2;
@@ -556,7 +589,7 @@ function resetBall(dir) {
     serveRamp = 0;
     countdownNum = 3;
     countdownBeepPlayed = 0;
-    rallyHits = 0; ballSquash = 0;
+    rallyHits = 0; ballSquash = 0; extraBalls = [];
 }
 
 // ===== TIMER =====
@@ -758,9 +791,10 @@ function update(dt) {
         else countdownNum = 0;
 
         if (countdownNum !== prev && countdownNum > 0) {
-            countdownScale = 2.5;
+            countdownScale = 2.8;
+            screenShake = 0.04;
             synthCountdown(false);
-            vibrate(countdownNum === 1 ? [30, 20, 30] : 20);
+            vibrate(countdownNum === 1 ? [40, 25, 40] : 25);
         }
         if (countdownScale > 1) countdownScale = Math.max(1, countdownScale - dt * 8);
         if (countdownNum === 0 && prev > 0) {
@@ -880,7 +914,7 @@ function update(dt) {
 
     if (bx < -br * 2) {
         let pts = 1;
-        if (multiActive) { pts = 3; multiActive = false; if (multiTimer) { clearTimeout(multiTimer); multiTimer = null; } announce('3x SCORE!'); speak('Triple points!'); }
+        extraBalls = [];
         const wasLeader = lscore > rscore ? 'left' : rscore > lscore ? 'right' : '';
         rscore += pts;
         bspdMod = 1; bradMod = 1;
@@ -889,9 +923,9 @@ function update(dt) {
         if (lastScorer === 'right') { combo++; } else { combo = 1; lastScorer = 'right'; }
         if (combo > maxCombo) maxCombo = combo;
         rallyHits = 0; ballSquash = 0;
-        synthScore(); vibrate([40, 60, 40, 60, 50]);
-        spawnParticles(0, by, ['#FF6BF5', '#FFD700', '#00F0FF', '#39FF14'], 25, true);
-        screenShake = 0.2;
+        synthAIScore(); vibrate([25, 20, 25]);
+        spawnParticles(0, by, ['#FF6BF5', '#FFD700'], 12, false);
+        screenShake = 0.1;
         let msg;
         const nowLeader = lscore > rscore ? 'left' : rscore > lscore ? 'right' : '';
         if (rscore === 1 && lscore === 0) {
@@ -917,7 +951,7 @@ function update(dt) {
     }
     if (bx > W + br * 2) {
         let pts = 1;
-        if (multiActive) { pts = 3; multiActive = false; if (multiTimer) { clearTimeout(multiTimer); multiTimer = null; } announce('3x SCORE!'); speak('Triple points!'); }
+        extraBalls = [];
         const wasLeader = lscore > rscore ? 'left' : rscore > lscore ? 'right' : '';
         lscore += pts;
         bspdMod = 1; bradMod = 1;
@@ -971,6 +1005,7 @@ function update(dt) {
     ry = Math.max(0, Math.min(H - pph, ry));
 
     if (settings.gameMode === 1) updateAI(dt);
+    if (extraBalls.length > 0) updateExtraBalls(dt);
 
     puTimer += dt;
     if (!powerUp && puTimer >= POWERUP_INTERVAL) { spawnPowerUp(); puTimer = 0; }
@@ -1056,11 +1091,11 @@ function updateAI(dt) {
 
 // ===== POWER-UPS (Arkanoid SNES style) =====
 const PU_TYPES = [
-    { type: 'speed',  color: '#FF4444', letter: 'S', label: 'TURBO!',     color2: '#FF8800' },
-    { type: 'freeze', color: '#4488FF', letter: 'F', label: 'FREEZE!',    color2: '#00CCFF' },
+    { type: 'speed',     color: '#FF4444', letter: 'S', label: 'TURBO!',     color2: '#FF8800' },
+    { type: 'freeze',    color: '#4488FF', letter: 'F', label: 'FREEZE!',    color2: '#00CCFF' },
     { type: 'grow',   color: '#39FF14', letter: 'G', label: 'GROW!',      color2: '#00FF88' },
     { type: 'giant',  color: '#FF8800', letter: 'B', label: 'BIG BALL!',  color2: '#FFCC00' },
-    { type: 'multi',  color: '#B44FFF', letter: '3', label: '3x POINTS!', color2: '#8800FF' },
+    { type: 'multiball', color: '#00FFAA', letter: 'M', label: 'MULTIBALL!', color2: '#00CC88' },
     { type: 'shield', color: '#FFD700', letter: 'W', label: 'SHIELD!',    color2: '#FFE066' }
 ];
 
@@ -1111,14 +1146,100 @@ function applyPowerUp(type) {
     } else if (type === 'giant') {
         bradMod = 2.5;
         t = setTimeout(() => { bradMod = 1; delete puStartTimes.giant; }, dur);
-    } else if (type === 'multi') {
-        multiActive = true;
-        if (multiTimer) clearTimeout(multiTimer);
-        multiTimer = setTimeout(() => { multiActive = false; multiTimer = null; delete puStartTimes.multi; }, dur);
+    } else if (type === 'multiball') {
+        spawnExtraBalls();
     } else if (type === 'shield') {
         shieldTimer = 5;
     }
     if (t) puTimers.push(t);
+}
+
+// ===== EXTRA BALLS (multiball) =====
+function spawnExtraBalls() {
+    extraBalls = [];
+    for (let i = 0; i < 2; i++) {
+        const ang = ((Math.random() - 0.5) * Math.PI / 2.5) + (i === 0 ? 0.4 : -0.4);
+        const dir = bdx > 0 ? -1 : 1;
+        const spd = bspd * bspdMod * 0.85;
+        extraBalls.push({
+            x: bx, y: by,
+            dx: dir * Math.cos(ang) * spd,
+            dy: Math.sin(ang) * spd,
+            life: 12,
+            hue: (hue + 120 + i * 80) % 360
+        });
+    }
+    announce('MULTIBALL! \u{1F3B1}');
+    vibrate([30, 20, 30, 20, 40]);
+}
+
+function updateExtraBalls(dt) {
+    const pph = ph * phMod;
+    const rampFactor = 0.72 + 0.28 * serveRamp;
+    for (let i = extraBalls.length - 1; i >= 0; i--) {
+        const eb = extraBalls[i];
+        eb.life -= dt;
+        if (eb.life <= 0) { extraBalls.splice(i, 1); continue; }
+        eb.x += eb.dx * dt;
+        eb.y += eb.dy * dt;
+        const ebr = brad * 0.8;
+        if (eb.y - ebr < 0) { eb.y = ebr; eb.dy = Math.abs(eb.dy); synthWall(); }
+        if (eb.y + ebr > H) { eb.y = H - ebr; eb.dy = -Math.abs(eb.dy); synthWall(); }
+        const lx2 = pmar + pw;
+        if (eb.dx < 0 && eb.x - ebr <= lx2 && eb.x + ebr > pmar && eb.y + ebr >= ly && eb.y - ebr <= ly + pph) {
+            eb.x = lx2 + ebr;
+            const hit = (eb.y - ly) / pph - 0.5;
+            const a = hit * (Math.PI / 3);
+            const spd2 = Math.hypot(eb.dx, eb.dy);
+            eb.dx = Math.abs(Math.cos(a)) * spd2; eb.dy = Math.sin(a) * spd2;
+            synthHit(); spawnParticles(lx2, eb.y, ['#00F0FF', '#fff'], 8, false);
+        }
+        const rx2 = W - pmar - pw;
+        if (eb.dx > 0 && eb.x + ebr >= rx2 && eb.x - ebr < W - pmar && eb.y + ebr >= ry && eb.y - ebr <= ry + pph) {
+            eb.x = rx2 - ebr;
+            const hit = (eb.y - ry) / pph - 0.5;
+            const a = hit * (Math.PI / 3);
+            const spd2 = Math.hypot(eb.dx, eb.dy);
+            eb.dx = -Math.abs(Math.cos(a)) * spd2; eb.dy = Math.sin(a) * spd2;
+            synthHit(); spawnParticles(rx2, eb.y, ['#FF6BF5', '#fff'], 8, false);
+        }
+        if (eb.x < -ebr * 2) {
+            rscore++; updateHUD();
+            spawnParticles(0, eb.y, ['#FF6BF5', '#FFD700'], 12, true);
+            screenShake = 0.12; synthAIScore(); vibrate([30, 40, 30]);
+            extraBalls.splice(i, 1);
+            if (rscore >= WIN_SCORE) { endGame(settings.p2Name + ' Wins!'); return; }
+        } else if (eb.x > W + ebr * 2) {
+            lscore++; updateHUD();
+            spawnParticles(W, eb.y, ['#00F0FF', '#FFD700'], 12, true);
+            screenShake = 0.12; synthScore(); vibrate([30, 40, 30]);
+            extraBalls.splice(i, 1);
+            if (lscore >= WIN_SCORE) { endGame(settings.p1Name + ' Wins!'); return; }
+        }
+    }
+}
+
+function renderExtraBalls(hc) {
+    for (const eb of extraBalls) {
+        const ebr = brad * 0.8;
+        const alpha = Math.min(1, eb.life * 0.5);
+        ctx.globalAlpha = alpha;
+        if (!hc) {
+            ctx.beginPath();
+            ctx.arc(eb.x, eb.y, ebr * 2.2, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${eb.hue}, 100%, 50%, 0.1)`;
+            ctx.fill();
+        }
+        ctx.beginPath();
+        ctx.arc(eb.x, eb.y, ebr, 0, Math.PI * 2);
+        ctx.fillStyle = hc ? '#FFF' : `hsl(${eb.hue}, 100%, 65%)`;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(eb.x - ebr * 0.2, eb.y - ebr * 0.2, ebr * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.fill();
+        ctx.globalAlpha = 1;
+    }
 }
 
 // ===== RENDER =====
@@ -1350,6 +1471,8 @@ function render() {
     ctx.fill();
     ctx.restore();
 
+    renderExtraBalls(hc);
+
     // Active power-up indicators with timer bars
     if (!hc) {
         const inds = [];
@@ -1358,7 +1481,7 @@ function render() {
         if (bspdMod < 0.9) inds.push({ label: '\u{2744}\u{FE0F} FREEZE', color: '#4488FF', type: 'freeze' });
         if (phMod > 1.1) inds.push({ label: '\u{1F4AA} GROW', color: '#39FF14', type: 'grow' });
         if (bradMod > 1.1) inds.push({ label: '\u{1F3C0} BIG BALL', color: '#FF8800', type: 'giant' });
-        if (multiActive) inds.push({ label: '\u{26A1} 3x NEXT GOAL', color: '#B44FFF', type: 'multi' });
+        if (extraBalls.length > 0) inds.push({ label: '\u{1F3B1} MULTIBALL', color: '#00FFAA', type: 'multiball' });
         if (shieldTimer > 0) inds.push({ label: '\u{1F6E1}\u{FE0F} SHIELD', color: '#FFD700', type: 'shield' });
         if (inds.length > 0) {
             const fs = Math.round(Math.min(W, H) * 0.032);
@@ -1503,6 +1626,30 @@ function render() {
         ctx.arc(W / 2, H / 2, bRad * 1.8, 0, Math.PI * 2);
         ctx.fillStyle = `hsla(${hue}, 100%, 60%, ${servePulse})`;
         ctx.fill();
+
+        // Serve direction arrow
+        if (countdownNum > 0) {
+            const arrowAlpha = (0.5 + Math.sin(performance.now() / 250) * 0.3) * Math.min(1, (3.2 - serveTimer) * 1.5);
+            const arrowLen = Math.min(W, H) * 0.14;
+            const ax = W / 2 + serveDir * bRad * 3;
+            const arrowEndX = W / 2 + serveDir * (bRad * 3 + arrowLen);
+            const ay = H / 2;
+            const arrowColor = serveDir > 0 ? '#00F0FF' : '#FF6BF5';
+            ctx.save();
+            ctx.globalAlpha = arrowAlpha;
+            ctx.strokeStyle = arrowColor;
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(arrowEndX, ay); ctx.stroke();
+            const hs = 10;
+            ctx.fillStyle = arrowColor;
+            ctx.beginPath();
+            ctx.moveTo(arrowEndX, ay);
+            ctx.lineTo(arrowEndX - serveDir * hs, ay - hs * 0.55);
+            ctx.lineTo(arrowEndX - serveDir * hs, ay + hs * 0.55);
+            ctx.closePath(); ctx.fill();
+            ctx.restore();
+        }
     }
 
     if (goFlash > 0) {
@@ -1749,8 +1896,6 @@ function endGame(msg) {
     if (rafId) cancelAnimationFrame(rafId);
     stopMusic();
     releaseWakeLock();
-    synthWin();
-    vibrate([80, 100, 80, 100, 80, 60]);
 
     const p1Won = lscore > rscore;
     settings.totalGames = settings.totalGames + 1;
@@ -1768,12 +1913,23 @@ function endGame(msg) {
     bgPickerOpen = false;
 
     resize();
-    spawnConfetti();
-    celebrationLoop._last = performance.now();
-    celebrationRafId = requestAnimationFrame(celebrationLoop);
+    const isTie = lscore === rscore;
+    if (p1Won || isTie) {
+        synthWin();
+        vibrate([80, 100, 80, 100, 80, 60]);
+        spawnConfetti();
+        celebrationLoop._last = performance.now();
+        celebrationRafId = requestAnimationFrame(celebrationLoop);
+    } else {
+        synthAIScore();
+        vibrate([120, 80, 40]);
+        canvas.style.display = 'none';
+        const card = document.querySelector('.gameover-card');
+        if (card) { card.classList.remove('loss-flash'); void card.offsetWidth; card.classList.add('loss-flash'); }
+    }
 
     const diff = Math.abs(lscore - rscore);
-    const winner = p1Won ? settings.p1Name : settings.p2Name;
+    const winner = (lscore > rscore) ? settings.p1Name : settings.p2Name;
     let displayMsg;
     if (msg === "It's a Tie!") {
         displayMsg = "IT'S A TIE! EPIC BATTLE!";
@@ -1865,6 +2021,7 @@ function quit() {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     showScreen('menu');
     updateMenuStats();
+    if (deferredInstallPrompt) { const banner = $('installBanner'); if (banner) banner.style.display = 'flex'; }
 }
 
 // ===== RESIZE =====
@@ -1928,8 +2085,8 @@ let deferredInstallPrompt = null;
 window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     deferredInstallPrompt = e;
-    const banner = $('installBanner');
-    if (banner) banner.style.display = 'flex';
+    // Only show banner when on the menu, never during gameplay
+    if (!gameOn) { const banner = $('installBanner'); if (banner) banner.style.display = 'flex'; }
 });
 window.addEventListener('appinstalled', () => {
     deferredInstallPrompt = null;
