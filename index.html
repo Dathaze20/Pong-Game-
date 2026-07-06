@@ -64,6 +64,16 @@
                 <button id="howToPlayButton" class="btn-small">&#128161; How To Play</button>
             </div>
             <div id="menuStats" class="menu-stats" style="display:none;"></div>
+            <button id="badgeRoomBtn" class="btn-small" style="display:none;">&#127941; My Badges</button>
+        </div>
+    </div>
+
+    <!-- Badge Room -->
+    <div id="badgeRoom" style="display:none;">
+        <div class="menu-card">
+            <h1 class="menu-title">&#127941; My Badges</h1>
+            <div id="badgeRoomGrid" class="badge-room-grid"></div>
+            <button id="backFromBadges" class="btn-small">&#8592; Back</button>
         </div>
     </div>
 
@@ -102,11 +112,27 @@
     <div id="howToPlay" style="display:none;">
         <div class="menu-card">
             <h1 class="menu-title">&#128161; How To Play</h1>
-            <div class="instructions">
-                <p>&#128072; <strong>Slide your finger ANYWHERE</strong> on the screen to move your paddle!</p>
-                <p>&#127955; <strong>Hit the ball</strong> past the other paddle to score!</p>
-                <p>&#11088; <strong>Grab power-ups</strong> for awesome abilities!</p>
-                <p>&#127942; <strong>First to 15 points WINS!</strong></p>
+            <div class="htp-grid">
+                <div class="htp-panel">
+                    <div class="htp-icon">&#128072;</div>
+                    <div class="htp-title">SLIDE</div>
+                    <div class="htp-desc">Drag anywhere on your side to move</div>
+                </div>
+                <div class="htp-panel">
+                    <div class="htp-icon">&#127955;</div>
+                    <div class="htp-title">HIT</div>
+                    <div class="htp-desc">Bounce the ball past their paddle</div>
+                </div>
+                <div class="htp-panel">
+                    <div class="htp-icon">&#11088;</div>
+                    <div class="htp-title">GRAB</div>
+                    <div class="htp-desc">Catch power-ups for super abilities</div>
+                </div>
+                <div class="htp-panel">
+                    <div class="htp-icon">&#127942;</div>
+                    <div class="htp-title">WIN!</div>
+                    <div class="htp-desc">First to 15 points is champion!</div>
+                </div>
             </div>
             <button id="backFromHowToPlay" class="btn-small">&#8592; Back</button>
         </div>
