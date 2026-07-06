@@ -244,9 +244,9 @@ const GAME_TIME = 150;
 const POWERUP_INTERVAL = 8;
 
 const AI_CFG = {
-    easy:   { startSpd: 0.3,  endSpd: 0.65, startErr: 90, endErr: 30, react: 0.55 },
-    medium: { startSpd: 0.38, endSpd: 0.82, startErr: 75, endErr: 20, react: 0.62 },
-    hard:   { startSpd: 0.55, endSpd: 1.0,  startErr: 50, endErr: 10, react: 0.75 }
+    easy:   { startSpd: 0.30, endSpd: 0.60, startErr: 105, endErr: 50, react: 0.50 },
+    medium: { startSpd: 0.38, endSpd: 0.82, startErr: 72,  endErr: 22, react: 0.62 },
+    hard:   { startSpd: 0.55, endSpd: 1.0,  startErr: 50,  endErr: 10, react: 0.75 }
 };
 
 // ===== STATE =====
@@ -972,13 +972,15 @@ function getProgressiveAI() {
     let err = lerp(cfg.startErr, cfg.endErr, progress);
     let react = cfg.react * (0.6 + progress * 0.4);
     const scoreDiff = rscore - lscore;
-    if (scoreDiff >= 5) { spd *= 0.55; err *= 2.2; react *= 0.6; }
-    else if (scoreDiff >= 4) { spd *= 0.6; err *= 2.0; react *= 0.65; }
-    else if (scoreDiff >= 3) { spd *= 0.68; err *= 1.7; react *= 0.72; }
-    else if (scoreDiff >= 2) { spd *= 0.78; err *= 1.4; react *= 0.82; }
-    else if (scoreDiff >= 1) { spd *= 0.88; err *= 1.2; react *= 0.9; }
-    else if (scoreDiff <= -3) { spd *= 1.08; err *= 0.8; }
-    else if (scoreDiff <= -2) { spd *= 1.05; err *= 0.9; }
+    // Error injection is the primary lever — keeps AI movement natural while reducing accuracy.
+    // Speed changes are kept small to avoid visibly "jerky" AI slow-down.
+    if (scoreDiff >= 5) { spd *= 0.76; err *= 3.0; react *= 0.78; }
+    else if (scoreDiff >= 4) { spd *= 0.82; err *= 2.5; react *= 0.83; }
+    else if (scoreDiff >= 3) { spd *= 0.87; err *= 2.0; react *= 0.88; }
+    else if (scoreDiff >= 2) { spd *= 0.92; err *= 1.55; react *= 0.93; }
+    else if (scoreDiff >= 1) { spd *= 0.96; err *= 1.28; react *= 0.97; }
+    else if (scoreDiff <= -3) { spd *= 1.04; err *= 0.76; }
+    else if (scoreDiff <= -2) { spd *= 1.02; err *= 0.86; }
     return { speed: spd, err: err, react: react };
 }
 
@@ -989,7 +991,11 @@ function updateAI(dt) {
     const progress = Math.min(totalPts / (WIN_SCORE * 1.8), 1);
 
     aiUpdateTimer -= dt;
-    const updateDelay = 0.18 + (1 - progress) * 0.15 + Math.random() * 0.1;
+    const scoreDiff = rscore - lscore;
+    // When player is losing, add extra latency so AI reacts slower to deflections.
+    // This is invisible to the player — the AI still moves smoothly, just recalculates later.
+    const lagBonus = scoreDiff < -1 ? Math.min((-scoreDiff - 1) * 0.075, 0.22) : 0;
+    const updateDelay = 0.18 + (1 - progress) * 0.15 + Math.random() * 0.1 + lagBonus;
     if (aiUpdateTimer <= 0) {
         aiUpdateTimer = updateDelay;
 
