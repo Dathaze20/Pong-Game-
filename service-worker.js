@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pong-game-v28';
+const CACHE_NAME = 'pong-game-v29';
 const ASSETS = [
     './',
     './index.html',
@@ -37,14 +37,17 @@ self.addEventListener('fetch', event => {
     const isCodeFile = NETWORK_FIRST.some(f => url.pathname.endsWith(f));
 
     if (isCodeFile) {
+        // Stale-while-revalidate: serve cache instantly, update in background
         event.respondWith(
-            fetch(event.request).then(response => {
-                if (response.ok) {
-                    const clone = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-                }
-                return response;
-            }).catch(() => caches.match(event.request))
+            caches.open(CACHE_NAME).then(cache =>
+                cache.match(event.request).then(cached => {
+                    const networkFetch = fetch(event.request).then(response => {
+                        if (response.ok) cache.put(event.request, response.clone());
+                        return response;
+                    }).catch(() => null);
+                    return cached || networkFetch;
+                })
+            )
         );
     } else {
         event.respondWith(

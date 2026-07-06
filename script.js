@@ -1047,7 +1047,7 @@ function applyPowerUp(type) {
 }
 
 // ===== RENDER =====
-let bgGrad = null, bgW = 0, bgH = 0, bgThemeIdx = -1;
+let bgGrad = null, divGrad = null, bgW = 0, bgH = 0, bgThemeIdx = -1;
 
 function render() {
     let sx = 0, sy = 0;
@@ -1073,6 +1073,12 @@ function render() {
             bgGrad.addColorStop(0.5, theme.colors[1]);
             bgGrad.addColorStop(1, theme.colors[2]);
         }
+        divGrad = ctx.createLinearGradient(W / 2, 0, W / 2, H);
+        divGrad.addColorStop(0, `rgba(${br},${bg},${bb},0)`);
+        divGrad.addColorStop(0.3, `rgba(${br},${bg},${bb},0.08)`);
+        divGrad.addColorStop(0.5, `rgba(${br},${bg},${bb},0.12)`);
+        divGrad.addColorStop(0.7, `rgba(${br},${bg},${bb},0.08)`);
+        divGrad.addColorStop(1, `rgba(${br},${bg},${bb},0)`);
         bgW = W; bgH = H; bgThemeIdx = settings.bgTheme;
     }
     ctx.fillStyle = bgGrad;
@@ -1109,14 +1115,8 @@ function render() {
         }
     }
 
-    // Center divider — subtle glow line
+    // Center divider — subtle glow line (divGrad cached, recreated on theme/resize)
     if (!hc) {
-        const divGrad = ctx.createLinearGradient(W / 2, 0, W / 2, H);
-        divGrad.addColorStop(0, `rgba(${br},${bg},${bb},0)`);
-        divGrad.addColorStop(0.3, `rgba(${br},${bg},${bb},0.08)`);
-        divGrad.addColorStop(0.5, `rgba(${br},${bg},${bb},0.12)`);
-        divGrad.addColorStop(0.7, `rgba(${br},${bg},${bb},0.08)`);
-        divGrad.addColorStop(1, `rgba(${br},${bg},${bb},0)`);
         ctx.strokeStyle = divGrad;
         ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
@@ -1461,7 +1461,7 @@ function buildBgPicker() {
         btn.innerHTML = `<span class="swatch-label">${t.name}</span>`;
         btn.addEventListener('click', () => {
             settings.bgTheme = i;
-            bgGrad = null;
+            bgGrad = null; divGrad = null;
             buildBgPicker();
             vibrate(12);
         });
@@ -1770,22 +1770,59 @@ window.addEventListener('resize', () => {
 
 document.addEventListener('touchmove', e => { if (gameOn) e.preventDefault(); }, { passive: false });
 
+// ===== SW UPDATE TOAST =====
+let pendingUpdateSW = null;
+function showUpdateToast() {
+    const toast = $('updateToast');
+    if (!toast) return;
+    toast.style.display = 'flex';
+    $('updateToastBtn').onclick = () => {
+        toast.style.display = 'none';
+        if (pendingUpdateSW) pendingUpdateSW.postMessage({ type: 'SKIP_WAITING' });
+        else window.location.reload();
+    };
+}
+
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js').then(reg => {
         reg.addEventListener('updatefound', () => {
             const newSW = reg.installing;
             if (!newSW) return;
             newSW.addEventListener('statechange', () => {
-                if (newSW.state === 'activated' && navigator.serviceWorker.controller) {
-                    if (!gameOn) window.location.reload();
+                if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                    pendingUpdateSW = newSW;
+                    showUpdateToast();
                 }
             });
         });
         setInterval(() => { reg.update().catch(() => {}); }, 60 * 60 * 1000);
     }).catch(() => {});
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!gameOn) window.location.reload();
+        window.location.reload();
     });
 }
+
+// ===== PWA INSTALL BUTTON =====
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    const banner = $('installBanner');
+    if (banner) banner.style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    const banner = $('installBanner');
+    if (banner) banner.style.display = 'none';
+});
+$('installBtn') && $('installBtn').addEventListener('click', () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(() => { deferredInstallPrompt = null; });
+    $('installBanner').style.display = 'none';
+});
+$('installDismiss') && $('installDismiss').addEventListener('click', () => {
+    $('installBanner').style.display = 'none';
+});
 
 })();
