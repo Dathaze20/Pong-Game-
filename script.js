@@ -137,6 +137,24 @@ function synthWin() {
     } catch (_) {}
 }
 
+function synthStreak(tier) {
+    if (!settings.sfxOn) return;
+    try {
+        const c = getAudioCtx();
+        const notes = tier === 1 ? [880, 1047, 1318] : tier === 2 ? [880, 1047, 1318, 1568] : [880, 1047, 1318, 1568, 2093];
+        notes.forEach((freq, i) => {
+            const o = c.createOscillator(), g = c.createGain();
+            o.connect(g); g.connect(c.destination);
+            o.type = 'sine';
+            o.frequency.setValueAtTime(freq, c.currentTime + i * 0.07);
+            g.gain.setValueAtTime(0.2, c.currentTime + i * 0.07);
+            g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + i * 0.07 + 0.2);
+            o.start(c.currentTime + i * 0.07);
+            o.stop(c.currentTime + i * 0.07 + 0.22);
+        });
+    } catch (_) {}
+}
+
 const bgMusicEl = $('bgMusic');
 let musicReady = false;
 bgMusicEl.addEventListener('canplaythrough', () => { musicReady = true; });
@@ -244,6 +262,8 @@ let puTimers = [];
 let particles = [], announceQ = null;
 let screenShake = 0;
 let combo = 0, lastScorer = '';
+let rallyHits = 0;
+let ballSquash = 0, ballSquashHoriz = true;
 let prevLeader = '';
 let hue = 0, glowPulse = 0;
 let totalHits = 0, maxCombo = 0;
@@ -485,7 +505,7 @@ function resetState() {
     puTimers = [];
     particles = []; announceQ = null;
     screenShake = 0; combo = 0; lastScorer = ''; prevLeader = '';
-    totalHits = 0; maxCombo = 0;
+    totalHits = 0; maxCombo = 0; rallyHits = 0; ballSquash = 0;
     scoreFlash = 0; leftHitGlow = 0; rightHitGlow = 0;
     bradMod = 1; shieldTimer = 0; multiActive = false;
     if (multiTimer) { clearTimeout(multiTimer); multiTimer = null; }
@@ -513,6 +533,7 @@ function resetBall(dir) {
     serveRamp = 0;
     countdownNum = 3;
     countdownBeepPlayed = 0;
+    rallyHits = 0; ballSquash = 0;
 }
 
 // ===== TIMER =====
@@ -758,10 +779,12 @@ function update(dt) {
     if (by - br < 0) {
         by = br; bdy = Math.abs(bdy); synthWall(); vibrate(10);
         spawnParticles(bx, 0, ['#fff', '#FFD700'], 6, false);
+        ballSquash = 0.28; ballSquashHoriz = false;
     }
     if (by + br > H) {
         by = H - br; bdy = -Math.abs(bdy); synthWall(); vibrate(10);
         spawnParticles(bx, H, ['#fff', '#FFD700'], 6, false);
+        ballSquash = 0.28; ballSquashHoriz = false;
     }
 
     const pph = ph * phMod;
@@ -780,6 +803,12 @@ function update(dt) {
         synthHit(); vibrate([25, 15, 25]);
         spawnParticles(lx, by, ['#00F0FF', '#39FF14', '#fff'], 12, false);
         screenShake = 0.08;
+        ballSquash = 0.45; ballSquashHoriz = true;
+        rallyHits++;
+        if (rallyHits === 3) { announce('3 HIT RALLY! \u{1F525}'); synthStreak(1); }
+        else if (rallyHits === 5) { announce('5 HIT STREAK! \u{1F4A5}'); synthStreak(2); }
+        else if (rallyHits === 8) { announce('INSANE RALLY!! \u{1F525}\u{1F525}'); synthStreak(3); }
+        else if (rallyHits >= 12 && rallyHits % 4 === 0) { announce('GODLIKE!! \u{26A1}'); synthStreak(3); }
     }
 
     const rx = W - pmar - pw;
@@ -796,6 +825,12 @@ function update(dt) {
         synthHit(); vibrate([25, 15, 25]);
         spawnParticles(rx, by, ['#FF6BF5', '#FFD700', '#fff'], 12, false);
         screenShake = 0.08;
+        ballSquash = 0.45; ballSquashHoriz = true;
+        rallyHits++;
+        if (rallyHits === 3) { announce('3 HIT RALLY! \u{1F525}'); synthStreak(1); }
+        else if (rallyHits === 5) { announce('5 HIT STREAK! \u{1F4A5}'); synthStreak(2); }
+        else if (rallyHits === 8) { announce('INSANE RALLY!! \u{1F525}\u{1F525}'); synthStreak(3); }
+        else if (rallyHits >= 12 && rallyHits % 4 === 0) { announce('GODLIKE!! \u{26A1}'); synthStreak(3); }
     }
 
     // Shield walls - bounce ball back
@@ -824,6 +859,7 @@ function update(dt) {
         spawnScorePopup(W * 0.75, H * 0.35, pts, 'right');
         if (lastScorer === 'right') { combo++; } else { combo = 1; lastScorer = 'right'; }
         if (combo > maxCombo) maxCombo = combo;
+        rallyHits = 0; ballSquash = 0;
         synthScore(); vibrate([40, 60, 40, 60, 50]);
         spawnParticles(0, by, ['#FF6BF5', '#FFD700', '#00F0FF', '#39FF14'], 25, true);
         screenShake = 0.2;
@@ -860,6 +896,7 @@ function update(dt) {
         spawnScorePopup(W * 0.25, H * 0.35, pts, 'left');
         if (lastScorer === 'left') { combo++; } else { combo = 1; lastScorer = 'left'; }
         if (combo > maxCombo) maxCombo = combo;
+        rallyHits = 0; ballSquash = 0;
         synthScore(); vibrate([40, 60, 40, 60, 50]);
         spawnParticles(W, by, ['#00F0FF', '#FFD700', '#FF6BF5', '#39FF14'], 25, true);
         screenShake = 0.2;
@@ -916,6 +953,7 @@ function update(dt) {
     updateParticles(dt);
     updateScorePopups(dt);
     if (screenShake > 0) screenShake = Math.max(0, screenShake - dt);
+    if (ballSquash > 0) ballSquash = Math.max(0, ballSquash - dt * 5);
     if (scoreFlash > 0) scoreFlash = Math.max(0, scoreFlash - dt);
     if (leftHitGlow > 0) leftHitGlow = Math.max(0, leftHitGlow - dt);
     if (rightHitGlow > 0) rightHitGlow = Math.max(0, rightHitGlow - dt);
@@ -1246,17 +1284,22 @@ function render() {
         }
     }
 
-    // Ball glow
+    // Ball glow + body + highlight (squash & stretch on hit)
+    ctx.save();
+    ctx.translate(bx, by);
+    if (ballSquash > 0) {
+        const sq = ballSquash;
+        if (ballSquashHoriz) { ctx.scale(1 - sq * 0.38, 1 + sq * 0.38); }
+        else { ctx.scale(1 + sq * 0.22, 1 - sq * 0.22); }
+    }
     if (!hc) {
         ctx.beginPath();
-        ctx.arc(bx, by, bRad * 2.5, 0, Math.PI * 2);
+        ctx.arc(0, 0, bRad * 2.5, 0, Math.PI * 2);
         ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${bradMod > 1 ? 0.15 : 0.08})`;
         ctx.fill();
     }
-
-    // Ball
     ctx.beginPath();
-    ctx.arc(bx, by, bRad, 0, Math.PI * 2);
+    ctx.arc(0, 0, bRad, 0, Math.PI * 2);
     ctx.fillStyle = ballColor;
     ctx.fill();
     if (bradMod > 1 && !hc) {
@@ -1264,11 +1307,11 @@ function render() {
         ctx.lineWidth = 2;
         ctx.stroke();
     }
-    // Ball highlight
     ctx.beginPath();
-    ctx.arc(bx - bRad * 0.2, by - bRad * 0.2, bRad * 0.3, 0, Math.PI * 2);
+    ctx.arc(-bRad * 0.2, -bRad * 0.2, bRad * 0.3, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     ctx.fill();
+    ctx.restore();
 
     // Active power-up indicators with timer bars
     if (!hc) {
