@@ -256,6 +256,8 @@ let pw, ph, pmar, pspd;
 let ly, ry, lscore, rscore;
 let timer, timerInt;
 let tLeftY = null, tRightY = null;
+let p1TouchId = null, p2TouchId = null;
+const TOUCH_DEAD_ZONE = 4;
 let powerUp = null, puTimer = 0;
 let phMod = 1, bspdMod = 1;
 let puTimers = [];
@@ -513,7 +515,7 @@ function resetState() {
     puStartTimes = {};
     ly = ry = (H - ph) / 2;
     prevLy = ly; prevRy = ry;
-    tLeftY = tRightY = null;
+    tLeftY = tRightY = null; p1TouchId = null; p2TouchId = null;
     aiTargetY = H / 2; aiUpdateTimer = 0;
     serveTimer = 0; timerStarted = false;
     resetBall();
@@ -1544,38 +1546,44 @@ $('myMusicFile').addEventListener('change', e => {
 });
 
 // ===== TOUCH =====
-canvas.addEventListener('touchstart', handleTouch, { passive: false });
-canvas.addEventListener('touchmove', handleTouch, { passive: false });
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (bgPickerOpen) { bgPickerOpen = false; $('bgPickerPanel').style.display = 'none'; }
+    if (!gameOn || paused) return;
+    const rect = canvas.getBoundingClientRect();
+    const midX = rect.left + rect.width / 2;
+    for (const t of e.changedTouches) {
+        if (settings.gameMode === 1) {
+            if (p1TouchId === null) { p1TouchId = t.identifier; tLeftY = t.clientY; }
+        } else {
+            if (t.clientX < midX && p1TouchId === null) { p1TouchId = t.identifier; tLeftY = t.clientY; }
+            else if (t.clientX >= midX && p2TouchId === null) { p2TouchId = t.identifier; tRightY = t.clientY; }
+        }
+    }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!gameOn || paused) return;
+    for (const t of e.changedTouches) {
+        if (t.identifier === p1TouchId) {
+            if (tLeftY === null || Math.abs(t.clientY - tLeftY) >= TOUCH_DEAD_ZONE) tLeftY = t.clientY;
+        } else if (t.identifier === p2TouchId) {
+            if (tRightY === null || Math.abs(t.clientY - tRightY) >= TOUCH_DEAD_ZONE) tRightY = t.clientY;
+        }
+    }
+}, { passive: false });
+
+function handleTouchEnd(e) {
+    for (const t of e.changedTouches) {
+        if (t.identifier === p1TouchId) { p1TouchId = null; tLeftY = null; }
+        else if (t.identifier === p2TouchId) { p2TouchId = null; tRightY = null; }
+    }
+}
 canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
 canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
-
-function handleTouch(e) {
-    e.preventDefault();
-    if (bgPickerOpen) {
-        bgPickerOpen = false;
-        $('bgPickerPanel').style.display = 'none';
-    }
-    for (const t of e.touches) {
-        if (settings.gameMode === 1) {
-            tLeftY = t.clientY;
-        } else {
-            if (t.clientX < W / 2) tLeftY = t.clientY;
-            else tRightY = t.clientY;
-        }
-    }
-}
-function handleTouchEnd(e) {
-    if (settings.gameMode === 1) {
-        if (e.touches.length === 0) tLeftY = null;
-    } else {
-        const still = new Set();
-        for (const t of e.touches) {
-            if (t.clientX < W / 2) still.add('l'); else still.add('r');
-        }
-        if (!still.has('l')) tLeftY = null;
-        if (!still.has('r')) tRightY = null;
-    }
-}
 
 // ===== KEYBOARD =====
 const keys = new Set();
