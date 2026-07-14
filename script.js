@@ -812,8 +812,8 @@ function update(dt) {
         if (tRightY !== null && settings.gameMode === 2) ry = tRightY - pph / 2;
         if (keys.has('ArrowUp') || keys.has('w')) ly -= pspd * dt;
         if (keys.has('ArrowDown') || keys.has('s')) ly += pspd * dt;
-        ly = Math.max(0, Math.min(H - pph, ly));
-        ry = Math.max(0, Math.min(H - pph, ry));
+        ly = GameLogic.clampPaddle(ly, pph, H);
+        ry = GameLogic.clampPaddle(ry, pph, H);
         if (settings.gameMode === 1) updateAI(dt);
         updateParticles(dt);
         if (scoreFlash > 0) scoreFlash = Math.max(0, scoreFlash - dt);
@@ -847,13 +847,11 @@ function update(dt) {
     const pph = ph * phMod;
 
     const lx = pmar + pw;
-    if (bdx < 0 && bx - br <= lx && bx + br > pmar &&
-        by + br >= ly && by - br <= ly + pph) {
+    if (GameLogic.paddleHitsBall({ bx, by, br, bdx, pmar, pw, paddleY: ly, paddleH: pph, courtW: W, side: 'left' })) {
         bx = lx + br;
-        const hit = (by - ly) / pph - 0.5;
-        const a = hit * (Math.PI / 3);
-        bdx = Math.abs(Math.cos(a)) * spd;
-        bdy = Math.sin(a) * spd;
+        const reflected = GameLogic.reflectOffPaddle({ by, paddleY: ly, paddleH: pph, speed: spd, side: 'left' });
+        bdx = reflected.bdx;
+        bdy = reflected.bdy;
         bspdMod = Math.min(bspdMod * 1.02, 1.6);
         totalHits++;
         leftHitGlow = 0.4;
@@ -872,13 +870,11 @@ function update(dt) {
     }
 
     const rx = W - pmar - pw;
-    if (bdx > 0 && bx + br >= rx && bx - br < W - pmar &&
-        by + br >= ry && by - br <= ry + pph) {
+    if (GameLogic.paddleHitsBall({ bx, by, br, bdx, pmar, pw, paddleY: ry, paddleH: pph, courtW: W, side: 'right' })) {
         bx = rx - br;
-        const hit = (by - ry) / pph - 0.5;
-        const a = hit * (Math.PI / 3);
-        bdx = -Math.abs(Math.cos(a)) * spd;
-        bdy = Math.sin(a) * spd;
+        const reflected = GameLogic.reflectOffPaddle({ by, paddleY: ry, paddleH: pph, speed: spd, side: 'right' });
+        bdx = reflected.bdx;
+        bdy = reflected.bdy;
         bspdMod = Math.min(bspdMod * 1.02, 1.6);
         totalHits++;
         rightHitGlow = 0.4;
@@ -1001,8 +997,8 @@ function update(dt) {
         if (keys.has('k')) ry += pspd * dt;
     }
 
-    ly = Math.max(0, Math.min(H - pph, ly));
-    ry = Math.max(0, Math.min(H - pph, ry));
+    ly = GameLogic.clampPaddle(ly, pph, H);
+    ry = GameLogic.clampPaddle(ry, pph, H);
 
     if (settings.gameMode === 1) updateAI(dt);
     if (extraBalls.length > 0) updateExtraBalls(dt);
@@ -1027,25 +1023,10 @@ function update(dt) {
 }
 
 // ===== AI (progressive difficulty, rubber-banding) =====
+// See game-logic.js#computeAiDifficulty for the pure calculation this wraps.
 function getProgressiveAI() {
     const cfg = AI_CFG[settings.difficulty] || AI_CFG.medium;
-    const totalPts = lscore + rscore;
-    const progress = Math.min(totalPts / (WIN_SCORE * 1.8), 1);
-    const lerp = (a, b, t) => a + (b - a) * t;
-    let spd = lerp(cfg.startSpd, cfg.endSpd, progress);
-    let err = lerp(cfg.startErr, cfg.endErr, progress);
-    let react = cfg.react * (0.6 + progress * 0.4);
-    const scoreDiff = rscore - lscore;
-    // Error injection is the primary lever — keeps AI movement natural while reducing accuracy.
-    // Speed changes are kept small to avoid visibly "jerky" AI slow-down.
-    if (scoreDiff >= 5) { spd *= 0.76; err *= 3.0; react *= 0.78; }
-    else if (scoreDiff >= 4) { spd *= 0.82; err *= 2.5; react *= 0.83; }
-    else if (scoreDiff >= 3) { spd *= 0.87; err *= 2.0; react *= 0.88; }
-    else if (scoreDiff >= 2) { spd *= 0.92; err *= 1.55; react *= 0.93; }
-    else if (scoreDiff >= 1) { spd *= 0.96; err *= 1.28; react *= 0.97; }
-    else if (scoreDiff <= -3) { spd *= 1.04; err *= 0.76; }
-    else if (scoreDiff <= -2) { spd *= 1.02; err *= 0.86; }
-    return { speed: spd, err: err, react: react };
+    return GameLogic.computeAiDifficulty(cfg, lscore, rscore, WIN_SCORE);
 }
 
 function updateAI(dt) {
@@ -1086,7 +1067,7 @@ function updateAI(dt) {
         const moveAmt = Math.min(Math.abs(diff) * 0.1, maxMove);
         ry += Math.sign(diff) * moveAmt;
     }
-    ry = Math.max(0, Math.min(H - pph, ry));
+    ry = GameLogic.clampPaddle(ry, pph, H);
 }
 
 // ===== POWER-UPS (Arkanoid SNES style) =====

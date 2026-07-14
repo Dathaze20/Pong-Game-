@@ -1,10 +1,14 @@
 {
   "name": "pong-game",
   "version": "1.0.0",
+  "description": "A classic Pong game built with vanilla HTML, CSS, and JavaScript, with a canvas renderer, Web Audio sound, and a progressive-difficulty AI opponent.",
+  "license": "MIT",
   "scripts": {
-    "build": "echo 'No build step defined'"
+    "test": "vitest run",
+    "lint": "eslint ."
   },
-  "dependencies": {
-    // ...existing dependencies...
+  "devDependencies": {
+    "eslint": "^9.15.0",
+    "vitest": "^2.1.4"
   }
 }
