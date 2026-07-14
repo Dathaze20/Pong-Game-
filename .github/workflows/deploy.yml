@@ -9,9 +9,7 @@ on:
       - main
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
@@ -43,25 +41,24 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # This is a static site (no bundler) — the game runs directly from
-      # index.html/style.css/script.js, so we deploy the repo as-is.
-      - name: Configure Pages
-        uses: actions/configure-pages@v4
-        with:
-          enablement: true
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-
+      # This is a static site (no bundler) - the game runs directly from
+      # index.html/style.css/script.js, so we publish the repo as-is.
+      #
+      # This pushes straight to the gh-pages branch instead of using the
+      # newer Actions-based Pages deployment (actions/deploy-pages), because
+      # that method requires Pages to already be enabled via the "GitHub
+      # Actions" source in the repo's Settings - the default GITHUB_TOKEN
+      # cannot enable it for the first time (its Pages-creation API call
+      # gets "Resource not accessible by integration" on a repo that's never
+      # had that source configured). Pushing to gh-pages only needs
+      # contents: write, so it works out of the box.
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          exclude_assets: '.github,node_modules,tests,.gitignore,eslint.config.js,package-lock.json,package.json'
