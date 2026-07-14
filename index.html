@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0a1628">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Super Pong - the ultimate arcade game for kids! Neon graphics, power-ups, AI opponent, and 2-player mode. Fun for all ages!">
+    <title>Super Pong!</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon-192x192.png" type="image/png">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Splash -->
+    <div id="splashScreen">
+        <div class="splash-content">
+            <div class="splash-emoji">&#127955;</div>
+            <h1 class="splash-title">SUPER PONG!</h1>
+            <div class="splash-loader"><div class="splash-loader-bar"></div></div>
+        </div>
+    </div>
+
+    <!-- Main Menu -->
+    <div id="mainMenu" style="display:none;">
+        <div class="menu-card">
+            <div class="menu-emoji">&#127955;</div>
+            <h1 class="menu-title">SUPER PONG!</h1>
+            <div class="avatar-row">
+                <div class="music-pick" id="musicPick">
+                    <span class="music-placeholder" id="musicPlaceholder">&#127925;</span>
+                    <span class="music-selected" id="musicSelected" style="display:none;">&#9835;</span>
+                    <input type="file" id="myMusicFile" accept="audio/*" hidden>
+                </div>
+                <div class="avatar-pick" id="p1AvatarPick">
+                    <img id="p1AvatarImg" src="" alt="">
+                    <span class="avatar-placeholder">&#128247;</span>
+                    <input type="file" id="p1AvatarFile" accept="image/*" hidden>
+                </div>
+                <input id="player1NameInput" type="text" placeholder="&#11088; Your Name" maxlength="12" autocomplete="off">
+            </div>
+            <div id="musicFileName" class="music-file-name" style="display:none;"></div>
+            <div class="avatar-row" id="p2Row">
+                <div class="avatar-pick" id="p2AvatarPick">
+                    <img id="p2AvatarImg" src="" alt="">
+                    <span class="avatar-placeholder">&#128247;</span>
+                    <input type="file" id="p2AvatarFile" accept="image/*" hidden>
+                </div>
+                <input id="player2NameInput" type="text" placeholder="&#129302; Player 2 Name" maxlength="12" autocomplete="off">
+            </div>
+            <select id="gameMode">
+                <option value="1">&#129302; VS AI</option>
+                <option value="2">&#129309; VS Friend</option>
+            </select>
+            <button id="startGameButton" class="btn-play">&#9889; LET'S GO!</button>
+            <div class="menu-row">
+                <button id="settingsButton" class="btn-small">&#9881; Settings</button>
+                <button id="howToPlayButton" class="btn-small">&#128161; How To Play</button>
+            </div>
+            <div id="menuStats" class="menu-stats" style="display:none;"></div>
+            <button id="badgeRoomBtn" class="btn-small" style="display:none;">&#127941; My Badges</button>
+        </div>
+    </div>
+
+    <!-- Badge Room -->
+    <div id="badgeRoom" style="display:none;">
+        <div class="menu-card">
+            <h1 class="menu-title">&#127941; My Badges</h1>
+            <div id="badgeRoomGrid" class="badge-room-grid"></div>
+            <button id="backFromBadges" class="btn-small">&#8592; Back</button>
+        </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="settingsMenu" style="display:none;">
+        <div class="menu-card">
+            <h1 class="menu-title">&#9881; Settings</h1>
+            <label class="toggle-row">
+                <span>&#127926; Music</span>
+                <input type="checkbox" id="toggleMusic" checked>
+                <span class="toggle-slider"></span>
+            </label>
+            <label class="toggle-row">
+                <span>&#128264; Sound FX</span>
+                <input type="checkbox" id="toggleSoundEffects" checked>
+                <span class="toggle-slider"></span>
+            </label>
+            <label class="select-row">
+                <span>&#127919; Difficulty</span>
+                <select id="difficulty">
+                    <option value="easy">&#128522; Chill</option>
+                    <option value="medium" selected>&#128293; Normal</option>
+                    <option value="hard">&#128128; Beast Mode</option>
+                </select>
+            </label>
+            <label class="toggle-row">
+                <span>&#128308; High Contrast</span>
+                <input type="checkbox" id="colorblindMode">
+                <span class="toggle-slider"></span>
+            </label>
+            <button id="backToMenuButton" class="btn-small">&#8592; Back</button>
+        </div>
+    </div>
+
+    <!-- How to Play -->
+    <div id="howToPlay" style="display:none;">
+        <div class="menu-card">
+            <h1 class="menu-title">&#128161; How To Play</h1>
+            <div class="htp-grid">
+                <div class="htp-panel">
+                    <div class="htp-icon">&#128072;</div>
+                    <div class="htp-title">SLIDE</div>
+                    <div class="htp-desc">Drag anywhere on your side to move</div>
+                </div>
+                <div class="htp-panel">
+                    <div class="htp-icon">&#127955;</div>
+                    <div class="htp-title">HIT</div>
+                    <div class="htp-desc">Bounce the ball past their paddle</div>
+                </div>
+                <div class="htp-panel">
+                    <div class="htp-icon">&#11088;</div>
+                    <div class="htp-title">GRAB</div>
+                    <div class="htp-desc">Catch power-ups for super abilities</div>
+                </div>
+                <div class="htp-panel">
+                    <div class="htp-icon">&#127942;</div>
+                    <div class="htp-title">WIN!</div>
+                    <div class="htp-desc">First to 15 points is champion!</div>
+                </div>
+            </div>
+            <button id="backFromHowToPlay" class="btn-small">&#8592; Back</button>
+        </div>
+    </div>
+
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas" style="display:none;"></canvas>
+
+    <!-- Game HUD — Street Fighter style -->
+    <div id="gameHUD" style="display:none;">
+        <div class="sf-hud">
+            <div class="sf-plate sf-left">
+                <img id="hudP1Pic" class="sf-avatar" src="" alt="">
+                <span id="hudP1Name" class="sf-name sf-name-left">P1</span>
+                <span id="leftScoreHUD" class="sf-score sf-score-left">0</span>
+            </div>
+            <div class="sf-center">
+                <span class="sf-vs">VS</span>
+                <div id="timerDisplay">2:30</div>
+            </div>
+            <div class="sf-plate sf-right">
+                <span id="rightScoreHUD" class="sf-score sf-score-right">0</span>
+                <span id="hudP2Name" class="sf-name sf-name-right">P2</span>
+                <img id="hudP2Pic" class="sf-avatar" src="" alt="">
+            </div>
+        </div>
+    </div>
+
+    <!-- Combo / announcement text -->
+    <div id="announceText" style="display:none;"></div>
+
+    <!-- Game Controls -->
+    <div id="gameControls" style="display:none;">
+        <button id="bgPickerBtn" class="ctrl-btn ctrl-theme"><span class="ctrl-icon">&#127912;</span><span class="ctrl-label">Theme</span></button>
+        <button id="musicToggleBtn" class="ctrl-btn ctrl-music"><span class="ctrl-icon">&#127925;</span><span class="ctrl-label">Music</span></button>
+        <button id="pauseBtn" class="ctrl-btn ctrl-pause"><span class="ctrl-icon">&#9208;</span><span class="ctrl-label">Pause</span></button>
+        <button id="restartBtn" class="ctrl-btn ctrl-restart"><span class="ctrl-icon">&#8634;</span><span class="ctrl-label">Reset</span></button>
+    </div>
+    <!-- Background Theme Picker -->
+    <div id="bgPickerPanel" style="display:none;"></div>
+
+    <!-- Pause Overlay -->
+    <div id="pauseOverlay" style="display:none;">
+        <div class="pause-card">
+            <h2>&#9208; PAUSED</h2>
+            <button id="resumeBtn" class="btn-play">&#9654; Resume</button>
+            <button id="pauseRestartBtn" class="btn-small">&#8634; Restart</button>
+            <button id="pauseQuitBtn" class="btn-small">&#8592; Quit</button>
+        </div>
+    </div>
+
+    <!-- Game Over -->
+    <div id="gameOverScreen" style="display:none;">
+        <div class="gameover-card">
+            <img id="winnerAvatar" class="winner-avatar" src="" alt="" style="display:none;">
+            <div class="gameover-emoji" id="gameOverEmoji">&#127942;</div>
+            <h1 id="winnerMessage">EPIC WIN!</h1>
+            <div id="newBestBadge" class="new-best-badge" style="display:none;">&#11088; NEW PERSONAL BEST! &#11088;</div>
+            <p id="finalScore"></p>
+            <div id="badgeEarned" class="badge-earned-row" style="display:none;"></div>
+            <button id="playAgainButton" class="btn-play">&#9889; Play Again!</button>
+            <button id="mainMenuButton" class="btn-small">&#8592; Main Menu</button>
+        </div>
+    </div>
+
+    <!-- SW Update Toast -->
+    <div id="updateToast" style="display:none;">
+        <span id="updateToastMsg">Update ready!</span>
+        <button id="updateToastBtn">Refresh</button>
+    </div>
+
+    <!-- PWA Install Banner -->
+    <div id="installBanner" style="display:none;">
+        <span>&#128640; Add to Home Screen!</span>
+        <button id="installBtn">Install</button>
+        <button id="installDismiss">&#10005;</button>
+    </div>
+
+    <!-- Audio -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="Original Tetris theme (Tetris Soundtrack).mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="game-logic.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
