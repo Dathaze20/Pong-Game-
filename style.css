@@ -244,6 +244,11 @@ html, body {
     width: 100vw; height: 100vh;
     background: #060e1a;
     z-index: 1; touch-action: none;
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
 /* === HUD — Street Fighter Style === */

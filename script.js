@@ -432,11 +432,13 @@ const speedLines = Array.from({ length: 12 }, () => ({ x: 0, y: 0, len: 0, alpha
 
 // ===== RESIZE =====
 function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dpr = Math.min(window.devicePixelRatio || 1, 3);
     W = window.innerWidth; H = window.innerHeight;
     canvas.width = W * dpr; canvas.height = H * dpr;
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     scale();
     createPaddleGrads();
 }
@@ -1537,6 +1539,9 @@ function renderSpeedLines(hue) {
 let bgGrad = null, divGrad = null, bgW = 0, bgH = 0, bgThemeIdx = -1;
 
 function render() {
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    const snap = v => Math.round(v * dpr) / dpr;
     let sx = 0, sy = 0;
     if (screenShake > 0) {
         sx = (Math.random() - 0.5) * screenShake * 60;
@@ -1664,7 +1669,7 @@ function render() {
                 ctx.globalAlpha = trailAlpha * (1 - i * 0.3);
                 ctx.fillStyle = '#00F0FF';
                 ctx.beginPath();
-                ctx.roundRect(pmar, ly + hoverOff + lDelta * i * 0.25, pw, pph, pw / 2.5);
+                ctx.roundRect(pmar, snap(ly + lDelta * i * 0.25) + hoverOff, pw, pph, pw / 2.5);
                 ctx.fill();
             }
             ctx.globalAlpha = 1;
@@ -1675,7 +1680,7 @@ function render() {
                 ctx.globalAlpha = trailAlpha * (1 - i * 0.3);
                 ctx.fillStyle = '#FF6BF5';
                 ctx.beginPath();
-                ctx.roundRect(W - pmar - pw, ry + hoverOff + rDelta * i * 0.25, pw, ph * rphMod, pw / 2.5);
+                ctx.roundRect(W - pmar - pw, snap(ry + rDelta * i * 0.25) + hoverOff, pw, ph * rphMod, pw / 2.5);
                 ctx.fill();
             }
             ctx.globalAlpha = 1;
@@ -1683,57 +1688,59 @@ function render() {
     }
 
     // Left paddle — crisp with subtle glow
+    const sly = snap(ly);
     if (!hc) {
         const lGlow = 0.015 + glowAmt * 0.025 + leftHitGlow * 0.5;
         ctx.fillStyle = `rgba(0,240,255,${lGlow})`;
         const lExp = 5 + leftHitGlow * 10;
         ctx.beginPath();
-        ctx.roundRect(pmar - lExp, ly + hoverOff - lExp, pw + lExp * 2, pph + lExp * 2, pw / 2 + lExp);
+        ctx.roundRect(pmar - lExp, sly + hoverOff - lExp, pw + lExp * 2, pph + lExp * 2, pw / 2 + lExp);
         ctx.fill();
     }
     ctx.fillStyle = hc ? '#FFF' : leftPaddleGrad;
     ctx.beginPath();
-    ctx.roundRect(pmar, ly + hoverOff, pw, pph, pw / 2.5);
+    ctx.roundRect(pmar, sly + hoverOff, pw, pph, pw / 2.5);
     ctx.fill();
     if (!hc) {
         ctx.strokeStyle = 'rgba(255,255,255,0.3)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.roundRect(pmar, ly + hoverOff, pw, pph, pw / 2.5);
+        ctx.roundRect(pmar, sly + hoverOff, pw, pph, pw / 2.5);
         ctx.stroke();
     }
     if (leftHitGlow > 0 && !hc) {
         ctx.fillStyle = `rgba(255,255,255,${leftHitGlow * 0.4})`;
         ctx.beginPath();
-        ctx.roundRect(pmar, ly + hoverOff, pw, pph, pw / 2.5);
+        ctx.roundRect(pmar, sly + hoverOff, pw, pph, pw / 2.5);
         ctx.fill();
     }
 
     // Right paddle — crisp with subtle glow (rpph)
     const rpph = ph * rphMod;
+    const sry = snap(ry);
     if (!hc) {
         const rGlow = 0.015 + glowAmt * 0.025 + rightHitGlow * 0.5;
         ctx.fillStyle = rphMod < 1 ? `rgba(255,51,153,${rGlow})` : `rgba(255,107,245,${rGlow})`;
         const rExp = 5 + rightHitGlow * 10;
         ctx.beginPath();
-        ctx.roundRect(W - pmar - pw - rExp, ry + hoverOff - rExp, pw + rExp * 2, rpph + rExp * 2, pw / 2 + rExp);
+        ctx.roundRect(W - pmar - pw - rExp, sry + hoverOff - rExp, pw + rExp * 2, rpph + rExp * 2, pw / 2 + rExp);
         ctx.fill();
     }
     ctx.fillStyle = hc ? '#FFF' : rightPaddleGrad;
     ctx.beginPath();
-    ctx.roundRect(W - pmar - pw, ry + hoverOff, pw, rpph, pw / 2.5);
+    ctx.roundRect(W - pmar - pw, sry + hoverOff, pw, rpph, pw / 2.5);
     ctx.fill();
     if (!hc) {
         ctx.strokeStyle = 'rgba(255,255,255,0.3)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.roundRect(W - pmar - pw, ry + hoverOff, pw, rpph, pw / 2.5);
+        ctx.roundRect(W - pmar - pw, sry + hoverOff, pw, rpph, pw / 2.5);
         ctx.stroke();
     }
     if (rightHitGlow > 0 && !hc) {
         ctx.fillStyle = `rgba(255,255,255,${rightHitGlow * 0.4})`;
         ctx.beginPath();
-        ctx.roundRect(W - pmar - pw, ry + hoverOff, pw, rpph, pw / 2.5);
+        ctx.roundRect(W - pmar - pw, sry + hoverOff, pw, rpph, pw / 2.5);
         ctx.fill();
     }
 
@@ -1758,7 +1765,7 @@ function render() {
 
     // Ball glow + body + highlight + spin + chromatic aberration
     ctx.save();
-    ctx.translate(bx, by);
+    ctx.translate(snap(bx), snap(by));
     if (ballSquash > 0) {
         const sq = ballSquash;
         if (ballSquashHoriz) ctx.scale(1 - sq * 0.38, 1 + sq * 0.38);
