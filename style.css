@@ -247,8 +247,6 @@ html, body {
     will-change: transform;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
 }
 
 /* === HUD — Street Fighter Style === */
@@ -513,7 +511,7 @@ body.high-contrast .menu-card, body.high-contrast .gameover-card, body.high-cont
 }
 
 /* === RESPONSIVE === */
-@media (orientation: landscape) and (max-height: 500px) {
+@media (orientation: landscape) and (max-height: 600px) {
     .menu-card, .gameover-card, .pause-card {
         padding: 10px 14px; gap: 5px; max-height: 96vh; overflow-y: auto;
     }
