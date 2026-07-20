@@ -432,7 +432,7 @@ const speedLines = Array.from({ length: 12 }, () => ({ x: 0, y: 0, len: 0, alpha
 
 // ===== RESIZE =====
 function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 3);
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth; H = window.innerHeight;
     canvas.width = W * dpr; canvas.height = H * dpr;
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
