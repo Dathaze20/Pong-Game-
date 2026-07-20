@@ -7,7 +7,7 @@ const ctx = canvas.getContext('2d', { alpha: false });
 
 const screens = {
     splash: $('splashScreen'), menu: $('mainMenu'), settings: $('settingsMenu'),
-    howToPlay: $('howToPlay'), badgeRoom: $('badgeRoom'),
+    howToPlay: $('howToPlay'), badgeRoom: $('badgeRoom'), hallOfFame: $('hallOfFame'),
     gameOver: $('gameOverScreen'), pause: $('pauseOverlay'),
     hud: $('gameHUD'), controls: $('gameControls')
 };
@@ -236,7 +236,7 @@ function startMusic() {
     updateMusicBtn();
 }
 function stopMusic() {
-    if (bgMusicEl) { bgMusicEl.pause(); bgMusicEl.currentTime = 0; }
+    if (bgMusicEl) { bgMusicEl.pause(); bgMusicEl.currentTime = 0; bgMusicEl.playbackRate = 1.0; }
     updateMusicBtn();
 }
 function toggleMusicLive() {
@@ -385,6 +385,11 @@ let magnetActive = false, magnetTimer = 0;
 let speedPickups = 0;
 let nearMissShown = 0;
 let countdownBeepPlayed = 0;
+let slowMoTimer = 0;
+let trailHue = 180;
+let glitchTimer = 0;
+let survivalSpeedMult = 1;
+let clutchTriggered = false;
 
 let scoreFlash = 0, scoreFlashSide = '';
 let leftHitGlow = 0, rightHitGlow = 0;
@@ -482,8 +487,8 @@ function updateMenuStats() {
     const best = settings.bestScore;
     const badges = badgeCount();
     const games = settings.totalGames;
-    const btn = $('badgeRoomBtn');
-    if (btn) btn.style.display = badges > 0 ? '' : 'none';
+    const extraRow = $('menuExtraRow');
+    if (extraRow) extraRow.style.display = (badges > 0 || getHighScores().length > 0) ? '' : 'none';
     const xp = getXP();
     const lvl = xpToLevel(xp);
     const xpNext = xpForLevel(lvl + 1);
@@ -537,9 +542,40 @@ $('gameMode').addEventListener('change', e => {
 });
 $('p2Row').style.display = $('gameMode').value === '2' ? '' : 'none';
 
+$('hallOfFameBtn') && $('hallOfFameBtn').addEventListener('click', () => { renderHallOfFame(); showScreen('hallOfFame'); vibrate(12); });
+$('backFromHof') && $('backFromHof').addEventListener('click', () => { showScreen('menu'); updateMenuStats(); });
+
 // ===== BADGE ROOM NAV =====
-$('badgeRoomBtn').addEventListener('click', () => { renderBadgeRoom(); showScreen('badgeRoom'); vibrate(12); });
-$('backFromBadges').addEventListener('click', () => { showScreen('menu'); updateMenuStats(); });
+$('badgeRoomBtn') && $('badgeRoomBtn').addEventListener('click', () => { renderBadgeRoom(); showScreen('badgeRoom'); vibrate(12); });
+$('backFromBadges') && $('backFromBadges').addEventListener('click', () => { showScreen('menu'); updateMenuStats(); });
+
+// ===== HALL OF FAME =====
+function getHighScores() {
+    try { return JSON.parse(localStorage.getItem('highScores') || '[]'); } catch (_) { return []; }
+}
+function saveHighScore(name, score, mode) {
+    const modeLabel = mode === 3 ? 'Survival' : mode === 4 ? 'Time Attack' : mode === 2 ? 'VS Friend' : 'VS AI';
+    const scores = getHighScores();
+    scores.push({ name, score, mode: modeLabel, date: new Date().toLocaleDateString() });
+    scores.sort((a, b) => b.score - a.score);
+    scores.splice(10);
+    localStorage.setItem('highScores', JSON.stringify(scores));
+}
+function renderHallOfFame() {
+    const list = $('hofList');
+    const scores = getHighScores();
+    if (scores.length === 0) { list.innerHTML = '<div class="hof-empty">\u{1F3C6} No records yet — play a game!</div>'; return; }
+    const medals = ['\u{1F947}', '\u{1F948}', '\u{1F949}'];
+    list.innerHTML = scores.map((s, i) => `
+        <div class="hof-item" style="animation-delay:${i * 0.06}s">
+            <span class="hof-rank">${medals[i] || '#' + (i + 1)}</span>
+            <div class="hof-info">
+                <div class="hof-name">${s.name}</div>
+                <div class="hof-meta">${s.mode} &bull; ${s.date}</div>
+            </div>
+            <span class="hof-score">${s.score}</span>
+        </div>`).join('');
+}
 
 function renderBadgeRoom() {
     const grid = $('badgeRoomGrid');
@@ -627,7 +663,11 @@ $('startGameButton').addEventListener('click', () => {
     settings.p1Name = $('player1NameInput').value.trim() || 'Player 1';
     const mode = $('gameMode').value;
     const aiNames = { easy: '\u{1F916} Rookie', medium: '\u{1F525} Blaze', hard: '\u{1F47E} Nemesis' };
-    settings.p2Name = mode === '2' ? ($('player2NameInput').value.trim() || 'Player 2') : (aiNames[settings.difficulty] || 'AI');
+    const aiLabel = aiNames[settings.difficulty] || 'AI';
+    settings.p2Name = mode === '2' ? ($('player2NameInput').value.trim() || 'Player 2')
+                    : mode === '3' ? '\u{1F480} Death'
+                    : mode === '4' ? '\u{23F1} Clock'
+                    : aiLabel;
     settings.gameMode = mode;
     $('hudP1Name').textContent = settings.p1Name;
     $('hudP2Name').textContent = settings.p2Name;
@@ -664,6 +704,7 @@ function resetState() {
     scoreFlash = 0; leftHitGlow = 0; rightHitGlow = 0;
     bradMod = 1; shieldTimer = 0; extraBalls = [];
     magnetActive = false; magnetTimer = 0; rphMod = 1; speedPickups = 0; nearMissShown = 0; xpLevelUpPending = 0;
+    slowMoTimer = 0; trailHue = 180; glitchTimer = 0; survivalSpeedMult = 1; clutchTriggered = false;
     for (let i = 0; i < TRAIL_LEN; i++) ballTrail[i] = { x: W / 2, y: H / 2, a: 0 };
     scorePopups = []; halftimeShown = false; hurryUpShown = false; goFlash = 0; countdownScale = 0;
     puStartTimes = {};
@@ -694,25 +735,38 @@ function resetBall(dir) {
 
 // ===== TIMER =====
 function startTimer() {
-    timer = GAME_TIME;
+    const mode = settings.gameMode;
+    if (mode === 3) { $('timerDisplay').textContent = '\u{1F480}'; return; }
+    timer = mode === 4 ? 60 : GAME_TIME;
     updateTimer();
     clearInterval(timerInt);
     timerInt = setInterval(() => {
         if (paused) return;
         timer--;
         updateTimer();
-        if (timer === 30 && !hurryUpShown) {
-            hurryUpShown = true;
-            announce('HURRY UP!! \u{23F0}');
-            speak('Hurry up! 30 seconds left!');
+        if (mode === 4 && timer === 20 && !hurryUpShown) {
+            hurryUpShown = true; announce('20 SECONDS!! \u{23F0}'); speak('Twenty seconds left!');
+        }
+        if (mode !== 4 && timer === 30 && !hurryUpShown) {
+            hurryUpShown = true; announce('HURRY UP!! \u{23F0}'); speak('Hurry up! 30 seconds left!');
         }
         if (timer <= 10 && timer > 0) { synthCountdown(); vibrate(15); }
+        updateMusicTempo();
         if (timer <= 0) {
             clearInterval(timerInt);
+            if (mode === 4) { endGame('\u{23F1} TIME UP! ' + lscore + ' pts!'); return; }
             endGame(lscore > rscore ? settings.p1Name + ' Wins!' :
                     rscore > lscore ? settings.p2Name + ' Wins!' : "It's a Tie!");
         }
     }, 1000);
+}
+
+function updateMusicTempo() {
+    if (!bgMusicEl || bgMusicEl.paused) return;
+    const mode = settings.gameMode;
+    const close = Math.abs(lscore - rscore) <= 2;
+    const tense = mode === 4 ? timer <= 15 : (timer <= 30 && close);
+    bgMusicEl.playbackRate = tense ? 1.28 : 1.0;
 }
 function updateTimer() {
     const m = Math.floor(timer / 60), s = timer % 60;
@@ -735,6 +789,11 @@ function updateTimer() {
 function updateHUD() {
     $('leftScoreHUD').textContent = lscore;
     $('rightScoreHUD').textContent = rscore;
+    const mode = settings.gameMode;
+    const cap = (mode === 3 || mode === 4) ? Math.max(lscore + 5, 10) : WIN_SCORE;
+    const p1b = $('hudP1Bar'), p2b = $('hudP2Bar');
+    if (p1b) p1b.style.width = Math.min(100, (lscore / cap) * 100) + '%';
+    if (p2b) p2b.style.width = Math.min(100, (rscore / cap) * 100) + '%';
 }
 
 function checkHalftime() {
@@ -870,8 +929,9 @@ function renderScorePopups() {
 // ===== GAME LOOP =====
 function loop(ts) {
     if (!gameOn) return;
-    const dt = Math.min((ts - lastT) / 1000, 0.05);
+    let dt = Math.min((ts - lastT) / 1000, 0.05);
     lastT = ts;
+    if (slowMoTimer > 0) { slowMoTimer = Math.max(0, slowMoTimer - dt); dt *= 0.14; }
     if (!paused) { update(dt); render(); }
     rafId = requestAnimationFrame(loop);
 }
@@ -924,7 +984,7 @@ function update(dt) {
     if (goFlash > 0) goFlash = Math.max(0, goFlash - dt);
     serveRamp = Math.min(serveRamp + dt / 1.2, 1);
     const rampFactor = 0.72 + 0.28 * serveRamp;
-    const spd = bspd * bspdMod * rampFactor;
+    const spd = bspd * bspdMod * rampFactor * survivalSpeedMult;
     const len = Math.sqrt(bdx * bdx + bdy * bdy);
     if (len > 0) { bdx = (bdx / len) * spd; bdy = (bdy / len) * spd; }
 
@@ -954,10 +1014,13 @@ function update(dt) {
         const hit = (by - ly) / pph - 0.5;
         const a = hit * (Math.PI / 3);
         bdx = Math.abs(Math.cos(a)) * spd;
-        bdy = Math.sin(a) * spd;
+        bdy = Math.sin(a) * spd + ballSpinRate * 0.22;
         bspdMod = Math.min(bspdMod * 1.02, 1.6);
+        if (settings.gameMode === 3) survivalSpeedMult = Math.min(survivalSpeedMult * 1.03, 2.5);
+        trailHue = 185;
         totalHits++;
         leftHitGlow = 0.4;
+        clutchTriggered = false;
         synthHit(); vibrate([25, 15, 25]);
         spawnParticles(lx, by, ['#00F0FF', '#39FF14', '#fff'], 12, false);
         screenShake = 0.08;
@@ -980,8 +1043,10 @@ function update(dt) {
         const hit = (by - ry) / rpph - 0.5;
         const a = hit * (Math.PI / 3);
         bdx = -Math.abs(Math.cos(a)) * spd;
-        bdy = Math.sin(a) * spd;
+        bdy = Math.sin(a) * spd + ballSpinRate * 0.22;
         bspdMod = Math.min(bspdMod * 1.02, 1.6);
+        trailHue = 310;
+        clutchTriggered = false;
         totalHits++;
         rightHitGlow = 0.4;
         synthHit(); vibrate([25, 15, 25]);
@@ -1016,19 +1081,25 @@ function update(dt) {
     }
 
     if (bx < -br * 2) {
-        let pts = 1;
+        // Clutch slow-mo: trigger on near misses that became goals
+        if (settings.difficulty === 'hard' || settings.gameMode === 3) {
+            canvas.classList.remove('glitch-active');
+            void canvas.offsetWidth;
+            canvas.classList.add('glitch-active');
+        }
         extraBalls = [];
         const wasLeader = lscore > rscore ? 'left' : rscore > lscore ? 'right' : '';
-        rscore += pts;
-        bspdMod = 1; bradMod = 1;
+        rscore++;
+        bspdMod = 1; bradMod = 1; survivalSpeedMult = 1;
         scoreFlash = 0.35; scoreFlashSide = 'right';
-        spawnScorePopup(W * 0.75, H * 0.35, pts, 'right');
+        spawnScorePopup(W * 0.75, H * 0.35, 1, 'right');
         if (lastScorer === 'right') { combo++; } else { combo = 1; lastScorer = 'right'; }
         if (combo > maxCombo) maxCombo = combo;
-        rallyHits = 0; ballSquash = 0;
+        rallyHits = 0; ballSquash = 0; clutchTriggered = false;
         synthAIScore(); vibrate([25, 20, 25]);
         spawnParticles(0, by, ['#FF6BF5', '#FFD700'], 12, false);
         screenShake = 0.1;
+        if (settings.gameMode === 3) { endGame('\u{1F480} SURVIVED ' + lscore + ' pts!'); return; }
         let msg;
         const nowLeader = lscore > rscore ? 'left' : rscore > lscore ? 'right' : '';
         if (rscore === 1 && lscore === 0) {
@@ -1093,6 +1164,12 @@ function update(dt) {
 
     if (rscore - lscore >= 3) playerWasDown = true;
     if (rallyHits > maxRally) maxRally = rallyHits;
+
+    // Clutch slow-mo: ball enters danger zone heading toward player goal
+    if (!clutchTriggered && bdx < 0 && bx < W * 0.12 && bx > 0) {
+        clutchTriggered = true;
+        slowMoTimer = 0.28;
+    }
 
     // Near-miss detection: ball just passed left paddle zone without scoring
     if (nearMissShown === 0 && bdx < 0 && bx < pmar + pw + brad * 3 && bx > pmar && Math.abs(by - (ly + pph / 2)) > pph * 0.55 && Math.abs(by - (ly + pph / 2)) < pph * 0.85) {
@@ -1235,7 +1312,8 @@ const PU_TYPES = [
     { type: 'multiball', color: '#00FFAA', letter: 'M', label: 'MULTIBALL!', color2: '#00CC88' },
     { type: 'shield',    color: '#FFD700', letter: 'W', label: 'SHIELD!',    color2: '#FFE066' },
     { type: 'shrink',    color: '#FF3399', letter: 'Z', label: 'SHRINK!',    color2: '#FF77BB' },
-    { type: 'magnet',    color: '#AA88FF', letter: 'G', label: 'MAGNET!',    color2: '#CC99FF' }
+    { type: 'magnet',    color: '#AA88FF', letter: 'M', label: 'MAGNET!',    color2: '#CC99FF' },
+    { type: 'split',     color: '#AAFF00', letter: 'X', label: 'SPLIT!',     color2: '#DDFF66' }
 ];
 
 function spawnPowerUp() {
@@ -1296,6 +1374,8 @@ function applyPowerUp(type) {
     } else if (type === 'magnet') {
         magnetActive = true; magnetTimer = 6;
         t = setTimeout(() => { magnetActive = false; magnetTimer = 0; delete puStartTimes.magnet; }, dur);
+    } else if (type === 'split') {
+        splitBall();
     }
     if (type === 'speed') {
         speedPickups++;
@@ -1321,6 +1401,20 @@ function spawnExtraBalls() {
     }
     announce('MULTIBALL! \u{1F3B1}');
     vibrate([30, 20, 30, 20, 40]);
+}
+
+function splitBall() {
+    const spd = Math.hypot(bdx, bdy);
+    const ang = Math.atan2(bdy, bdx);
+    const spread = 0.22;
+    extraBalls.push({
+        x: bx, y: by,
+        dx: Math.cos(ang + spread) * spd,
+        dy: Math.sin(ang + spread) * spd,
+        life: 10, hue: (hue + 60) % 360
+    });
+    announce('SPLIT! \u{1F300}');
+    vibrate([20, 15, 20, 15, 30]);
 }
 
 function updateExtraBalls(dt) {
@@ -1642,8 +1736,9 @@ function render() {
         ctx.fill();
     }
 
-    // Ball trail — long neon history
+    // Ball trail — colored by last-hit paddle (cyan=left, pink=right)
     if (!hc) {
+        trailHue += (hue - trailHue) * 0.04;
         for (let i = 0; i < TRAIL_LEN; i++) {
             const idx = (trailIdx - 1 - i + TRAIL_LEN) % TRAIL_LEN;
             const tp = ballTrail[idx];
@@ -1653,7 +1748,7 @@ function render() {
             if (r < 0.5) continue;
             ctx.beginPath();
             ctx.arc(tp.x, tp.y, r, 0, Math.PI * 2);
-            ctx.fillStyle = `hsla(${(hue - i * 22 + 360) % 360}, 100%, 65%, ${t * 0.18})`;
+            ctx.fillStyle = `hsla(${(trailHue - i * 8 + 360) % 360}, 100%, 65%, ${t * 0.22})`;
             ctx.fill();
         }
     }
@@ -2151,13 +2246,24 @@ function endGame(msg) {
     stopMusic();
     releaseWakeLock();
 
+    const mode = settings.gameMode;
     const p1Won = lscore > rscore;
     settings.totalGames = settings.totalGames + 1;
-    if (p1Won && settings.gameMode === 1) settings.totalWins = settings.totalWins + 1;
+    if (p1Won && mode === 1) settings.totalWins = settings.totalWins + 1;
     const best = Math.max(lscore, rscore);
     const isNewBest = best > settings.bestScore;
     if (isNewBest) settings.bestScore = best;
-    if (p1Won && settings.gameMode === 1) { checkBadges(); addXP(XP_PER_WIN); }
+    if (p1Won && mode === 1) { checkBadges(); addXP(XP_PER_WIN); }
+    saveHighScore(settings.p1Name, lscore, mode);
+
+    const shareBtn = $('shareScoreBtn');
+    if (shareBtn) {
+        shareBtn.style.display = navigator.share ? '' : 'none';
+        shareBtn.onclick = () => {
+            const modeStr = mode === 3 ? 'Survival' : mode === 4 ? 'Time Attack' : 'VS AI';
+            navigator.share({ title: 'Super Pong!', text: '\u{1F3D3} I scored ' + lscore + ' in ' + modeStr + ' on Super Pong! Can you beat it? \u{26A1}' }).catch(() => {});
+        };
+    }
 
     screens.hud.style.display = 'none';
     screens.controls.style.display = 'none';
@@ -2185,7 +2291,11 @@ function endGame(msg) {
     const diff = Math.abs(lscore - rscore);
     const winner = (lscore > rscore) ? settings.p1Name : settings.p2Name;
     let displayMsg;
-    if (msg === "It's a Tie!") {
+    if (mode === 3) {
+        displayMsg = lscore > 0 ? settings.p1Name + ' SURVIVED ' + lscore + ' PTS! \u{1F480}' : 'GAME OVER! \u{1F480}';
+    } else if (mode === 4) {
+        displayMsg = '\u{23F1} TIME UP! ' + settings.p1Name + ' SCORED ' + lscore + '!';
+    } else if (msg === "It's a Tie!") {
         displayMsg = "IT'S A TIE! EPIC BATTLE!";
     } else if (diff >= 10) {
         displayMsg = winner + ' DOMINATED! \u{1F451}';
@@ -2208,7 +2318,9 @@ function endGame(msg) {
 
     let statsLine = lscore + ' - ' + rscore + '  \u{2022}  ' + totalHits + ' hits  \u{2022}  ' + maxCombo + 'x combo';
     if (maxRally > 0) statsLine += '  \u{2022}  ' + maxRally + ' rally';
-    if (settings.gameMode === 1) statsLine += '  \u{2022}  ' + settings.totalWins + ' wins';
+    if (mode === 3) statsLine = '\u{1F480} Scored ' + lscore + ' pts  \u{2022}  ' + totalHits + ' hits  \u{2022}  ' + maxRally + ' max rally';
+    if (mode === 4) statsLine = '\u{23F1} Time Attack: ' + lscore + ' pts  \u{2022}  ' + totalHits + ' hits';
+    if (mode === 1) statsLine += '  \u{2022}  ' + settings.totalWins + ' wins';
     if (isNewBest) statsLine += '  \u{2022}  NEW BEST!';
     $('finalScore').textContent = statsLine;
     renderBadgeEarned();
@@ -2221,7 +2333,7 @@ function endGame(msg) {
     }
 
     const winnerAvatar = $('winnerAvatar');
-    const winnerAvatarData = p1Won ? localStorage.getItem('p1Avatar') : localStorage.getItem('p2Avatar');
+    const winnerAvatarData = (p1Won || mode === 3 || mode === 4) ? localStorage.getItem('p1Avatar') : localStorage.getItem('p2Avatar');
     if (winnerAvatarData && msg !== "It's a Tie!") {
         winnerAvatar.src = winnerAvatarData;
         winnerAvatar.style.display = 'block';
