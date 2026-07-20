@@ -540,7 +540,8 @@ $('backFromHowToPlay').addEventListener('click', () => showScreen('menu'));
 $('gameMode').addEventListener('change', e => {
     $('p2Row').style.display = e.target.value === '2' ? '' : 'none';
 });
-$('p2Row').style.display = $('gameMode').value === '2' ? '' : 'none';
+const _initMode = $('gameMode').value;
+$('p2Row').style.display = _initMode === '2' ? '' : 'none';
 
 $('hallOfFameBtn') && $('hallOfFameBtn').addEventListener('click', () => { renderHallOfFame(); showScreen('hallOfFame'); vibrate(12); });
 $('backFromHof') && $('backFromHof').addEventListener('click', () => { showScreen('menu'); updateMenuStats(); });
@@ -974,7 +975,7 @@ function update(dt) {
         if (keys.has('ArrowDown') || keys.has('s')) ly += pspd * dt;
         ly = Math.max(0, Math.min(H - pph, ly));
         ry = Math.max(0, Math.min(H - pph, ry));
-        if (settings.gameMode === 1) updateAI(dt);
+        if (settings.gameMode !== 2) updateAI(dt);
         updateParticles(dt);
         if (scoreFlash > 0) scoreFlash = Math.max(0, scoreFlash - dt);
         if (goFlash > 0) goFlash = Math.max(0, goFlash - dt);
@@ -2274,15 +2275,15 @@ function endGame(msg) {
 
     resize();
     const isTie = lscore === rscore;
-    if (p1Won || isTie) {
+    const showWin = p1Won || isTie || mode === 3 || mode === 4;
+    if (showWin) {
         synthWin();
         vibrate([80, 100, 80, 100, 80, 60]);
         spawnConfetti();
         celebrationLoop._last = performance.now();
         celebrationRafId = requestAnimationFrame(celebrationLoop);
     } else {
-        synthLoss();
-        vibrate([120, 80, 40]);
+        synthLoss(); vibrate([120, 80, 40]);
         canvas.style.display = 'none';
         const card = document.querySelector('.gameover-card');
         if (card) { card.classList.remove('loss-flash'); void card.offsetWidth; card.classList.add('loss-flash'); }
