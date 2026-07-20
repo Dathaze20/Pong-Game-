@@ -834,7 +834,7 @@ function announce(text) {
     el.style.display = 'block';
     el.style.animation = 'none';
     el.offsetHeight;
-    el.style.animation = 'announceIn .4s cubic-bezier(.17,.67,.3,1.33)';
+    el.style.animation = 'announceIn .25s ease-out';
     clearTimeout(announceQ);
     announceQ = setTimeout(() => { el.style.display = 'none'; }, 2200);
 }

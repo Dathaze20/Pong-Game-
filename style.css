@@ -306,20 +306,20 @@ html, body {
 
 /* === ANNOUNCE TEXT === */
 #announceText {
-    position: fixed; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
+    position: fixed; top: 58px; left: 50%;
+    transform: translateX(-50%);
     z-index: 15; pointer-events: none;
-    font-family: 'Bungee', sans-serif; font-size: 2.2rem;
+    font-family: 'Bungee', sans-serif; font-size: 0.8rem;
     text-align: center; white-space: nowrap;
     background: linear-gradient(90deg, #FF6BF5, #FFD700, #00F0FF);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 0 12px rgba(255,215,0,.6)) drop-shadow(0 2px 4px rgba(0,0,0,.8));
-    animation: announceIn .4s cubic-bezier(.17,.67,.3,1.33);
+    filter: drop-shadow(0 0 6px rgba(255,215,0,.5)) drop-shadow(0 1px 3px rgba(0,0,0,.9));
+    animation: announceIn .25s ease-out;
 }
 @keyframes announceIn {
-    from { opacity: 0; transform: translate(-50%,-50%) scale(2); }
-    to { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+    from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 /* === CONTROLS — pill buttons === */
@@ -522,7 +522,7 @@ body.high-contrast .menu-card, body.high-contrast .gameover-card, body.high-cont
     .btn-small { padding: 6px; font-size: .8rem; }
     .menu-card input[type="text"], .menu-card select { padding: 6px 10px; font-size: .85rem; }
     .toggle-row, .select-row { padding: 5px 10px; font-size: .85rem; }
-    #announceText { font-size: 1.6rem; }
+    #announceText { font-size: 0.72rem; top: 50px; }
     .sf-plate { padding: 4px 10px; max-width: 220px; }
     .sf-score { font-size: 1.2rem; }
     .sf-name { font-size: .65rem; max-width: 80px; }
