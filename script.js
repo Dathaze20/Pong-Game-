@@ -385,11 +385,9 @@ let magnetActive = false, magnetTimer = 0;
 let speedPickups = 0;
 let nearMissShown = 0;
 let countdownBeepPlayed = 0;
-let slowMoTimer = 0;
 let trailHue = 180;
 let glitchTimer = 0;
 let survivalSpeedMult = 1;
-let clutchTriggered = false;
 
 let scoreFlash = 0, scoreFlashSide = '';
 let leftHitGlow = 0, rightHitGlow = 0;
@@ -707,7 +705,7 @@ function resetState() {
     scoreFlash = 0; leftHitGlow = 0; rightHitGlow = 0;
     bradMod = 1; shieldTimer = 0; extraBalls = [];
     magnetActive = false; magnetTimer = 0; rphMod = 1; speedPickups = 0; nearMissShown = 0; xpLevelUpPending = 0;
-    slowMoTimer = 0; trailHue = 180; glitchTimer = 0; survivalSpeedMult = 1; clutchTriggered = false;
+    trailHue = 180; glitchTimer = 0; survivalSpeedMult = 1;
     for (let i = 0; i < TRAIL_LEN; i++) ballTrail[i] = { x: W / 2, y: H / 2, a: 0 };
     scorePopups = []; halftimeShown = false; hurryUpShown = false; goFlash = 0; countdownScale = 0;
     puStartTimes = {};
@@ -934,7 +932,6 @@ function loop(ts) {
     if (!gameOn) return;
     let dt = Math.min((ts - lastT) / 1000, 0.05);
     lastT = ts;
-    if (slowMoTimer > 0) { slowMoTimer = Math.max(0, slowMoTimer - dt); dt *= 0.14; }
     if (!paused) { update(dt); render(); }
     rafId = requestAnimationFrame(loop);
 }
@@ -1023,7 +1020,6 @@ function update(dt) {
         trailHue = 185;
         totalHits++;
         leftHitGlow = 0.4;
-        clutchTriggered = false;
         synthHit(); vibrate([25, 15, 25]);
         spawnParticles(lx, by, ['#00F0FF', '#39FF14', '#fff'], 12, false);
         screenShake = 0.08;
@@ -1049,7 +1045,6 @@ function update(dt) {
         bdy = Math.sin(a) * spd + ballSpinRate * 0.22;
         bspdMod = Math.min(bspdMod * 1.02, 1.6);
         trailHue = 310;
-        clutchTriggered = false;
         totalHits++;
         rightHitGlow = 0.4;
         synthHit(); vibrate([25, 15, 25]);
@@ -1098,7 +1093,7 @@ function update(dt) {
         spawnScorePopup(W * 0.75, H * 0.35, 1, 'right');
         if (lastScorer === 'right') { combo++; } else { combo = 1; lastScorer = 'right'; }
         if (combo > maxCombo) maxCombo = combo;
-        rallyHits = 0; ballSquash = 0; clutchTriggered = false;
+        rallyHits = 0; ballSquash = 0;
         synthAIScore(); vibrate([25, 20, 25]);
         spawnParticles(0, by, ['#FF6BF5', '#FFD700'], 12, false);
         screenShake = 0.1;
@@ -1167,12 +1162,6 @@ function update(dt) {
 
     if (rscore - lscore >= 3) playerWasDown = true;
     if (rallyHits > maxRally) maxRally = rallyHits;
-
-    // Clutch slow-mo: ball enters danger zone heading toward player goal
-    if (!clutchTriggered && bdx < 0 && bx < W * 0.12 && bx > 0) {
-        clutchTriggered = true;
-        slowMoTimer = 0.28;
-    }
 
     // Near-miss detection: ball just passed left paddle zone without scoring
     if (nearMissShown === 0 && bdx < 0 && bx < pmar + pw + brad * 3 && bx > pmar && Math.abs(by - (ly + pph / 2)) > pph * 0.55 && Math.abs(by - (ly + pph / 2)) < pph * 0.85) {
