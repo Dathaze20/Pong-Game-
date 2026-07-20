@@ -172,6 +172,54 @@ function synthStreak(tier) {
     } catch (_) {}
 }
 
+function synthLoss() {
+    if (!settings.sfxOn) return;
+    try {
+        const c = getAudioCtx();
+        [440, 370, 311, 262].forEach((freq, i) => {
+            const o = c.createOscillator(), g = c.createGain();
+            o.connect(g); g.connect(c.destination);
+            o.type = 'sine';
+            o.frequency.setValueAtTime(freq, c.currentTime + i * 0.13);
+            g.gain.setValueAtTime(0.2, c.currentTime + i * 0.13);
+            g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + i * 0.13 + 0.28);
+            o.start(c.currentTime + i * 0.13);
+            o.stop(c.currentTime + i * 0.13 + 0.3);
+        });
+    } catch (_) {}
+}
+
+function synthNearMiss() {
+    if (!settings.sfxOn) return;
+    try {
+        const c = getAudioCtx(), o = c.createOscillator(), g = c.createGain();
+        o.connect(g); g.connect(c.destination);
+        o.type = 'sine';
+        o.frequency.setValueAtTime(1200, c.currentTime);
+        o.frequency.exponentialRampToValueAtTime(600, c.currentTime + 0.08);
+        g.gain.setValueAtTime(0.12, c.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.1);
+        o.start(c.currentTime); o.stop(c.currentTime + 0.12);
+    } catch (_) {}
+}
+
+function synthXPUp() {
+    if (!settings.sfxOn) return;
+    try {
+        const c = getAudioCtx();
+        [880, 1320].forEach((freq, i) => {
+            const o = c.createOscillator(), g = c.createGain();
+            o.connect(g); g.connect(c.destination);
+            o.type = 'triangle';
+            o.frequency.setValueAtTime(freq, c.currentTime + i * 0.08);
+            g.gain.setValueAtTime(0.15, c.currentTime + i * 0.08);
+            g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + i * 0.08 + 0.18);
+            o.start(c.currentTime + i * 0.08);
+            o.stop(c.currentTime + i * 0.08 + 0.2);
+        });
+    } catch (_) {}
+}
+
 const bgMusicEl = $('bgMusic');
 let musicReady = false;
 bgMusicEl.addEventListener('canplaythrough', () => { musicReady = true; });
@@ -247,11 +295,14 @@ const settings = {
 
 // ===== ACHIEVEMENTS =====
 const BADGES = [
-    { id: 'first_win',  icon: '\u{1F3C6}', name: 'First Victory!',  desc: 'Win your first match' },
-    { id: 'shutout',    icon: '\u{1F512}', name: 'Shutout!',        desc: 'Win with opponent at 0' },
-    { id: 'rally8',     icon: '\u{1F525}', name: 'Rally Star!',     desc: 'Achieve an 8-hit rally' },
-    { id: 'comeback',   icon: '\u{26A1}',  name: 'Comeback Kid!',   desc: 'Win after being down 3+ points' },
-    { id: 'champ10',    icon: '\u{1F31F}', name: '10-Win Champ!',   desc: 'Win 10 matches total' },
+    { id: 'first_win',   icon: '\u{1F3C6}', name: 'First Victory!',   desc: 'Win your first match' },
+    { id: 'shutout',     icon: '\u{1F512}', name: 'Shutout!',         desc: 'Win with opponent at 0' },
+    { id: 'rally8',      icon: '\u{1F525}', name: 'Rally Star!',      desc: 'Achieve an 8-hit rally' },
+    { id: 'comeback',    icon: '\u{26A1}',  name: 'Comeback Kid!',    desc: 'Win after being down 3+ points' },
+    { id: 'champ10',     icon: '\u{1F31F}', name: '10-Win Champ!',    desc: 'Win 10 matches total' },
+    { id: 'speed_demon', icon: '\u{1F4A8}', name: 'Speed Demon!',     desc: 'Collect the Turbo power-up 3× in one match' },
+    { id: 'multi_scorer',icon: '\u{1F3B1}', name: 'Multiball MVP!',   desc: 'Score with an extra ball' },
+    { id: 'lvl5',        icon: '\u{1F4AA}', name: 'Level 5!',         desc: 'Reach player level 5' },
 ];
 const hasBadge = id => localStorage.getItem('badge_' + id) === 'true';
 const earnBadge = id => localStorage.setItem('badge_' + id, 'true');
@@ -271,6 +322,25 @@ const BG_THEMES = [
     { name: '\u{2744}\u{FE0F} Ice',      colors: ['#001a2d','#002244','#003355'], border: [180,230,255] },
     { name: '\u{1F52E} Galaxy',   colors: ['#0d0033','#1a0044','#330066'], border: [200,100,255] }
 ];
+
+// ===== XP SYSTEM =====
+const XP_PER_POINT = 10;
+const XP_PER_WIN = 50;
+const XP_PER_RALLY = 2;
+function getXP() { return parseInt(localStorage.getItem('playerXP') || '0'); }
+function addXP(amt) {
+    const prev = getXP();
+    const next = prev + amt;
+    localStorage.setItem('playerXP', next);
+    const prevLvl = xpToLevel(prev), nextLvl = xpToLevel(next);
+    if (nextLvl > prevLvl) {
+        xpLevelUpPending = nextLvl;
+        if (!hasBadge('lvl5') && nextLvl >= 5) { earnBadge('lvl5'); sessionBadges.push('lvl5'); }
+    }
+}
+function xpToLevel(xp) { return Math.floor(Math.sqrt(xp / 80)) + 1; }
+function xpForLevel(lvl) { return Math.pow(lvl - 1, 2) * 80; }
+let xpLevelUpPending = 0;
 
 // ===== CONFIG =====
 const WIN_SCORE = 15;
@@ -293,24 +363,28 @@ let tLeftY = null, tRightY = null;
 let p1TouchId = null, p2TouchId = null;
 const TOUCH_DEAD_ZONE = 4;
 let powerUp = null, puTimer = 0;
-let phMod = 1, bspdMod = 1;
+let phMod = 1, bspdMod = 1, rphMod = 1;
 let puTimers = [];
 let particles = [], announceQ = null;
 let screenShake = 0;
 let combo = 0, lastScorer = '';
 let rallyHits = 0;
 let ballSquash = 0, ballSquashHoriz = true;
+let ballSpin = 0, ballSpinRate = 0;
 let prevLeader = '';
 let hue = 0, glowPulse = 0;
-let totalHits = 0, maxCombo = 0;
+let totalHits = 0, maxCombo = 0, maxRally = 0;
 let serveTimer = 0;
 let serveDir = 1;
 let serveRamp = 0;
 let countdownNum = 0;
-let countdownBeepPlayed = 0;
 let countdownScale = 0;
 let goFlash = 0;
 let timerStarted = false;
+let magnetActive = false, magnetTimer = 0;
+let speedPickups = 0;
+let nearMissShown = 0;
+let countdownBeepPlayed = 0;
 
 let scoreFlash = 0, scoreFlashSide = '';
 let leftHitGlow = 0, rightHitGlow = 0;
@@ -327,13 +401,29 @@ let prevLy = 0, prevRy = 0;
 let halftimeShown = false;
 let hurryUpShown = false;
 let puStartTimes = {};
-const PU_DURATIONS = { speed: 6, freeze: 6, grow: 6, giant: 6, shield: 5 };
+const PU_DURATIONS = { speed: 6, freeze: 6, grow: 6, giant: 6, shield: 5, shrink: 6, magnet: 6 };
 
-let p1AvatarData = null, p2AvatarData = null;
 let p1AvatarImg = null, p2AvatarImg = null;
 
 let confetti = [];
 let confettiActive = false;
+
+// Ball trail history
+const TRAIL_LEN = 10;
+const ballTrail = Array.from({ length: TRAIL_LEN }, () => ({ x: 0, y: 0, a: 0 }));
+let trailIdx = 0;
+
+// Background stars
+const STAR_COUNT = 55;
+const stars = Array.from({ length: STAR_COUNT }, () => ({
+    x: Math.random(), y: Math.random(),
+    r: 0.5 + Math.random() * 1.2,
+    twinkle: Math.random() * Math.PI * 2,
+    speed: 0.4 + Math.random() * 0.9
+}));
+
+// Speed lines (shown when ball is fast)
+const speedLines = Array.from({ length: 12 }, () => ({ x: 0, y: 0, len: 0, alpha: 0, active: false }));
 
 // ===== RESIZE =====
 function resize() {
@@ -359,14 +449,15 @@ function scale() {
 
 function createPaddleGrads() {
     const pph = ph * phMod;
+    const rpph = ph * rphMod;
     leftPaddleGrad = ctx.createLinearGradient(pmar, 0, pmar, pph);
     leftPaddleGrad.addColorStop(0, '#00F0FF');
     leftPaddleGrad.addColorStop(0.5, '#00DDFF');
     leftPaddleGrad.addColorStop(1, '#39FF14');
-    rightPaddleGrad = ctx.createLinearGradient(W - pmar - pw, 0, W - pmar - pw, pph);
-    rightPaddleGrad.addColorStop(0, '#FF6BF5');
-    rightPaddleGrad.addColorStop(0.5, '#FF55E0');
-    rightPaddleGrad.addColorStop(1, '#FFD700');
+    rightPaddleGrad = ctx.createLinearGradient(W - pmar - pw, 0, W - pmar - pw, rpph);
+    rightPaddleGrad.addColorStop(0, rphMod < 1 ? '#FF3399' : '#FF6BF5');
+    rightPaddleGrad.addColorStop(0.5, rphMod < 1 ? '#FF5599' : '#FF55E0');
+    rightPaddleGrad.addColorStop(1, rphMod < 1 ? '#FF99CC' : '#FFD700');
 }
 
 // ===== SCREENS =====
@@ -393,8 +484,14 @@ function updateMenuStats() {
     const games = settings.totalGames;
     const btn = $('badgeRoomBtn');
     if (btn) btn.style.display = badges > 0 ? '' : 'none';
-    if (wins > 0 || best > 0 || badges > 0) {
+    const xp = getXP();
+    const lvl = xpToLevel(xp);
+    const xpNext = xpForLevel(lvl + 1);
+    const xpCur = xpForLevel(lvl);
+    const xpPct = Math.round(((xp - xpCur) / (xpNext - xpCur)) * 100);
+    if (wins > 0 || best > 0 || badges > 0 || xp > 0) {
         const parts = [];
+        parts.push('\u{1F4AA} Lvl ' + lvl + ' (' + xpPct + '%)');
         if (wins > 0) parts.push('\u{1F3C6} ' + wins + ' Win' + (wins !== 1 ? 's' : ''));
         if (best > 0) parts.push('\u{2B50} Best: ' + best);
         if (badges > 0) parts.push('\u{1F3C5} ' + badges + '/' + BADGES.length + ' Badges');
@@ -529,7 +626,8 @@ $('startGameButton').addEventListener('click', () => {
     getAudioCtx();
     settings.p1Name = $('player1NameInput').value.trim() || 'Player 1';
     const mode = $('gameMode').value;
-    settings.p2Name = mode === '2' ? ($('player2NameInput').value.trim() || 'Player 2') : 'AI';
+    const aiNames = { easy: '\u{1F916} Rookie', medium: '\u{1F525} Blaze', hard: '\u{1F47E} Nemesis' };
+    settings.p2Name = mode === '2' ? ($('player2NameInput').value.trim() || 'Player 2') : (aiNames[settings.difficulty] || 'AI');
     settings.gameMode = mode;
     $('hudP1Name').textContent = settings.p1Name;
     $('hudP2Name').textContent = settings.p2Name;
@@ -561,10 +659,12 @@ function resetState() {
     puTimers = [];
     particles = []; announceQ = null;
     screenShake = 0; combo = 0; lastScorer = ''; prevLeader = '';
-    totalHits = 0; maxCombo = 0; rallyHits = 0; ballSquash = 0;
+    totalHits = 0; maxCombo = 0; maxRally = 0; rallyHits = 0; ballSquash = 0; ballSpin = 0; ballSpinRate = 0;
     playerWasDown = false; sessionBadges = [];
     scoreFlash = 0; leftHitGlow = 0; rightHitGlow = 0;
     bradMod = 1; shieldTimer = 0; extraBalls = [];
+    magnetActive = false; magnetTimer = 0; rphMod = 1; speedPickups = 0; nearMissShown = 0; xpLevelUpPending = 0;
+    for (let i = 0; i < TRAIL_LEN; i++) ballTrail[i] = { x: W / 2, y: H / 2, a: 0 };
     scorePopups = []; halftimeShown = false; hurryUpShown = false; goFlash = 0; countdownScale = 0;
     puStartTimes = {};
     ly = ry = (H - ph) / 2;
@@ -812,8 +912,8 @@ function update(dt) {
         if (tRightY !== null && settings.gameMode === 2) ry = tRightY - pph / 2;
         if (keys.has('ArrowUp') || keys.has('w')) ly -= pspd * dt;
         if (keys.has('ArrowDown') || keys.has('s')) ly += pspd * dt;
-        ly = GameLogic.clampPaddle(ly, pph, H);
-        ry = GameLogic.clampPaddle(ry, pph, H);
+        ly = Math.max(0, Math.min(H - pph, ly));
+        ry = Math.max(0, Math.min(H - pph, ry));
         if (settings.gameMode === 1) updateAI(dt);
         updateParticles(dt);
         if (scoreFlash > 0) scoreFlash = Math.max(0, scoreFlash - dt);
@@ -845,13 +945,16 @@ function update(dt) {
     }
 
     const pph = ph * phMod;
+    const rpph = ph * rphMod;
 
     const lx = pmar + pw;
-    if (GameLogic.paddleHitsBall({ bx, by, br, bdx, pmar, pw, paddleY: ly, paddleH: pph, courtW: W, side: 'left' })) {
+    if (bdx < 0 && bx - br <= lx && bx + br > pmar &&
+        by + br >= ly && by - br <= ly + pph) {
         bx = lx + br;
-        const reflected = GameLogic.reflectOffPaddle({ by, paddleY: ly, paddleH: pph, speed: spd, side: 'left' });
-        bdx = reflected.bdx;
-        bdy = reflected.bdy;
+        const hit = (by - ly) / pph - 0.5;
+        const a = hit * (Math.PI / 3);
+        bdx = Math.abs(Math.cos(a)) * spd;
+        bdy = Math.sin(a) * spd;
         bspdMod = Math.min(bspdMod * 1.02, 1.6);
         totalHits++;
         leftHitGlow = 0.4;
@@ -860,6 +963,7 @@ function update(dt) {
         screenShake = 0.08;
         ballSquash = 0.45; ballSquashHoriz = true;
         rallyHits++;
+        addXP(XP_PER_RALLY);
         if (rallyHits === 3) { announce('3 HIT RALLY! \u{1F525}'); synthStreak(1); }
         else if (rallyHits === 5) { announce('5 HIT STREAK! \u{1F4A5}'); synthStreak(2); }
         else if (rallyHits === 8) {
@@ -870,11 +974,13 @@ function update(dt) {
     }
 
     const rx = W - pmar - pw;
-    if (GameLogic.paddleHitsBall({ bx, by, br, bdx, pmar, pw, paddleY: ry, paddleH: pph, courtW: W, side: 'right' })) {
+    if (bdx > 0 && bx + br >= rx && bx - br < W - pmar &&
+        by + br >= ry && by - br <= ry + rpph) {
         bx = rx - br;
-        const reflected = GameLogic.reflectOffPaddle({ by, paddleY: ry, paddleH: pph, speed: spd, side: 'right' });
-        bdx = reflected.bdx;
-        bdy = reflected.bdy;
+        const hit = (by - ry) / rpph - 0.5;
+        const a = hit * (Math.PI / 3);
+        bdx = -Math.abs(Math.cos(a)) * spd;
+        bdy = Math.sin(a) * spd;
         bspdMod = Math.min(bspdMod * 1.02, 1.6);
         totalHits++;
         rightHitGlow = 0.4;
@@ -883,6 +989,7 @@ function update(dt) {
         screenShake = 0.08;
         ballSquash = 0.45; ballSquashHoriz = true;
         rallyHits++;
+        addXP(XP_PER_RALLY);
         if (rallyHits === 3) { announce('3 HIT RALLY! \u{1F525}'); synthStreak(1); }
         else if (rallyHits === 5) { announce('5 HIT STREAK! \u{1F4A5}'); synthStreak(2); }
         else if (rallyHits === 8) {
@@ -956,6 +1063,7 @@ function update(dt) {
         if (lastScorer === 'left') { combo++; } else { combo = 1; lastScorer = 'left'; }
         if (combo > maxCombo) maxCombo = combo;
         rallyHits = 0; ballSquash = 0;
+        addXP(XP_PER_POINT);
         synthScore(); vibrate([40, 60, 40, 60, 50]);
         spawnParticles(W, by, ['#00F0FF', '#FFD700', '#FF6BF5', '#39FF14'], 25, true);
         screenShake = 0.2;
@@ -984,11 +1092,38 @@ function update(dt) {
     }
 
     if (rscore - lscore >= 3) playerWasDown = true;
+    if (rallyHits > maxRally) maxRally = rallyHits;
+
+    // Near-miss detection: ball just passed left paddle zone without scoring
+    if (nearMissShown === 0 && bdx < 0 && bx < pmar + pw + brad * 3 && bx > pmar && Math.abs(by - (ly + pph / 2)) > pph * 0.55 && Math.abs(by - (ly + pph / 2)) < pph * 0.85) {
+        nearMissShown = 1.5;
+        synthNearMiss();
+        announce('CLOSE! \u{1F605}');
+    }
+    if (nearMissShown > 0) nearMissShown = Math.max(0, nearMissShown - dt);
+
+    // Magnet: curve ball toward player paddle center when active
+    if (magnetActive && bdx < 0 && bx < W * 0.5) {
+        const targetY = ly + pph / 2;
+        bdy += (targetY - by) * 0.4 * dt;
+        const maxSpd = bspd * bspdMod * 1.2;
+        const curSpd = Math.hypot(bdx, bdy);
+        if (curSpd > maxSpd) { bdx = (bdx / curSpd) * maxSpd; bdy = (bdy / curSpd) * maxSpd; }
+    }
+    if (magnetTimer > 0) magnetTimer = Math.max(0, magnetTimer - dt);
+
+    // Ball spin
+    ballSpinRate = bdx * 0.08;
+    ballSpin += ballSpinRate * dt * 60;
+
+    // Update trail
+    ballTrail[trailIdx] = { x: bx, y: by, a: 1 };
+    trailIdx = (trailIdx + 1) % TRAIL_LEN;
 
     prevLy = ly; prevRy = ry;
 
     if (tLeftY !== null) { ly = tLeftY - pph / 2; }
-    if (tRightY !== null && settings.gameMode === 2) { ry = tRightY - pph / 2; }
+    if (tRightY !== null && settings.gameMode === 2) { ry = tRightY - rpph / 2; }
 
     if (keys.has('ArrowUp') || keys.has('w')) ly -= pspd * dt;
     if (keys.has('ArrowDown') || keys.has('s')) ly += pspd * dt;
@@ -997,8 +1132,8 @@ function update(dt) {
         if (keys.has('k')) ry += pspd * dt;
     }
 
-    ly = GameLogic.clampPaddle(ly, pph, H);
-    ry = GameLogic.clampPaddle(ry, pph, H);
+    ly = Math.max(0, Math.min(H - pph, ly));
+    ry = Math.max(0, Math.min(H - rpph, ry));
 
     if (settings.gameMode === 1) updateAI(dt);
     if (extraBalls.length > 0) updateExtraBalls(dt);
@@ -1014,24 +1149,45 @@ function update(dt) {
 
     updateParticles(dt);
     updateScorePopups(dt);
+    updateSpeedLines(dt);
     if (screenShake > 0) screenShake = Math.max(0, screenShake - dt);
     if (ballSquash > 0) ballSquash = Math.max(0, ballSquash - dt * 5);
     if (scoreFlash > 0) scoreFlash = Math.max(0, scoreFlash - dt);
     if (leftHitGlow > 0) leftHitGlow = Math.max(0, leftHitGlow - dt);
     if (rightHitGlow > 0) rightHitGlow = Math.max(0, rightHitGlow - dt);
     if (shieldTimer > 0) shieldTimer = Math.max(0, shieldTimer - dt);
+
+    // XP level-up toast
+    if (xpLevelUpPending > 0) {
+        announce('⬆️ LEVEL ' + xpLevelUpPending + '!'); synthXPUp(); vibrate([20, 15, 20]);
+        xpLevelUpPending = 0;
+    }
 }
 
 // ===== AI (progressive difficulty, rubber-banding) =====
-// See game-logic.js#computeAiDifficulty for the pure calculation this wraps.
 function getProgressiveAI() {
     const cfg = AI_CFG[settings.difficulty] || AI_CFG.medium;
-    return GameLogic.computeAiDifficulty(cfg, lscore, rscore, WIN_SCORE);
+    const totalPts = lscore + rscore;
+    const progress = Math.min(totalPts / (WIN_SCORE * 1.8), 1);
+    const lerp = (a, b, t) => a + (b - a) * t;
+    let spd = lerp(cfg.startSpd, cfg.endSpd, progress);
+    let err = lerp(cfg.startErr, cfg.endErr, progress);
+    let react = cfg.react * (0.6 + progress * 0.4);
+    const scoreDiff = rscore - lscore;
+    if (scoreDiff >= 5) { spd *= 0.76; err *= 3.0; react *= 0.78; }
+    else if (scoreDiff >= 4) { spd *= 0.82; err *= 2.5; react *= 0.83; }
+    else if (scoreDiff >= 3) { spd *= 0.87; err *= 2.0; react *= 0.88; }
+    else if (scoreDiff >= 2) { spd *= 0.92; err *= 1.55; react *= 0.93; }
+    else if (scoreDiff >= 1) { spd *= 0.96; err *= 1.28; react *= 0.97; }
+    else if (scoreDiff <= -3) { spd *= 1.04; err *= 0.76; }
+    else if (scoreDiff <= -2) { spd *= 1.02; err *= 0.86; }
+    return { speed: spd, err: err, react: react };
 }
 
 function updateAI(dt) {
     const cfg = getProgressiveAI();
     const pph = ph * phMod;
+    const rpph = ph * rphMod;
     const totalPts = lscore + rscore;
     const progress = Math.min(totalPts / (WIN_SCORE * 1.8), 1);
 
@@ -1055,11 +1211,11 @@ function updateAI(dt) {
             }
             aiTargetY = py + (Math.random() - 0.5) * cfg.err;
         } else {
-            aiTargetY = H / 2 + (Math.random() - 0.5) * pph * 0.6;
+            aiTargetY = H / 2 + (Math.random() - 0.5) * rpph * 0.6;
         }
     }
 
-    const center = ry + pph / 2;
+    const center = ry + rpph / 2;
     const diff = aiTargetY - center;
     const maxMove = pspd * cfg.speed * cfg.react * dt;
 
@@ -1067,7 +1223,7 @@ function updateAI(dt) {
         const moveAmt = Math.min(Math.abs(diff) * 0.1, maxMove);
         ry += Math.sign(diff) * moveAmt;
     }
-    ry = GameLogic.clampPaddle(ry, pph, H);
+    ry = Math.max(0, Math.min(H - rpph, ry));
 }
 
 // ===== POWER-UPS (Arkanoid SNES style) =====
@@ -1077,7 +1233,9 @@ const PU_TYPES = [
     { type: 'grow',   color: '#39FF14', letter: 'G', label: 'GROW!',      color2: '#00FF88' },
     { type: 'giant',  color: '#FF8800', letter: 'B', label: 'BIG BALL!',  color2: '#FFCC00' },
     { type: 'multiball', color: '#00FFAA', letter: 'M', label: 'MULTIBALL!', color2: '#00CC88' },
-    { type: 'shield', color: '#FFD700', letter: 'W', label: 'SHIELD!',    color2: '#FFE066' }
+    { type: 'shield',    color: '#FFD700', letter: 'W', label: 'SHIELD!',    color2: '#FFE066' },
+    { type: 'shrink',    color: '#FF3399', letter: 'Z', label: 'SHRINK!',    color2: '#FF77BB' },
+    { type: 'magnet',    color: '#AA88FF', letter: 'G', label: 'MAGNET!',    color2: '#CC99FF' }
 ];
 
 function spawnPowerUp() {
@@ -1131,6 +1289,17 @@ function applyPowerUp(type) {
         spawnExtraBalls();
     } else if (type === 'shield') {
         shieldTimer = 5;
+    } else if (type === 'shrink') {
+        rphMod = 0.45;
+        createPaddleGrads();
+        t = setTimeout(() => { rphMod = 1; createPaddleGrads(); delete puStartTimes.shrink; }, dur);
+    } else if (type === 'magnet') {
+        magnetActive = true; magnetTimer = 6;
+        t = setTimeout(() => { magnetActive = false; magnetTimer = 0; delete puStartTimes.magnet; }, dur);
+    }
+    if (type === 'speed') {
+        speedPickups++;
+        if (speedPickups >= 3 && !hasBadge('speed_demon')) { earnBadge('speed_demon'); sessionBadges.push('speed_demon'); }
     }
     if (t) puTimers.push(t);
 }
@@ -1156,6 +1325,7 @@ function spawnExtraBalls() {
 
 function updateExtraBalls(dt) {
     const pph = ph * phMod;
+    const rpph = ph * rphMod;
     const rampFactor = 0.72 + 0.28 * serveRamp;
     for (let i = extraBalls.length - 1; i >= 0; i--) {
         const eb = extraBalls[i];
@@ -1176,9 +1346,9 @@ function updateExtraBalls(dt) {
             synthHit(); spawnParticles(lx2, eb.y, ['#00F0FF', '#fff'], 8, false);
         }
         const rx2 = W - pmar - pw;
-        if (eb.dx > 0 && eb.x + ebr >= rx2 && eb.x - ebr < W - pmar && eb.y + ebr >= ry && eb.y - ebr <= ry + pph) {
+        if (eb.dx > 0 && eb.x + ebr >= rx2 && eb.x - ebr < W - pmar && eb.y + ebr >= ry && eb.y - ebr <= ry + rpph) {
             eb.x = rx2 - ebr;
-            const hit = (eb.y - ry) / pph - 0.5;
+            const hit = (eb.y - ry) / rpph - 0.5;
             const a = hit * (Math.PI / 3);
             const spd2 = Math.hypot(eb.dx, eb.dy);
             eb.dx = -Math.abs(Math.cos(a)) * spd2; eb.dy = Math.sin(a) * spd2;
@@ -1191,9 +1361,10 @@ function updateExtraBalls(dt) {
             extraBalls.splice(i, 1);
             if (rscore >= WIN_SCORE) { endGame(settings.p2Name + ' Wins!'); return; }
         } else if (eb.x > W + ebr * 2) {
-            lscore++; updateHUD();
+            lscore++; updateHUD(); addXP(XP_PER_POINT);
             spawnParticles(W, eb.y, ['#00F0FF', '#FFD700'], 12, true);
             screenShake = 0.12; synthScore(); vibrate([30, 40, 30]);
+            if (!hasBadge('multi_scorer')) { earnBadge('multi_scorer'); sessionBadges.push('multi_scorer'); }
             extraBalls.splice(i, 1);
             if (lscore >= WIN_SCORE) { endGame(settings.p1Name + ' Wins!'); return; }
         }
@@ -1220,6 +1391,50 @@ function renderExtraBalls(hc) {
         ctx.fillStyle = 'rgba(255,255,255,0.5)';
         ctx.fill();
         ctx.globalAlpha = 1;
+    }
+}
+
+// ===== SPEED LINES =====
+function updateSpeedLines(dt) {
+    const speed = Math.hypot(bdx, bdy);
+    const threshold = bspd * 1.25;
+    if (speed > threshold) {
+        const ratio = Math.min((speed - threshold) / (bspd * 0.5), 1);
+        for (const sl of speedLines) {
+            if (!sl.active && Math.random() < 0.4) {
+                sl.active = true;
+                sl.x = bx + (Math.random() - 0.5) * brad * 4;
+                sl.y = by + (Math.random() - 0.5) * brad * 4;
+                sl.len = 18 + Math.random() * 36;
+                sl.alpha = ratio * 0.5;
+            }
+        }
+    }
+    for (const sl of speedLines) {
+        if (sl.active) {
+            sl.alpha -= dt * 3;
+            sl.x -= bdx * dt * 0.5;
+            sl.y -= bdy * dt * 0.5;
+            if (sl.alpha <= 0) sl.active = false;
+        }
+    }
+}
+
+function renderSpeedLines(hue) {
+    const speed = Math.hypot(bdx, bdy);
+    if (speed <= bspd * 1.15) return;
+    const angle = Math.atan2(bdy, bdx);
+    for (const sl of speedLines) {
+        if (!sl.active) continue;
+        ctx.save();
+        ctx.globalAlpha = sl.alpha;
+        ctx.strokeStyle = `hsl(${hue}, 100%, 70%)`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(sl.x, sl.y);
+        ctx.lineTo(sl.x - Math.cos(angle) * sl.len, sl.y - Math.sin(angle) * sl.len);
+        ctx.stroke();
+        ctx.restore();
     }
 }
 
@@ -1260,6 +1475,20 @@ function render() {
     }
     ctx.fillStyle = bgGrad;
     ctx.fillRect(-10, -10, W + 20, H + 20);
+
+    // Animated star field
+    if (!hc) {
+        const now2 = performance.now() / 1000;
+        for (const s of stars) {
+            const a = 0.25 + Math.sin(s.twinkle + now2 * s.speed) * 0.2;
+            ctx.globalAlpha = a;
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+    }
 
     // Radiating border with rounded corners
     if (!hc) {
@@ -1351,7 +1580,7 @@ function render() {
                 ctx.globalAlpha = trailAlpha * (1 - i * 0.3);
                 ctx.fillStyle = '#FF6BF5';
                 ctx.beginPath();
-                ctx.roundRect(W - pmar - pw, ry + hoverOff + rDelta * i * 0.25, pw, pph, pw / 2.5);
+                ctx.roundRect(W - pmar - pw, ry + hoverOff + rDelta * i * 0.25, pw, ph * rphMod, pw / 2.5);
                 ctx.fill();
             }
             ctx.globalAlpha = 1;
@@ -1385,70 +1614,97 @@ function render() {
         ctx.fill();
     }
 
-    // Right paddle — crisp with subtle glow
+    // Right paddle — crisp with subtle glow (rpph)
+    const rpph = ph * rphMod;
     if (!hc) {
         const rGlow = 0.015 + glowAmt * 0.025 + rightHitGlow * 0.5;
-        ctx.fillStyle = `rgba(255,107,245,${rGlow})`;
+        ctx.fillStyle = rphMod < 1 ? `rgba(255,51,153,${rGlow})` : `rgba(255,107,245,${rGlow})`;
         const rExp = 5 + rightHitGlow * 10;
         ctx.beginPath();
-        ctx.roundRect(W - pmar - pw - rExp, ry + hoverOff - rExp, pw + rExp * 2, pph + rExp * 2, pw / 2 + rExp);
+        ctx.roundRect(W - pmar - pw - rExp, ry + hoverOff - rExp, pw + rExp * 2, rpph + rExp * 2, pw / 2 + rExp);
         ctx.fill();
     }
     ctx.fillStyle = hc ? '#FFF' : rightPaddleGrad;
     ctx.beginPath();
-    ctx.roundRect(W - pmar - pw, ry + hoverOff, pw, pph, pw / 2.5);
+    ctx.roundRect(W - pmar - pw, ry + hoverOff, pw, rpph, pw / 2.5);
     ctx.fill();
     if (!hc) {
         ctx.strokeStyle = 'rgba(255,255,255,0.3)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.roundRect(W - pmar - pw, ry + hoverOff, pw, pph, pw / 2.5);
+        ctx.roundRect(W - pmar - pw, ry + hoverOff, pw, rpph, pw / 2.5);
         ctx.stroke();
     }
     if (rightHitGlow > 0 && !hc) {
         ctx.fillStyle = `rgba(255,255,255,${rightHitGlow * 0.4})`;
         ctx.beginPath();
-        ctx.roundRect(W - pmar - pw, ry + hoverOff, pw, pph, pw / 2.5);
+        ctx.roundRect(W - pmar - pw, ry + hoverOff, pw, rpph, pw / 2.5);
         ctx.fill();
     }
 
-    // Ball trail
+    // Ball trail — long neon history
     if (!hc) {
-        for (let i = 3; i >= 1; i--) {
-            const t = i / 3;
+        for (let i = 0; i < TRAIL_LEN; i++) {
+            const idx = (trailIdx - 1 - i + TRAIL_LEN) % TRAIL_LEN;
+            const tp = ballTrail[idx];
+            if (!tp || (tp.x === 0 && tp.y === 0)) continue;
+            const t = (TRAIL_LEN - i) / TRAIL_LEN;
+            const r = bRad * t * 0.85;
+            if (r < 0.5) continue;
             ctx.beginPath();
-            ctx.arc(bx - bdx * t * 0.025, by - bdy * t * 0.025, bRad * (1 - t * 0.12), 0, Math.PI * 2);
-            ctx.fillStyle = `hsla(${(hue - i * 30 + 360) % 360}, 100%, 60%, ${0.12 - t * 0.03})`;
+            ctx.arc(tp.x, tp.y, r, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${(hue - i * 22 + 360) % 360}, 100%, 65%, ${t * 0.18})`;
             ctx.fill();
         }
     }
 
-    // Ball glow + body + highlight (squash & stretch on hit)
+    renderSpeedLines(hue);
+
+    // Ball glow + body + highlight + spin + chromatic aberration
     ctx.save();
     ctx.translate(bx, by);
     if (ballSquash > 0) {
         const sq = ballSquash;
-        if (ballSquashHoriz) { ctx.scale(1 - sq * 0.38, 1 + sq * 0.38); }
-        else { ctx.scale(1 + sq * 0.22, 1 - sq * 0.22); }
+        if (ballSquashHoriz) ctx.scale(1 - sq * 0.38, 1 + sq * 0.38);
+        else ctx.scale(1 + sq * 0.22, 1 - sq * 0.22);
     }
+    // Outer glow
     if (!hc) {
         ctx.beginPath();
-        ctx.arc(0, 0, bRad * 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${bradMod > 1 ? 0.15 : 0.08})`;
+        ctx.arc(0, 0, bRad * 2.8, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${bradMod > 1 ? 0.14 : 0.07})`;
         ctx.fill();
+        // Chromatic aberration rings
+        ctx.globalAlpha = 0.18;
+        ctx.beginPath(); ctx.arc(-bRad * 0.15, 0, bRad * 0.9, 0, Math.PI * 2);
+        ctx.fillStyle = '#FF3366'; ctx.fill();
+        ctx.beginPath(); ctx.arc(bRad * 0.15, 0, bRad * 0.9, 0, Math.PI * 2);
+        ctx.fillStyle = '#00FFFF'; ctx.fill();
+        ctx.globalAlpha = 1;
     }
+    // Main body
     ctx.beginPath();
     ctx.arc(0, 0, bRad, 0, Math.PI * 2);
     ctx.fillStyle = ballColor;
     ctx.fill();
     if (bradMod > 1 && !hc) {
-        ctx.strokeStyle = `hsla(${hue}, 100%, 70%, 0.6)`;
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = `hsla(${hue}, 100%, 80%, 0.7)`;
+        ctx.lineWidth = 2.5;
         ctx.stroke();
     }
+    // Spin marker
+    if (!hc) {
+        const sx = Math.cos(ballSpin * 0.04) * bRad * 0.55;
+        const sy = Math.sin(ballSpin * 0.04) * bRad * 0.55;
+        ctx.beginPath();
+        ctx.arc(sx, sy, bRad * 0.18, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.fill();
+    }
+    // Highlight
     ctx.beginPath();
-    ctx.arc(-bRad * 0.2, -bRad * 0.2, bRad * 0.3, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.arc(-bRad * 0.22, -bRad * 0.22, bRad * 0.28, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.fill();
     ctx.restore();
 
@@ -1464,6 +1720,8 @@ function render() {
         if (bradMod > 1.1) inds.push({ label: '\u{1F3C0} BIG BALL', color: '#FF8800', type: 'giant' });
         if (extraBalls.length > 0) inds.push({ label: '\u{1F3B1} MULTIBALL', color: '#00FFAA', type: 'multiball' });
         if (shieldTimer > 0) inds.push({ label: '\u{1F6E1}\u{FE0F} SHIELD', color: '#FFD700', type: 'shield' });
+        if (rphMod < 1) inds.push({ label: '\u{26A1} SHRINK!', color: '#FF3399', type: 'shrink' });
+        if (magnetActive) inds.push({ label: '\u{1F9F2} MAGNET', color: '#AA88FF', type: 'magnet' });
         if (inds.length > 0) {
             const fs = Math.round(Math.min(W, H) * 0.032);
             const barW = Math.min(120, W * 0.15);
@@ -1780,16 +2038,18 @@ function restart() {
 function spawnConfetti() {
     confetti = [];
     const colors = ['#FF6BF5', '#FFD700', '#00F0FF', '#39FF14', '#FF4444', '#B44FFF', '#FF8800', '#fff'];
-    for (let i = 0; i < 120; i++) {
+    const shapes = ['rect', 'circle', 'triangle'];
+    for (let i = 0; i < 140; i++) {
         confetti.push({
             x: Math.random() * W,
             y: -20 - Math.random() * H * 0.5,
-            vx: (Math.random() - 0.5) * 200,
-            vy: 150 + Math.random() * 300,
-            size: 4 + Math.random() * 6,
+            vx: (Math.random() - 0.5) * 220,
+            vy: 140 + Math.random() * 320,
+            size: 4 + Math.random() * 7,
             color: colors[Math.floor(Math.random() * colors.length)],
+            shape: shapes[Math.floor(Math.random() * shapes.length)],
             rot: Math.random() * Math.PI * 2,
-            rotV: (Math.random() - 0.5) * 8,
+            rotV: (Math.random() - 0.5) * 9,
             life: 3 + Math.random() * 2,
             maxLife: 3 + Math.random() * 2
         });
@@ -1822,7 +2082,20 @@ function renderConfetti() {
         ctx.translate(c.x, c.y);
         ctx.rotate(c.rot);
         ctx.fillStyle = c.color;
-        ctx.fillRect(-c.size / 2, -c.size / 4, c.size, c.size / 2);
+        if (c.shape === 'circle') {
+            ctx.beginPath();
+            ctx.arc(0, 0, c.size * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (c.shape === 'triangle') {
+            ctx.beginPath();
+            ctx.moveTo(0, -c.size * 0.6);
+            ctx.lineTo(c.size * 0.55, c.size * 0.4);
+            ctx.lineTo(-c.size * 0.55, c.size * 0.4);
+            ctx.closePath();
+            ctx.fill();
+        } else {
+            ctx.fillRect(-c.size * 0.5, -c.size * 0.25, c.size, c.size * 0.5);
+        }
         ctx.restore();
     }
     ctx.globalAlpha = 1;
@@ -1884,7 +2157,7 @@ function endGame(msg) {
     const best = Math.max(lscore, rscore);
     const isNewBest = best > settings.bestScore;
     if (isNewBest) settings.bestScore = best;
-    if (p1Won && settings.gameMode === 1) checkBadges();
+    if (p1Won && settings.gameMode === 1) { checkBadges(); addXP(XP_PER_WIN); }
 
     screens.hud.style.display = 'none';
     screens.controls.style.display = 'none';
@@ -1902,7 +2175,7 @@ function endGame(msg) {
         celebrationLoop._last = performance.now();
         celebrationRafId = requestAnimationFrame(celebrationLoop);
     } else {
-        synthAIScore();
+        synthLoss();
         vibrate([120, 80, 40]);
         canvas.style.display = 'none';
         const card = document.querySelector('.gameover-card');
@@ -1934,6 +2207,7 @@ function endGame(msg) {
     speak(displayMsg);
 
     let statsLine = lscore + ' - ' + rscore + '  \u{2022}  ' + totalHits + ' hits  \u{2022}  ' + maxCombo + 'x combo';
+    if (maxRally > 0) statsLine += '  \u{2022}  ' + maxRally + ' rally';
     if (settings.gameMode === 1) statsLine += '  \u{2022}  ' + settings.totalWins + ' wins';
     if (isNewBest) statsLine += '  \u{2022}  NEW BEST!';
     $('finalScore').textContent = statsLine;
