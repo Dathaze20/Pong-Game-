@@ -954,7 +954,7 @@ function update(dt) {
         else countdownNum = 0;
 
         if (countdownNum !== prev && countdownNum > 0) {
-            countdownScale = 2.8;
+            countdownScale = 1.8;
             screenShake = 0.04;
             synthCountdown(false);
             vibrate(countdownNum === 1 ? [40, 25, 40] : 25);
@@ -1936,7 +1936,7 @@ function render() {
         const cdColors = { 3: '#00F0FF', 2: '#FFD700', 1: '#FF4444' };
         const cdGlows = { 3: '0,240,255', 2: '255,215,0', 1: '255,68,68' };
         if (countdownNum > 0) {
-            const baseSize = Math.round(Math.min(W, H) * 0.3);
+            const baseSize = Math.round(Math.min(W, H) * 0.18);
             const sc = countdownScale > 1 ? countdownScale : 1;
             const sz = Math.round(baseSize * sc);
             const col = cdColors[countdownNum] || '#FFD700';
@@ -1995,7 +1995,7 @@ function render() {
     }
 
     if (goFlash > 0) {
-        const goSz = Math.round(Math.min(W, H) * 0.35 * (1 + (0.6 - goFlash) * 0.3));
+        const goSz = Math.round(Math.min(W, H) * 0.22 * (1 + (0.6 - goFlash) * 0.3));
         const goAlpha = Math.min(1, goFlash * 2.5);
         ctx.font = `900 ${goSz}px 'Bungee', sans-serif`;
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
