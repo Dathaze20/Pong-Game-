@@ -57,6 +57,8 @@
             <select id="gameMode">
                 <option value="1">&#129302; VS AI</option>
                 <option value="2">&#129309; VS Friend</option>
+                <option value="3">&#128128; Survival</option>
+                <option value="4">&#9201; Time Attack</option>
             </select>
             <button id="startGameButton" class="btn-play">&#9889; LET'S GO!</button>
             <div class="menu-row">
@@ -64,7 +66,10 @@
                 <button id="howToPlayButton" class="btn-small">&#128161; How To Play</button>
             </div>
             <div id="menuStats" class="menu-stats" style="display:none;"></div>
-            <button id="badgeRoomBtn" class="btn-small" style="display:none;">&#127941; My Badges</button>
+            <div class="menu-row" id="menuExtraRow" style="display:none;">
+                <button id="badgeRoomBtn" class="btn-small">&#127941; Badges</button>
+                <button id="hallOfFameBtn" class="btn-small">&#127942; Hall of Fame</button>
+            </div>
         </div>
     </div>
 
@@ -74,6 +79,15 @@
             <h1 class="menu-title">&#127941; My Badges</h1>
             <div id="badgeRoomGrid" class="badge-room-grid"></div>
             <button id="backFromBadges" class="btn-small">&#8592; Back</button>
+        </div>
+    </div>
+
+    <!-- Hall of Fame -->
+    <div id="hallOfFame" style="display:none;">
+        <div class="menu-card">
+            <h1 class="menu-title">&#127942; Hall of Fame</h1>
+            <div id="hofList" class="hof-list"></div>
+            <button id="backFromHof" class="btn-small">&#8592; Back</button>
         </div>
     </div>
 
@@ -146,7 +160,12 @@
         <div class="sf-hud">
             <div class="sf-plate sf-left">
                 <img id="hudP1Pic" class="sf-avatar" src="" alt="">
-                <span id="hudP1Name" class="sf-name sf-name-left">P1</span>
+                <div class="sf-info-col">
+                    <span id="hudP1Name" class="sf-name sf-name-left">P1</span>
+                    <div class="score-bar-wrap score-bar-wrap-left">
+                        <div id="hudP1Bar" class="score-bar score-bar-left"></div>
+                    </div>
+                </div>
                 <span id="leftScoreHUD" class="sf-score sf-score-left">0</span>
             </div>
             <div class="sf-center">
@@ -155,7 +174,12 @@
             </div>
             <div class="sf-plate sf-right">
                 <span id="rightScoreHUD" class="sf-score sf-score-right">0</span>
-                <span id="hudP2Name" class="sf-name sf-name-right">P2</span>
+                <div class="sf-info-col">
+                    <span id="hudP2Name" class="sf-name sf-name-right">P2</span>
+                    <div class="score-bar-wrap score-bar-wrap-right">
+                        <div id="hudP2Bar" class="score-bar score-bar-right"></div>
+                    </div>
+                </div>
                 <img id="hudP2Pic" class="sf-avatar" src="" alt="">
             </div>
         </div>
@@ -194,7 +218,10 @@
             <p id="finalScore"></p>
             <div id="badgeEarned" class="badge-earned-row" style="display:none;"></div>
             <button id="playAgainButton" class="btn-play">&#9889; Play Again!</button>
-            <button id="mainMenuButton" class="btn-small">&#8592; Main Menu</button>
+            <div class="menu-row" style="width:100%;">
+                <button id="mainMenuButton" class="btn-small">&#8592; Menu</button>
+                <button id="shareScoreBtn" class="btn-small" style="display:none;">&#128228; Share</button>
+            </div>
         </div>
     </div>
 
@@ -216,7 +243,6 @@
         <source src="Original Tetris theme (Tetris Soundtrack).mp3" type="audio/mpeg">
     </audio>
 
-    <script src="game-logic.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
