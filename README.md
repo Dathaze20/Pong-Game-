@@ -165,9 +165,9 @@ No screenshot images are committed to the repository yet. The three captures tha
 
 ## Audio Licensing Notice
 
-The repository contains a committed file named **`Original Tetris theme (Tetris Soundtrack).mp3`** which is referenced as the default background music in `index.html` and `service-worker.js`.
+The repository currently contains a committed file named **`Original Tetris theme (Tetris Soundtrack).mp3`**, which is used as the default background music in `index.html` and `service-worker.js`.
 
-The Tetris theme music is owned by The Tetris Company and is **not freely distributable**. Committing and serving this file via GitHub Pages likely constitutes copyright infringement. **This file should be replaced with a royalty-free or original composition before the project is shared publicly.** The custom music upload feature already lets players supply their own track, so the default can be swapped for any permissively licensed audio file.
+The licensing and provenance of this specific recording are not documented in the repository. Because a particular recording or arrangement can carry copyright or other usage restrictions even when based on an older folk melody, this file should be replaced with an original or clearly licensed royalty-free track before public distribution. The custom music upload feature means the game does not depend on this default track.
 
 ---
 
