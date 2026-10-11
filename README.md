@@ -1,6 +1,6 @@
 # Super Pong!
 
-A neon arcade game built with vanilla HTML, CSS, and JavaScript — no frameworks, no bundlers, no installs. Four game modes, nine power-ups, a full XP and badge progression system, custom player avatars and music, and a Street Fighter-style HUD, all running at smooth 60 fps directly in your browser.
+A neon arcade game built with vanilla HTML, CSS, and JavaScript — no frameworks, no bundlers, no installs. Four game modes, nine power-ups, a full XP and badge progression system, custom player avatars and music, and a Street Fighter-style HUD, all running directly in your browser.
 
 Playable in any modern browser. Installable as a PWA on Android and iOS. Deployed automatically to GitHub Pages.
 
@@ -124,18 +124,17 @@ A docked bar at the bottom of the screen provides four quick-access buttons: **T
 
 ## Persistence
 
-All settings, XP, player level, badges, names, photos, and high scores are saved to **`localStorage`** automatically. Nothing is lost when you close the browser — no account or server required.
+All settings, XP, player level, badges, names, photos, and high scores are saved to **`localStorage`** automatically — no account or server required. Progress survives normal browser closing and reopening. Note that clearing your browser's site data for the page (via Chrome Settings → Privacy → Clear browsing data, or "Clear site data" for the specific site) will erase locally saved progress.
 
 ---
 
 ## Screenshots
 
-> Screenshots will be added here. To add your own: take captures during gameplay on your phone, commit the image files to the repository, and replace the placeholders below.
->
-> Recommended captures:
-> 1. **Gameplay** — Street Fighter-style HUD, live score bars, a power-up active on the canvas
-> 2. **Setup screen** — mode selector, player name inputs, photo picker, custom music button
-> 3. **Badge Room or Hall of Fame** — earned badges or top-10 leaderboard
+Screenshots have not been added to the repository yet. When added, the most representative captures would be:
+
+- **Gameplay** — Street Fighter-style HUD with player names and avatars, live score bars, and a power-up active on the canvas
+- **Setup screen** — game mode selector, player name inputs, photo picker circles, and the custom music button
+- **Badge Room or Hall of Fame** — earned badges or the top-10 leaderboard, showing the game's progression beyond a single match
 
 ---
 
@@ -209,7 +208,7 @@ No build step — the site is the repo as-is (`node_modules`, tests, and config 
 
 ## Audio Licensing Notice
 
-The repository contains a committed file named **`Original Tetris theme (Tetris Soundtrack).mp3`**, used as the default background music in `index.html` and `service-worker.js`.
+The repository currently contains a committed file named **`Original Tetris theme (Tetris Soundtrack).mp3`**, which is used as the default background music in `index.html` and `service-worker.js`.
 
 The licensing and provenance of this specific recording are not documented in the repository. Because a particular recording or arrangement can carry copyright or other usage restrictions even when based on an older folk melody, this file should be replaced with an original or clearly licensed royalty-free track before public distribution. The custom music upload feature means the game does not depend on this default track.
 
