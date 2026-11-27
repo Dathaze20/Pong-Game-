@@ -12,6 +12,8 @@ Playable in any modern browser. Installable as a PWA on Android and iOS. Deploye
 
 No download required. Open the link in Chrome on any phone, tablet, or desktop and tap **LET'S GO!**
 
+**Also playable on itch.io:** [dathaze20.itch.io/super-pong](https://dathaze20.itch.io/super-pong). Leave a comment or rating there if you enjoy it.
+
 ---
 
 ## Install on Android (PWA)
